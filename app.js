@@ -1138,3 +1138,10 @@ function onGerantQtyInput(e) {
   updateTotal();
   scheduleSave();
 }
+// ---- Démarrage de l'application ----
+console.log("[TRACE] Initialisation de l'application");
+
+document.addEventListener("DOMContentLoaded", () => {
+  console.log("[TRACE] DOMContentLoaded → lancement renderEtabScreen()");
+  renderEtabScreen();
+});
