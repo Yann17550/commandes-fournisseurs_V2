@@ -18,7 +18,7 @@ const CONFIG = {
 
   // ---- Apps Script (après déploiement) --------------------
   // Laissez '' tant que vous n'avez pas déployé le script
-  APPS_SCRIPT_URL: '',
+  APPS_SCRIPT_URL: 'https://script.google.com/macros/s/AKfycbyi2xS5tB1dMwtxigloetFXQfN6INssG-8PfyrDwdin3O7gF3Q_Fo-HTtpQMl_sNi24kg/exec',
 
   // ---- Colonnes feuille produits --------------------------
   COLS: {
@@ -50,3 +50,5 @@ const CONFIG = {
   // ---- Saison (mois 1=jan … 12=dec) ----------------------
   MOIS_SAISON: [4, 5, 6, 7, 8, 9, 10],
 };
+console.log("[APP] CONFIG =", CONFIG);
+console.log("[APP] CONFIG.ETABS =", CONFIG?.ETABS);
