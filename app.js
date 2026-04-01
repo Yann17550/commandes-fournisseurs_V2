@@ -324,44 +324,47 @@ function showSaveStatus(msg) {
 }
 
 // ---- Ecran etablissement ----------------------------------
+// ---- Écran établissement ----------------------------------
 function renderEtabScreen() {
-  etabCards.innerHTML = CONFIG.ETABS.map(e=>`
+  etabCards.innerHTML = CONFIG.ETABS.map(e => `
     <button class="etab-card" data-etab="${e.id}">
       <span class="etab-card-icon">${e.icon}</span>
       <span class="etab-card-label">${escHtml(e.label)}</span>
     </button>`).join('');
-  etabCards.querySelectorAll('.etab-card').forEach(btn=>{
-    btn.addEventListener('click',()=>selectEtab(btn.dataset.etab));
+
+  etabCards.querySelectorAll('.etab-card').forEach(btn => {
+    btn.addEventListener('click', () => selectEtab(btn.dataset.etab));
   });
-  screenEtab.style.display='flex';
-  screenApp.style.display='none';
+
+  screenEtab.style.display = 'flex';
+  screenApp.style.display  = 'none';
 }
 
 async function selectEtab(id) {
-  const etab = CONFIG.ETABS.find(e=>e.id===id); 
-  if(!etab) return;
+  const etab = CONFIG.ETABS.find(e => e.id === id);
+  if (!etab) return;
 
   const prevId = state.etab ? state.etab.id : null;
   state.etab = etab;
   saveEtabLocal(id);
 
-  etabPill.textContent = etab.icon+' '+etab.label;
-  $('summaryTitle').textContent = 'Commande — '+etab.label;
+  etabPill.textContent = etab.icon + ' ' + etab.label;
+  $('summaryTitle').textContent = 'Commande — ' + etab.label;
 
-  screenEtab.style.display='none';
-  screenApp.style.display='flex';
-  switchEtabBtn.style.display='block';
+  screenEtab.style.display = 'none';
+  screenApp.style.display  = 'flex';
+  switchEtabBtn.style.display = 'block';
 
-  if(!state.loaded) {
+  if (!state.loaded) {
     await loadData();
     return;
   }
 
-  if(prevId !== id) {
-    loadingState.style.display='flex';
-    productList.style.display='none';
+  if (prevId !== id) {
+    loadingState.style.display = 'flex';
+    productList.style.display  = 'none';
 
-    if(id === 'gerant') {
+    if (id === 'gerant') {
       const savedA = await loadCommandeRemoteById('a');
       const savedB = await loadCommandeRemoteById('b');
       state.quantities_a = savedA || {};
@@ -370,8 +373,8 @@ async function selectEtab(id) {
       const saved = await loadCommandeRemoteById(id);
       const histo = await loadHistoRemote();
       state.quantities = saved || {};
-      if(histo && histo.quantities){
-        state.lastOrder = histo.quantities;
+      if (histo && histo.quantities) {
+        state.lastOrder   = histo.quantities;
         state.lastSemaine = histo.semaine || '';
       }
     }
@@ -384,64 +387,66 @@ async function selectEtab(id) {
   render();
 }
 
-switchEtabBtn.addEventListener('click',()=>{
-  screenApp.style.display='none'; renderEtabScreen();
+switchEtabBtn.addEventListener('click', () => {
+  screenApp.style.display = 'none';
+  renderEtabScreen();
 });
-etabPill.addEventListener('click',()=>{
-  screenApp.style.display='none'; renderEtabScreen();
+
+etabPill.addEventListener('click', () => {
+  screenApp.style.display = 'none';
+  renderEtabScreen();
 });
 
 // ---- Chargement -------------------------------------------
 async function loadData() {
-  loadingState.style.display='flex';
-  productList.style.display='none';
+  loadingState.style.display = 'flex';
+  productList.style.display  = 'none';
   state.error = null;
 
   try {
-    const tsvP = await fetch(CONFIG.SHEETS.produits,{cache:'no-store'})
-      .then(r=>{ if(!r.ok) throw new Error('HTTP '+r.status); return r.text(); });
+    const tsvP = await fetch(CONFIG.SHEETS.produits, { cache: 'no-store' })
+      .then(r => { if (!r.ok) throw new Error('HTTP ' + r.status); return r.text(); });
 
-    const tsvF = await fetch(CONFIG.SHEETS.fournisseurs,{cache:'no-store'})
-      .then(r=>r.text())
-      .catch(()=>'');
+    const tsvF = await fetch(CONFIG.SHEETS.fournisseurs, { cache: 'no-store' })
+      .then(r => r.text())
+      .catch(() => '');
 
-    state.produits = parseProduits(tsvP);
+    state.produits     = parseProduits(tsvP);
     state.fournisseurs = parseFournisseurs(tsvF);
-    state.loaded = true;
+    state.loaded       = true;
 
-    if(state.etab && state.etab.id === 'gerant') {
+    if (state.etab && state.etab.id === 'gerant') {
       const savedA = await loadCommandeRemoteById('a');
       const savedB = await loadCommandeRemoteById('b');
       state.quantities_a = savedA || {};
       state.quantities_b = savedB || {};
-      if(Object.keys(state.quantities_a).length>0 || Object.keys(state.quantities_b).length>0)
+      if (Object.keys(state.quantities_a).length > 0 || Object.keys(state.quantities_b).length > 0) {
         showToast('📂 Commandes restaurées');
+      }
     } else {
       const saved = await loadCommandeRemote();
       const histo = await loadHistoRemote();
 
-      if(Object.keys(saved).length>0){
+      if (Object.keys(saved).length > 0) {
         state.quantities = saved;
         showToast('📂 Commande restaurée');
       }
 
-      if(histo && histo.quantities){
-        state.lastOrder = histo.quantities;
+      if (histo && histo.quantities) {
+        state.lastOrder   = histo.quantities;
         state.lastSemaine = histo.semaine || '';
       }
     }
 
     render();
-
-  } catch(err) {
+  } catch (err) {
     console.error(err);
     state.error = err.message;
-    loadingState.style.display='none';
+    loadingState.style.display = 'none';
     renderError();
   }
 }
 
-}
 // ---- Fournisseurs -----------------------------------------
 function getSuppliers() {
   const p = getProduitsForEtab();
