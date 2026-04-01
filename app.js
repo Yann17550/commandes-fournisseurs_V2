@@ -384,8 +384,6 @@ async function selectEtab(id) {
   render();
 }
 
-}
-
 switchEtabBtn.addEventListener('click',()=>{
   screenApp.style.display='none'; renderEtabScreen();
 });
