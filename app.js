@@ -2,6 +2,7 @@
 //  APP.JS — Commandes Fournisseurs v3
 //  Multi-etablissement, colissage, historique, edition inline
 // ============================================================
+console.log('[APP] app.js chargé');
 
 // ---- Apprentissage ----------------------------------------
 const LEARN_KEY = 'cmd_scores';
