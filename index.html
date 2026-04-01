@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>Commandes</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+  
+<body>
+
+<div id="screenEtab" class="screen">
+  <div class="etab-screen">
+    <div class="etab-logo">🧾</div>
+    <h1 class="etab-title">Commandes</h1>
+    <p class="etab-sub">Quel etablissement ?</p>
+    <div class="etab-cards" id="etabCards"></div>
+    <button class="etab-switch-link" id="switchEtabBtn" style="display:none">Changer d etablissement</button>
+  </div>
+</div>
+
+<div id="screenApp" class="screen" style="display:none">
+  <div id="app">
+    <header class="app-header">
+      <div class="header-left">
+        <button class="etab-pill" id="etabPill"></button>
+        <div>
+          <h1>Commandes</h1>
+          <span class="week-label" id="weekLabel">...</span>
+        </div>
+      </div>
+      <div class="header-right">
+        <span id="saveStatus" class="save-status"></span>
+        <button class="icon-btn" id="summaryBtn" title="Recapitulatif" style="display:none">📋</button>
+        <button class="icon-btn" id="refreshBtn" title="Recharger">↻</button>
+        <button class="icon-btn icon-btn--close" id="closeAppBtn" title="Fermer">✕</button>
+      </div>
+    </header>
+
+    <div class="search-bar">
+      <input type="search" id="searchInput" placeholder="Rechercher un produit, une reference..."
+             autocomplete="off" autocorrect="off" spellcheck="false">
+    </div>
+
+    <main id="mainContent">
+      <div class="loading-state" id="loadingState">
+        <div class="spinner"></div>
+        <p>Chargement...</p>
+      </div>
+      <div id="productList" style="display:none"></div>
+    </main>
+
+    <div class="bottom-bar" id="bottomBar" style="display:none">
+      <div class="total-block">
+        <span class="total-label">Total HT</span>
+        <span class="total-amount" id="totalAmount">0,00 EUR</span>
+      </div>
+      <button class="validate-btn" id="validateBtn">Voir la commande</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="summaryModal" style="display:none">
+  <div class="modal">
+    <div class="modal-header">
+      <h2 id="summaryTitle">Recapitulatif</h2>
+      <button class="icon-btn" id="closeModal">X</button>
+    </div>
+    <div class="modal-body" id="summaryContent"></div>
+    <div class="modal-footer">
+      <button class="copy-btn" id="copyBtn">📋 Copier et archiver</button>
+      <button class="copy-btn copy-btn--a" id="copyBtnA" style="display:none">📋 Copier Pizza d'Oléron</button>
+      <button class="copy-btn copy-btn--b" id="copyBtnB" style="display:none">📋 Copier Le Vesuvio</button>
+      <button class="reset-btn" id="resetBtn">🗑 Vider</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="editModal" style="display:none">
+  <div class="modal modal--small">
+    <div class="modal-header">
+      <h2 id="editModalTitle">Modifier le produit</h2>
+      <button class="icon-btn" id="closeEditModal">X</button>
+    </div>
+    <div class="modal-body">
+      <label class="edit-label">Reference</label>
+      <input class="edit-input" type="text" id="editRef">
+      <label class="edit-label">Prix unitaire HT (EUR)</label>
+      <input class="edit-input" type="number" id="editPrix" step="0.01" min="0">
+      <label class="edit-label">Colissage (unites par colis)</label>
+      <input class="edit-input" type="number" id="editColissage" step="1" min="1">
+      <p class="edit-note">La modification est sauvegardée directement dans le Google Sheet.</p>
+    </div>
+    <div class="modal-footer">
+      <button class="copy-btn" id="saveEditBtn">Sauvegarder</button>
+      <button class="reset-btn" id="cancelEditBtn">Annuler</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="addModal" style="display:none">
+  <div class="modal modal--small">
+    <div class="modal-header">
+      <h2>Nouveau produit</h2>
+      <button class="icon-btn" id="closeAddModal">X</button>
+    </div>
+    <div class="modal-body">
+      <label class="edit-label">Fournisseur</label>
+      <select class="edit-input" id="addFournisseur"></select>
+      <label class="edit-label">Nom court</label>
+      <input class="edit-input" type="text" id="addNomCourt">
+      <label class="edit-label">Designation complete</label>
+      <input class="edit-input" type="text" id="addDesignation">
+      <label class="edit-label">Reference</label>
+      <input class="edit-input" type="text" id="addRef">
+      <label class="edit-label">Categorie</label>
+      <input class="edit-input" type="text" id="addCategorie">
+      <label class="edit-label">Prix unitaire HT (EUR)</label>
+      <input class="edit-input" type="number" id="addPrix" step="0.01" min="0">
+      <label class="edit-label">Colissage</label>
+      <input class="edit-input" type="number" id="addColissage" step="1" min="1" value="1">
+      <p class="edit-note">Le produit sera ajouté directement dans le Google Sheet, après les autres produits du fournisseur.</p>
+    </div>
+    <div class="modal-footer">
+      <button class="copy-btn" id="saveAddBtn">Ajouter</button>
+      <button class="reset-btn" id="cancelAddBtn">Annuler</button>
+    </div>
+  </div>
+</div>
+  
+  <!-- Configuration -->
+  <script src="config.js"></script>
+  <!-- Application principale -->
+  <script src="app.js"></script>
+  
+</body>
+</html>
