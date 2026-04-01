@@ -338,41 +338,52 @@ function renderEtabScreen() {
 }
 
 async function selectEtab(id) {
-  const etab = CONFIG.ETABS.find(e=>e.id===id); if(!etab) return;
+  const etab = CONFIG.ETABS.find(e=>e.id===id); 
+  if(!etab) return;
+
   const prevId = state.etab ? state.etab.id : null;
-  state.etab = etab; saveEtabLocal(id);
+  state.etab = etab;
+  saveEtabLocal(id);
+
   etabPill.textContent = etab.icon+' '+etab.label;
-  $('summaryTitle').textContent = 'Commande \u2014 '+etab.label;
+  $('summaryTitle').textContent = 'Commande — '+etab.label;
+
   screenEtab.style.display='none';
   screenApp.style.display='flex';
   switchEtabBtn.style.display='block';
 
   if(!state.loaded) {
-    loadData();
-  } else if(prevId !== id) {
-    // Changement d'etab : garde les produits, recharge juste la commande
+    await loadData();
+    return;
+  }
+
+  if(prevId !== id) {
     loadingState.style.display='flex';
     productList.style.display='none';
+
     if(id === 'gerant') {
-      const [savedA, savedB] = await Promise.all([
-        loadCommandeRemoteById('a'),
-        loadCommandeRemoteById('b'),
-      ]);
+      const savedA = await loadCommandeRemoteById('a');
+      const savedB = await loadCommandeRemoteById('b');
       state.quantities_a = savedA || {};
       state.quantities_b = savedB || {};
     } else {
-      const [saved, histo] = await Promise.all([
-        loadCommandeRemoteById(id),
-        loadHistoRemote(),
-      ]);
+      const saved = await loadCommandeRemoteById(id);
+      const histo = await loadHistoRemote();
       state.quantities = saved || {};
-      if(histo && histo.quantities){ state.lastOrder=histo.quantities||{}; state.lastSemaine=histo.semaine||''; }
+      if(histo && histo.quantities){
+        state.lastOrder = histo.quantities;
+        state.lastSemaine = histo.semaine || '';
+      }
     }
+
     state.openSupplier = null;
     render();
-  } else {
-    render();
+    return;
   }
+
+  render();
+}
+
 }
 
 switchEtabBtn.addEventListener('click',()=>{
@@ -384,37 +395,54 @@ etabPill.addEventListener('click',()=>{
 
 // ---- Chargement -------------------------------------------
 async function loadData() {
-  loadingState.style.display='flex'; productList.style.display='none'; state.error=null;
-  try {
-    const [tsvP,tsvF] = await Promise.all([
-      fetch(CONFIG.SHEETS.produits,{cache:'no-store'}).then(r=>{ if(!r.ok) throw new Error('HTTP '+r.status); return r.text(); }),
-      fetch(CONFIG.SHEETS.fournisseurs,{cache:'no-store'}).then(r=>r.text()).catch(()=>''),
+  loadingState.style.display='flex';
+  productList.style.display='none';
+  state.error = null;
 
-    ]);
+  try {
+    const tsvP = await fetch(CONFIG.SHEETS.produits,{cache:'no-store'})
+      .then(r=>{ if(!r.ok) throw new Error('HTTP '+r.status); return r.text(); });
+
+    const tsvF = await fetch(CONFIG.SHEETS.fournisseurs,{cache:'no-store'})
+      .then(r=>r.text())
+      .catch(()=>'');
+
     state.produits = parseProduits(tsvP);
     state.fournisseurs = parseFournisseurs(tsvF);
     state.loaded = true;
-    const sups = getSuppliers(); void sups;
 
     if(state.etab && state.etab.id === 'gerant') {
-      const [savedA, savedB] = await Promise.all([
-        loadCommandeRemoteById('a'),
-        loadCommandeRemoteById('b'),
-      ]);
+      const savedA = await loadCommandeRemoteById('a');
+      const savedB = await loadCommandeRemoteById('b');
       state.quantities_a = savedA || {};
       state.quantities_b = savedB || {};
       if(Object.keys(state.quantities_a).length>0 || Object.keys(state.quantities_b).length>0)
         showToast('📂 Commandes restaurées');
     } else {
-      const [saved, histo] = await Promise.all([loadCommandeRemote(), loadHistoRemote()]);
-      if(Object.keys(saved).length>0){ state.quantities=saved; showToast('📂 Commande restauree'); }
-      if(histo&&histo.quantities){ state.lastOrder=histo.quantities||{}; state.lastSemaine=histo.semaine||''; }
+      const saved = await loadCommandeRemote();
+      const histo = await loadHistoRemote();
+
+      if(Object.keys(saved).length>0){
+        state.quantities = saved;
+        showToast('📂 Commande restaurée');
+      }
+
+      if(histo && histo.quantities){
+        state.lastOrder = histo.quantities;
+        state.lastSemaine = histo.semaine || '';
+      }
     }
+
     render();
+
   } catch(err) {
-    console.error(err); state.error=err.message;
-    loadingState.style.display='none'; renderError();
+    console.error(err);
+    state.error = err.message;
+    loadingState.style.display='none';
+    renderError();
   }
+}
+
 }
 // ---- Fournisseurs -----------------------------------------
 function getSuppliers() {
