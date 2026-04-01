@@ -194,38 +194,128 @@ async function loadCommandeRemote() {
   return loadCommandeRemoteById(state.etab.id);
 }
 async function loadCommandeRemoteById(etabId) {
-  if(!CONFIG.APPS_SCRIPT_URL) return {};
+  console.log("[TRACE] loadCommandeRemoteById() appelé avec etabId =", etabId);
+
+  if(!CONFIG.APPS_SCRIPT_URL) {
+    console.warn("[TRACE] PAS D’URL APPS SCRIPT dans CONFIG");
+    return {};
+  }
+
+  const url = CONFIG.APPS_SCRIPT_URL+'?action=read&etab='+etabId;
+  console.log("[TRACE] FETCH →", url);
+
   try {
-    const r = await fetch(CONFIG.APPS_SCRIPT_URL+'?action=read&etab='+etabId);
-    return r.ok ? (await r.json())||{} : {};
-  } catch { return {}; }
+    const r = await fetch(url);
+    console.log("[TRACE] Réponse brute loadCommandeRemoteById :", r);
+
+    const json = await r.json().catch(e => {
+      console.error("[TRACE] JSON ERROR loadCommandeRemoteById", e);
+      return null;
+    });
+
+    console.log("[TRACE] JSON reçu loadCommandeRemoteById :", json);
+    return json || {};
+
+  } catch(e) {
+    console.error("[TRACE] ERREUR loadCommandeRemoteById", e);
+    return {};
+  }
 }
+
 async function loadHistoRemote() {
-  if(!CONFIG.APPS_SCRIPT_URL||!state.etab||state.etab.id==='gerant') return {};
+  console.log("[TRACE] loadHistoRemote() appelé");
+
+  if(!CONFIG.APPS_SCRIPT_URL) {
+    console.warn("[TRACE] PAS D’URL APPS SCRIPT dans CONFIG");
+    return {};
+  }
+  if(!state.etab) {
+    console.warn("[TRACE] PAS DE state.etab");
+    return {};
+  }
+  if(state.etab.id === 'gerant') {
+    console.warn("[TRACE] etab = gerant → pas d’historique");
+    return {};
+  }
+
+  const url = CONFIG.APPS_SCRIPT_URL+'?action=histo&etab='+state.etab.id;
+  console.log("[TRACE] FETCH →", url);
+
   try {
-    const r = await fetch(CONFIG.APPS_SCRIPT_URL+'?action=histo&etab='+state.etab.id);
-    return r.ok ? (await r.json())||{} : {};
-  } catch { return {}; }
+    const r = await fetch(url);
+    console.log("[TRACE] Réponse brute loadHistoRemote :", r);
+
+    const json = await r.json().catch(e => {
+      console.error("[TRACE] JSON ERROR loadHistoRemote", e);
+      return null;
+    });
+
+    console.log("[TRACE] JSON reçu loadHistoRemote :", json);
+    return json || {};
+
+  } catch(e) {
+    console.error("[TRACE] ERREUR loadHistoRemote", e);
+    return {};
+  }
 }
+
 async function archiveCommande() {
-  if(!CONFIG.APPS_SCRIPT_URL||!state.etab||state.etab.id==='gerant') return;
+  console.log("[TRACE] archiveCommande() appelé");
+
+  if(!CONFIG.APPS_SCRIPT_URL||!state.etab||state.etab.id==='gerant') {
+    console.warn("[TRACE] archiveCommande() → conditions non remplies");
+    return;
+  }
+
   const items = [];
   state.produits.forEach(p=>{
-    const qty = state.quantities[productKey(p)]||0; if(!qty) return;
+    const qty = state.quantities[productKey(p)]||0; 
+    if(!qty) return;
     const d = getProductData(p);
-    items.push({key:productKey(p), nomCourt:p.nom_court, ref:d.reference,
-                qty, prixHt:d.prix_ht, total:qty*getPrixColis(p)});
+    items.push({
+      key:productKey(p), 
+      nomCourt:p.nom_court, 
+      ref:d.reference,
+      qty, 
+      prixHt:d.prix_ht, 
+      total:qty*getPrixColis(p)
+    });
   });
-  if(!items.length) return;
-  fetch(CONFIG.APPS_SCRIPT_URL+'?action=archive&etab='+state.etab.id,{
-    method:'POST', mode:'no-cors', headers:{'Content-Type':'text/plain'},
+
+  if(!items.length) {
+    console.warn("[TRACE] archiveCommande() → aucun item à archiver");
+    return;
+  }
+
+  const url = CONFIG.APPS_SCRIPT_URL+'?action=archive&etab='+state.etab.id;
+  console.log("[TRACE] FETCH POST →", url);
+  console.log("[TRACE] Payload archive :", {semaine:getWeekId(), etabLabel:state.etab.label, items});
+
+  fetch(url,{
+    method:'POST', 
+    mode:'no-cors', 
+    headers:{'Content-Type':'text/plain'},
     body: JSON.stringify({semaine:getWeekId(), etabLabel:state.etab.label, items}),
-  }).catch(()=>{});
+  }).catch(e=>{
+    console.error("[TRACE] ERREUR archiveCommande()", e);
+  });
 }
+
 async function clearCommandeRemote() {
-  if(!CONFIG.APPS_SCRIPT_URL||!state.etab||state.etab.id==='gerant') return;
-  fetch(CONFIG.APPS_SCRIPT_URL+'?action=clear&etab='+state.etab.id,{method:'POST',mode:'no-cors'}).catch(()=>{});
+  console.log("[TRACE] clearCommandeRemote() appelé");
+
+  if(!CONFIG.APPS_SCRIPT_URL||!state.etab||state.etab.id==='gerant') {
+    console.warn("[TRACE] clearCommandeRemote() → conditions non remplies");
+    return;
+  }
+
+  const url = CONFIG.APPS_SCRIPT_URL+'?action=clear&etab='+state.etab.id;
+  console.log("[TRACE] FETCH POST →", url);
+
+  fetch(url,{method:'POST',mode:'no-cors'})
+    .catch(e => console.error("[TRACE] ERREUR clearCommandeRemote()", e));
 }
+
 function showSaveStatus(msg) {
   if(!saveStatusEl) return;
   saveStatusEl.textContent=msg; saveStatusEl.style.opacity='1';
