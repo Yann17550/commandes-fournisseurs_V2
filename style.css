@@ -42,6 +42,12 @@ body { font-family: var(--font); background: var(--bg); color: var(--text); min-
 .header-right { display: flex; gap: 6px; }
 .icon-btn { width: 34px; height: 34px; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--surface); color: var(--text); font-size: 16px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
 .icon-btn:active { background: var(--bg); }
+.etab-logo {
+  width: 48px;
+  height: 48px;
+  object-fit: contain;
+  border-radius: 6px;
+}
 
 /* ============================================================
    SEARCH
