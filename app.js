@@ -328,7 +328,7 @@ function showSaveStatus(msg) {
 function renderEtabScreen() {
   etabCards.innerHTML = CONFIG.ETABS.map(e => `
     <button class="etab-card" data-etab="${e.id}">
-      <span class="etab-card-icon">${e.icon}</span>
+      <img src="${e.icon}" alt="${escHtml(e.label)}" class="etab-logo">
       <span class="etab-card-label">${escHtml(e.label)}</span>
     </button>`).join('');
 
