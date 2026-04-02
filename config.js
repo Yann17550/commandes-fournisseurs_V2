@@ -5,7 +5,7 @@ const CONFIG = {
 
   // ---- Établissements -------------------------------------
   ETABS: [
-    { id: 'a', label: "Pizza d'Oléron",  icon: '🍕' },
+    { id: 'a', label: "Pizza d'Oléron",  icon: 'Logo_Pizza d'oléron.png' },
     { id: 'b', label: 'Le Vesuvio',      icon: 'Logo-Vesuvio.png' },
     { id: 'gerant', label: 'Gérant',     icon: '👔' },
   ],
