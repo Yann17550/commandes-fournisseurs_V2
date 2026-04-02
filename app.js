@@ -1142,7 +1142,9 @@ function renderGerantRow(p) {
 
       <div class="gr-steppers">
         <div class="gr-etab-row gr-etab-row--a">
-          <span class="gr-etab-icon">🍕</span>
+          <span class="gr-etab-icon">
+            <img src="${CONFIG.ETABS.find(e => e.id === 'a').icon}" class="etab-logo-pill">
+          </span>
           <div class="qty-stepper--sm">
             <button class="qty-btn-g" data-key="${escHtml(key)}" data-etab="a" data-delta="-1">−</button>
             <input class="qty-input-g" type="number" value="${qa}" min="0" data-key="${escHtml(key)}" data-etab="a">
@@ -1152,7 +1154,9 @@ function renderGerantRow(p) {
         </div>
 
         <div class="gr-etab-row gr-etab-row--b">
-          <span class="gr-etab-icon">🌋</span>
+          <span class="gr-etab-icon">
+            <img src="${CONFIG.ETABS.find(e => e.id === 'b').icon}" class="etab-logo-pill">
+          </span>
           <div class="qty-stepper--sm">
             <button class="qty-btn-g" data-key="${escHtml(key)}" data-etab="b" data-delta="-1">−</button>
             <input class="qty-input-g" type="number" value="${qb}" min="0" data-key="${escHtml(key)}" data-etab="b">
