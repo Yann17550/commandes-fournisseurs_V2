@@ -348,7 +348,11 @@ async function selectEtab(id) {
   state.etab = etab;
   saveEtabLocal(id);
 
-  etabPill.textContent = etab.icon + ' ' + etab.label;
+ etabPill.innerHTML = `
+  <img src="${etab.icon}" class="etab-logo-pill">
+  <span>${escHtml(etab.label)}</span>
+`;
+
   $('summaryTitle').textContent = 'Commande — ' + etab.label;
 
   screenEtab.style.display = 'none';
