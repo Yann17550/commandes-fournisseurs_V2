@@ -2,7 +2,7 @@
 //  APP.JS — Commandes Fournisseurs v3
 //  Multi-etablissement, colissage, historique, edition inline
 // ============================================================
-console.log('[APP] app.js chargé');
+
 
 // ---- Apprentissage ----------------------------------------
 const LEARN_KEY = 'cmd_scores';
@@ -28,7 +28,7 @@ let state = {
   quantities_b: {},  // commande Le Vesuvio       (vue gerant)
   lastOrder: {}, lastSemaine: '',
   overrides: {},
-  openSupplier: null, search: '', loaded: false, error: null, editKey: null,
+  openSupplier: null, loaded: false, error: null, editKey: null,
 };
 
 // ---- DOM --------------------------------------------------
@@ -502,12 +502,7 @@ function renderAccordion() {
   let html='<div class="fab-row"><button class="fab-add" id="fabAddBtn">+ Nouveau produit</button></div>';
 
   suppliers.forEach(sup=>{
-    const prods=allProds.filter(p=>{
-      if(p.fournisseur!==sup) return false;
-      if(!search) return true;
-      return p.nom_court.toLowerCase().includes(search)
-          ||p.designation.toLowerCase().includes(search)
-          ||p.reference.toLowerCase().includes(search);
+    const prods = allProds.filter(p => p.fournisseur === sup);
     });
     if(search&&prods.length===0) return;
     const isOpen=state.openSupplier===sup;
@@ -547,29 +542,38 @@ function renderAccordion() {
   bindSteppers();
 }
 
-function renderSupplierBody(prods,search) {
-  if(!prods.length) return '<div class="acc-body"><div class="empty-state"><p>Aucun produit</p></div></div>';
-  const scores=getScores(), sorted=sortProducts(prods);
-  const sup=prods[0].fournisseur, fInfo=state.fournisseurs[sup]||{};
-  let html='<div class="acc-body">';
-  const infos=[];
-  if(fInfo.contact)   infos.push('👤 '+escHtml(fInfo.contact));
-  if(fInfo.telephone) infos.push('📱 '+escHtml(fInfo.telephone));
-  if(fInfo.notes)     infos.push('⚠️ '+escHtml(fInfo.notes));
-  if(infos.length) html+=`<div class="acc-info-bar">${infos.join(' · ')}</div>`;
-  if(search) {
-    html+=renderGrouped(sorted);
+function renderSupplierBody(prods) {
+  if (!prods.length)
+    return '<div class="acc-body"><div class="empty-state"><p>Aucun produit</p></div></div>';
+
+  const scores = getScores();
+  const sorted = sortProducts(prods);
+  const sup = prods[0].fournisseur;
+  const fInfo = state.fournisseurs[sup] || {};
+
+  let html = '<div class="acc-body">';
+
+  // Infos fournisseur
+  const infos = [];
+  if (fInfo.contact)   infos.push('👤 ' + escHtml(fInfo.contact));
+  if (fInfo.telephone) infos.push('📱 ' + escHtml(fInfo.telephone));
+  if (fInfo.notes)     infos.push('⚠️ ' + escHtml(fInfo.notes));
+  if (infos.length) html += `<div class="acc-info-bar">${infos.join(' · ')}</div>`;
+
+  // Habituels / autres
+  const habituels = sorted.filter(p => scores[productKey(p)] > 0);
+  const autres    = sorted.filter(p => !scores[productKey(p)]);
+
+  if (habituels.length) {
+    html += '<div class="section-label">⭐ Habituels</div>' + renderGrouped(habituels);
+    if (autres.length)
+      html += '<div class="section-label section-label--secondary">Catalogue complet</div>' + renderGrouped(autres);
   } else {
-    const habituels=sorted.filter(p=>scores[productKey(p)]>0);
-    const autres=sorted.filter(p=>!scores[productKey(p)]);
-    if(habituels.length){
-      html+='<div class="section-label">⭐ Habituels</div>'+renderGrouped(habituels);
-      if(autres.length) html+='<div class="section-label section-label--secondary">Catalogue complet</div>'+renderGrouped(autres);
-    } else {
-      html+=renderGrouped(sorted);
-    }
+    html += renderGrouped(sorted);
   }
-  html+='</div>'; return html;
+
+  html += '</div>';
+  return html;
 }
 
 // Precalcule les nom_court qui ont plusieurs produits dans le catalogue complet
