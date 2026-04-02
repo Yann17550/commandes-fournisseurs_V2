@@ -1088,38 +1088,71 @@ function resetCommande() {
 // ============================================================
 function renderAccordionGerant() {
   const produits = state.produits;
-  const suppliers = [...new Set(produits.map(p => p.fournisseur))].sort((a, b) => a.localeCompare(b, 'fr'));
 
-  let html = '';
+  // Tri : produits commandés en premier
+  const sorted = [...produits].sort((a, b) => {
+    const ka = productKey(a), kb = productKey(b);
+    const ta = (state.quantities_a[ka] || 0) + (state.quantities_b[ka] || 0);
+    const tb = (state.quantities_a[kb] || 0) + (state.quantities_b[kb] || 0);
+    return tb - ta;
+  });
 
-  suppliers.forEach(sup => {
-    const items = produits.filter(p => p.fournisseur === sup);
-    const totalA = items.reduce((s, p) => s + (state.quantities_a[productKey(p)] || 0) * getPrixColis(p), 0);
-    const totalB = items.reduce((s, p) => s + (state.quantities_b[productKey(p)] || 0) * getPrixColis(p), 0);
-    const total = totalA + totalB;
+  const logoA = CONFIG.ETABS.find(e => e.id === 'a').icon;
+  const logoB = CONFIG.ETABS.find(e => e.id === 'b').icon;
+
+  let html = `
+    <table class="gerant-table">
+      <thead>
+        <tr>
+          <th rowspan="2">Produit</th>
+          <th><img src="${logoA}" class="etab-logo-head"></th>
+          <th><img src="${logoB}" class="etab-logo-head"></th>
+        </tr>
+        <tr>
+          <th>Total €</th>
+          <th>Total €</th>
+        </tr>
+      </thead>
+      <tbody>
+  `;
+
+  sorted.forEach(p => {
+    const key = productKey(p);
+    const qa = state.quantities_a[key] || 0;
+    const qb = state.quantities_b[key] || 0;
+    const prix = getPrixColis(p);
 
     html += `
-      <div class="accordion-block is-open">
-        <div class="accordion-header">
-          <div class="acc-left">
-            <span class="acc-name">${escHtml(sup)}</span>
-            <span class="gerant-badge">
-              <span class="gb-a">${fmtPrice(totalA)}</span>
-              <span class="gb-sep">/</span>
-              <span class="gb-b">${fmtPrice(totalB)}</span>
-              <span class="gb-total">${fmtPrice(total)}</span>
-            </span>
+      <tr data-key="${escHtml(key)}">
+        <td>${escHtml(p.nom_court)}</td>
+
+        <td>
+          <div class="qty-cell">
+            <button class="qty-btn-g" data-key="${escHtml(key)}" data-etab="a" data-delta="-1">−</button>
+            <input class="qty-input-g" type="number" value="${qa}" min="0" data-key="${escHtml(key)}" data-etab="a">
+            <button class="qty-btn-g" data-key="${escHtml(key)}" data-etab="a" data-delta="1">+</button>
+            <span class="total-cell">${qa ? fmtPrice(qa * prix) : ''}</span>
           </div>
-        </div>
-        <div class="acc-body">
-          ${items.map(renderGerantRow).join('')}
-        </div>
-      </div>`;
+        </td>
+
+        <td>
+          <div class="qty-cell">
+            <button class="qty-btn-g" data-key="${escHtml(key)}" data-etab="b" data-delta="-1">−</button>
+            <input class="qty-input-g" type="number" value="${qb}" min="0" data-key="${escHtml(key)}" data-etab="b">
+            <button class="qty-btn-g" data-key="${escHtml(key)}" data-etab="b" data-delta="1">+</button>
+            <span class="total-cell">${qb ? fmtPrice(qb * prix) : ''}</span>
+          </div>
+        </td>
+      </tr>
+    `;
   });
+
+  html += `</tbody></table>`;
 
   productList.innerHTML = html;
   bindGerantSteppers();
 }
+
 
 function renderGerantRow(p) {
   const key = productKey(p);
