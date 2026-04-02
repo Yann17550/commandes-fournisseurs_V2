@@ -466,6 +466,61 @@ select.edit-input { height:40px; cursor:pointer; }
   border-top: 1px solid rgba(255,255,255,0.2);
   padding-top: 6px; font-size: 16px !important; font-weight: 600;
 }
+.gerant-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+.gerant-table th,
+.gerant-table td {
+  padding: 6px 4px;
+  border-bottom: 1px solid #ddd;
+  text-align: center;
+}
+
+.gerant-table th:first-child,
+.gerant-table td:first-child {
+  text-align: left;
+}
+
+.etab-logo-head {
+  width: 22px;
+  height: 22px;
+  object-fit: contain;
+  vertical-align: middle;
+}
+
+.etab-logo-cell {
+  width: 18px;
+  height: 18px;
+  object-fit: contain;
+  margin-right: 4px;
+}
+
+.qty-cell {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+}
+
+.qty-btn-g {
+  width: 24px;
+  height: 24px;
+  font-size: 16px;
+}
+
+.qty-input-g {
+  width: 36px;
+  text-align: center;
+}
+
+.total-cell {
+  font-weight: 600;
+  color: #444;
+  min-width: 60px;
+}
 
 /* Boutons copie gérant */
 .copy-btn--a { background: #1D4ED8; }
