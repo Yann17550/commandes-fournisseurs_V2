@@ -492,55 +492,79 @@ function renderError() {
 
 // ---- Accordeon --------------------------------------------
 function renderAccordion() {
-  if(state.etab && state.etab.id === 'gerant') { renderAccordionGerant(); return; }
-  const suppliers=getSuppliers(), search=state.search.toLowerCase();
-  const allProds=getProduitsForEtab();
-  if(!suppliers.length){
-    productList.innerHTML='<div class="empty-state"><div class="emoji">📭</div><p>Aucun produit</p></div>'; return;
+  if (state.etab && state.etab.id === 'gerant') {
+    renderAccordionGerant();
+    return;
   }
 
-  let html='<div class="fab-row"><button class="fab-add" id="fabAddBtn">+ Nouveau produit</button></div>';
+  const suppliers = getSuppliers();
+  const allProds = getProduitsForEtab();
 
-  suppliers.forEach(sup=>{
+  if (!suppliers.length) {
+    productList.innerHTML =
+      '<div class="empty-state"><div class="emoji">📭</div><p>Aucun produit</p></div>';
+    return;
+  }
+
+  let html = '<div class="fab-row"><button class="fab-add" id="fabAddBtn">+ Nouveau produit</button></div>';
+
+  suppliers.forEach(sup => {
+
+    // Produits du fournisseur
     const prods = allProds.filter(p => p.fournisseur === sup);
-    });
-    if(search&&prods.length===0) return;
-    const isOpen=state.openSupplier===sup;
-    const ordered=prods.filter(p=>(state.quantities[productKey(p)]||0)>0);
-    const supTotal=ordered.reduce((s,p)=>s+(state.quantities[productKey(p)]||0)*getPrixColis(p),0);
-    const appel=getJourAppel(sup);
-    const appelHtml=appel
-      ? '<span class="acc-appel'+(appel.today?' acc-appel--today':'')+'">'+
-        (appel.today?'📞 Auj.':escHtml(appel.label))+'</span>'
+
+    const isOpen = state.openSupplier === sup;
+    const ordered = prods.filter(p => (state.quantities[productKey(p)] || 0) > 0);
+    const supTotal = ordered.reduce((s, p) =>
+      s + (state.quantities[productKey(p)] || 0) * getPrixColis(p), 0);
+
+    const appel = getJourAppel(sup);
+    const appelHtml = appel
+      ? `<span class="acc-appel${appel.today ? ' acc-appel--today' : ''}">${
+          appel.today ? '📞 Auj.' : escHtml(appel.label)
+        }</span>`
       : '';
 
-    html+=`<div class="accordion-block${isOpen?' is-open':''}" data-sup="${escHtml(sup)}">
-      <button class="accordion-header" data-sup="${escHtml(sup)}">
-        <div class="acc-left">
-          <div class="acc-title-row">
-            <span class="acc-name">${escHtml(sup)}</span>
-            ${appelHtml}
+    html += `
+      <div class="accordion-block${isOpen ? ' is-open' : ''}" data-sup="${escHtml(sup)}">
+        <button class="accordion-header" data-sup="${escHtml(sup)}">
+          <div class="acc-left">
+            <div class="acc-title-row">
+              <span class="acc-name">${escHtml(sup)}</span>
+              ${appelHtml}
+            </div>
+            ${
+              ordered.length
+                ? `<span class="acc-badge">${ordered.length} art. · ${fmtPrice(supTotal)}</span>`
+                : ''
+            }
           </div>
-          ${ordered.length?`<span class="acc-badge">${ordered.length} art. · ${fmtPrice(supTotal)}</span>`:''}
-        </div>
-        <span class="acc-chevron">${isOpen?'▾':'▸'}</span>
-      </button>
-      ${isOpen?renderSupplierBody(prods,search):''}
-    </div>`;
+          <span class="acc-chevron">${isOpen ? '▾' : '▸'}</span>
+        </button>
+        ${isOpen ? renderSupplierBody(prods) : ''}
+      </div>`;
   });
 
-  productList.innerHTML=html||'<div class="empty-state"><div class="emoji">🔍</div><p>Aucun resultat</p></div>';
-  const fab=$('fabAddBtn'); if(fab) fab.addEventListener('click',openAddModal);
-  productList.querySelectorAll('.accordion-header').forEach(btn=>{
-    btn.addEventListener('click',()=>{
-      const sup=btn.dataset.sup;
-      state.openSupplier=state.openSupplier===sup?null:sup;
+  productList.innerHTML = html;
+
+  const fab = $('fabAddBtn');
+  if (fab) fab.addEventListener('click', openAddModal);
+
+  productList.querySelectorAll('.accordion-header').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const sup = btn.dataset.sup;
+      state.openSupplier = state.openSupplier === sup ? null : sup;
       renderAccordion();
-      setTimeout(()=>{ const o=productList.querySelector('.accordion-block.is-open'); if(o) o.scrollIntoView({behavior:'smooth',block:'start'}); },40);
+      setTimeout(() => {
+        const o = productList.querySelector('.accordion-block.is-open');
+        if (o) o.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }, 40);
     });
   });
+
   bindSteppers();
 }
+
 
 function renderSupplierBody(prods) {
   if (!prods.length)
