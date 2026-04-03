@@ -23,6 +23,18 @@ function saveEtabLocal(id) { localStorage.setItem(ETAB_KEY, id); }
 
 
 // ---- DOM --------------------------------------------------
+const screenEtab = $('screenEtab'), screenApp = $('screenApp');
+const etabCards = $('etabCards'), etabPill = $('etabPill');
+const switchEtabBtn = $('switchEtabBtn');
+const weekLabel = $('weekLabel'), mainContent = $('mainContent');
+const productList = $('productList'), loadingState = $('loadingState');
+const bottomBar = $('bottomBar'), totalAmount = $('totalAmount');
+const validateBtn = $('validateBtn'), summaryBtn = $('summaryBtn');
+const refreshBtn = $('refreshBtn'), summaryModal = $('summaryModal');
+const summaryContent = $('summaryContent'), searchInput = $('searchInput');
+const saveStatusEl = $('saveStatus');
+const editModal = $('editModal'), addModal = $('addModal');
+
 
 
 // ---- Utils ------------------------------------------------
