@@ -72,6 +72,11 @@ body.etab-gerant #productList,
 body.etab-gerant #product-list {
   margin-top: 20px;
 }
+/* Fournisseur avec commande */
+.accordion-block.has-order .accordion-header {
+  background: #f1f8e9; /* vert très léger */
+  border-left: 4px solid #4CAF50;
+}
 
 main { padding: 0 14px; }
 
