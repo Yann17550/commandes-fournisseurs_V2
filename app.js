@@ -568,7 +568,6 @@ function renderAccordion() {
   bindSteppers();
 }
 
-
 function renderSupplierBody(prods) {
   if (!prods.length)
     return '<div class="acc-body"><div class="empty-state"><p>Aucun produit</p></div></div>';
@@ -1181,21 +1180,18 @@ async function validateSupplier(sup) {
 // ============================================================
 //  RENDER ACCORDION GÉRANT
 // ============================================================
+
 function renderAccordionGerant() {
   const produits = state.produits;
-  const suppliers = [...new Set(produits.map(p => p.fournisseur))]
-    .sort((a, b) => a.localeCompare(b, 'fr'));
 
-  const logoA = CONFIG.ETABS.find(e => e.id === 'a').icon;
-  const logoB = CONFIG.ETABS.find(e => e.id === 'b').icon;
+  // Liste brute des fournisseurs
+  const suppliers = [...new Set(produits.map(p => p.fournisseur))];
 
-  let html = '';
-
-  suppliers.forEach(sup => {
+  // --- 1) Calcul des totaux par fournisseur ---
+  const supplierTotals = suppliers.map(sup => {
     const items = produits.filter(p => p.fournisseur === sup);
-
-    // Totaux A/B pour CE fournisseur
     let totalA = 0, totalB = 0;
+
     items.forEach(p => {
       const key = productKey(p);
       const prix = getPrixColis(p);
@@ -1203,6 +1199,30 @@ function renderAccordionGerant() {
       totalB += (state.quantities_b[key] || 0) * prix;
     });
 
+    return {
+      sup,
+      totalA,
+      totalB,
+      totalGlobal: totalA + totalB
+    };
+  });
+
+  // --- 2) Tri : fournisseurs avec commande en premier ---
+  supplierTotals.sort((a, b) => {
+    if (b.totalGlobal !== a.totalGlobal) {
+      return b.totalGlobal - a.totalGlobal; // commandes en haut
+    }
+    return a.sup.localeCompare(b.sup, 'fr'); // tri alpha
+  });
+
+  const logoA = CONFIG.ETABS.find(e => e.id === 'a').icon;
+  const logoB = CONFIG.ETABS.find(e => e.id === 'b').icon;
+
+  let html = '';
+
+  // --- 3) Construction de l'accordéon ---
+  supplierTotals.forEach(({ sup, totalA, totalB, totalGlobal }) => {
+    const items = produits.filter(p => p.fournisseur === sup);
     const isOpen = state.openSupplier === sup;
 
     html += `
@@ -1210,6 +1230,7 @@ function renderAccordionGerant() {
         <div class="accordion-header" data-supplier="${sup}">
           <div class="acc-left">
             <span class="acc-name">${escHtml(sup)}</span>
+            <span class="acc-total">${fmtPrice(totalGlobal)}</span>
           </div>
           <button class="validate-supplier-btn" data-supplier="${sup}">
             Valider
@@ -1234,7 +1255,7 @@ function renderAccordionGerant() {
           <tbody>
       `;
 
-      // Tri : produits commandés en premier
+      // Tri des produits : ceux commandés en premier
       const sorted = [...items].sort((a, b) => {
         const ka = productKey(a), kb = productKey(b);
         const ta = (state.quantities_a[ka] || 0) + (state.quantities_b[ka] || 0);
@@ -1281,7 +1302,7 @@ function renderAccordionGerant() {
 
   productList.innerHTML = html;
 
-  // Gestion ouverture accordéon
+  // --- 4) Gestion ouverture accordéon ---
   document.querySelectorAll('.accordion-header').forEach(h => {
     h.addEventListener('click', e => {
       if (e.target.classList.contains('validate-supplier-btn')) return;
@@ -1291,7 +1312,7 @@ function renderAccordionGerant() {
     });
   });
 
-  // Bouton valider
+  // --- 5) Bouton valider ---
   document.querySelectorAll('.validate-supplier-btn').forEach(btn => {
     btn.addEventListener('click', e => {
       e.stopPropagation();
@@ -1299,10 +1320,9 @@ function renderAccordionGerant() {
     });
   });
 
+  // --- 6) Steppers ---
   bindGerantSteppers();
 }
-
-
 
 function bindGerantSteppers() {
   document.querySelectorAll('.qty-btn-g').forEach(btn => {
