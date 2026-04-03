@@ -1233,7 +1233,7 @@ function renderAccordionGerant() {
     const isOpen = state.openSupplier === sup;
 
     html += `
-      <div class="accordion-block ${isOpen ? 'is-open' : ''}">
+      <div class="accordion-block ${isOpen ? 'is-open' : ''} ${ (totalA+totalB)>0 ? 'has-order' : ''}">
         <div class="accordion-header" data-supplier="${sup}">
           <div class="acc-left">
             <span class="acc-name">${escHtml(sup)}</span>
