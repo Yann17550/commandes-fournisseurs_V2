@@ -1297,90 +1297,43 @@ function renderAccordionGerant() {
 }
 
 
-function renderGerantRow(p) {
-  const key = productKey(p);
-  const qa = state.quantities_a[key] || 0;
-  const qb = state.quantities_b[key] || 0;
-  const prix = getPrixColis(p);
-
-  const totalA = qa * prix;
-  const totalB = qb * prix;
-
-  return `
-    <div class="gerant-row ${qa || qb ? 'gerant-row--active' : ''}" data-key="${escHtml(key)}">
-      <div class="gr-header">
-        <div class="gr-info">
-          <div class="product-nom">${escHtml(p.nom_court)}</div>
-          <div class="gr-ref">${escHtml(p.reference)}</div>
-        </div>
-        <button class="edit-btn" data-key="${escHtml(key)}">✏️</button>
-      </div>
-
-      <div class="gr-steppers">
-        <div class="gr-etab-row gr-etab-row--a">
-          <span class="gr-etab-icon">
-            <img src="${CONFIG.ETABS.find(e => e.id === 'a').icon}" class="etab-logo-pill">
-          </span>
-          <div class="qty-stepper--sm">
-            <button class="qty-btn-g" data-key="${escHtml(key)}" data-etab="a" data-delta="-1">−</button>
-            <input class="qty-input-g" type="number" value="${qa}" min="0" data-key="${escHtml(key)}" data-etab="a">
-            <button class="qty-btn-g" data-key="${escHtml(key)}" data-etab="a" data-delta="1">+</button>
-          </div>
-          <span class="gr-line-total ${totalA ? 'gr-line-total--active' : ''}">${totalA ? fmtPrice(totalA) : ''}</span>
-        </div>
-
-        <div class="gr-etab-row gr-etab-row--b">
-          <span class="gr-etab-icon">
-            <img src="${CONFIG.ETABS.find(e => e.id === 'b').icon}" class="etab-logo-pill">
-          </span>
-          <div class="qty-stepper--sm">
-            <button class="qty-btn-g" data-key="${escHtml(key)}" data-etab="b" data-delta="-1">−</button>
-            <input class="qty-input-g" type="number" value="${qb}" min="0" data-key="${escHtml(key)}" data-etab="b">
-            <button class="qty-btn-g" data-key="${escHtml(key)}" data-etab="b" data-delta="1">+</button>
-          </div>
-          <span class="gr-line-total ${totalB ? 'gr-line-total--active' : ''}">${totalB ? fmtPrice(totalB) : ''}</span>
-        </div>
-      </div>
-    </div>`;
-}
 
 function bindGerantSteppers() {
-  productList.querySelectorAll('.qty-btn-g').forEach(b => b.addEventListener('click', onGerantQtyBtn));
-  productList.querySelectorAll('.qty-input-g').forEach(i => {
-    i.addEventListener('change', onGerantQtyInput);
-    i.addEventListener('focus', e => e.target.select());
+  document.querySelectorAll('.qty-btn-g').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const key = btn.dataset.key;
+      const etab = btn.dataset.etab;
+      const delta = parseInt(btn.dataset.delta, 10);
+
+      if (etab === 'a') {
+        state.quantities_a[key] = Math.max(0, (state.quantities_a[key] || 0) + delta);
+      } else {
+        state.quantities_b[key] = Math.max(0, (state.quantities_b[key] || 0) + delta);
+      }
+
+      scheduleSave();
+      renderAccordionGerant(); // 🔥 Re-render pour mettre à jour totaux A/B + steppers
+    });
   });
-  productList.querySelectorAll('.edit-btn').forEach(b => b.addEventListener('click', e => {
-    e.stopPropagation();
-    openEditModal(b.dataset.key);
-  }));
+
+  document.querySelectorAll('.qty-input-g').forEach(input => {
+    input.addEventListener('change', () => {
+      const key = input.dataset.key;
+      const etab = input.dataset.etab;
+      const val = Math.max(0, parseInt(input.value, 10) || 0);
+
+      if (etab === 'a') {
+        state.quantities_a[key] = val;
+      } else {
+        state.quantities_b[key] = val;
+      }
+
+      scheduleSave();
+      renderAccordionGerant(); // 🔥 Mise à jour instantanée
+    });
+  });
 }
 
-function onGerantQtyBtn(e) {
-  const key = e.currentTarget.dataset.key;
-  const etab = e.currentTarget.dataset.etab;
-  const delta = parseInt(e.currentTarget.dataset.delta);
-
-  const obj = etab === 'a' ? state.quantities_a : state.quantities_b;
-  obj[key] = Math.max(0, (obj[key] || 0) + delta);
-
-  renderAccordionGerant();
-  updateTotal();
-  scheduleSave();
-}
-
-function onGerantQtyInput(e) {
-  const key = e.currentTarget.dataset.key;
-  const etab = e.currentTarget.dataset.etab;
-  const val = Math.max(0, parseInt(e.currentTarget.value) || 0);
-
-  const obj = etab === 'a' ? state.quantities_a : state.quantities_b;
-  obj[key] = val;
-
-  renderAccordionGerant();
-  updateTotal();
-  scheduleSave();
-}
 // ---- Démarrage de l'application ----
 console.log("[TRACE] Initialisation de l'application");
 
