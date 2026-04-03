@@ -345,6 +345,7 @@ async function selectEtab(id) {
 
   const prevId = state.etab ? state.etab.id : null;
   state.etab = etab;
+  document.body.classList.toggle('etab-gerant', id === 'gerant');
   saveEtabLocal(id);
 
  etabPill.innerHTML = `
@@ -714,24 +715,30 @@ function updateAccordionBadge(changedKey) {
 }
 
 function updateTotal() {
-  let total=0, hasAny=false;
-  if(state.etab && state.etab.id==='gerant') {
-    state.produits.forEach(p=>{
-      const key=productKey(p);
-      const qa=(state.quantities_a[key]||0), qb=(state.quantities_b[key]||0);
-      const qt=qa+qb;
-      if(qt>0){ total+=qt*getPrixColis(p); hasAny=true; }
-    });
-  } else {
-    getProduitsForEtab().forEach(p=>{
-      const qty=state.quantities[productKey(p)]||0;
-      if(qty>0){ total+=qty*getPrixColis(p); hasAny=true; }
-    });
+  // Si on est en mode gérant → on masque totalement la barre du bas
+  if (state.etab && state.etab.id === 'gerant') {
+    bottomBar.style.display = 'none';
+    summaryBtn.style.display = 'none';
+    totalAmount.textContent = fmtPrice(0);
+    return;
   }
-  totalAmount.textContent=fmtPrice(total);
-  bottomBar.style.display=hasAny?'flex':'none';
-  summaryBtn.style.display=hasAny?'flex':'none';
+
+  // Mode A ou B (inchangé)
+  let total = 0, hasAny = false;
+
+  getProduitsForEtab().forEach(p => {
+    const qty = state.quantities[productKey(p)] || 0;
+    if (qty > 0) {
+      total += qty * getPrixColis(p);
+      hasAny = true;
+    }
+  });
+
+  totalAmount.textContent = fmtPrice(total);
+  bottomBar.style.display = hasAny ? 'flex' : 'none';
+  summaryBtn.style.display = hasAny ? 'flex' : 'none';
 }
+
 
 // ---- Modal edition ----------------------------------------
 function openEditModal(key) {
