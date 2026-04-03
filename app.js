@@ -402,7 +402,7 @@ etabPill.addEventListener('click', () => {
 });
 
 // ---- Chargement -------------------------------------------
-async function loadData() {
+async function loadDataCore() {
   loadingState.style.display = 'flex';
   productList.style.display  = 'none';
   state.error = null;
