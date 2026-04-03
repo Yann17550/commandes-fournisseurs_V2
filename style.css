@@ -557,3 +557,23 @@ select.edit-input { height:40px; cursor:pointer; }
   justify-content: space-between;
   align-items: center;
 }
+/* ============================================================
+   BADGE MONTANT GLOBAL A+B DANS L’EN-TÊTE FOURNISSEUR
+   - Affichage propre du total global
+   - Alignement cohérent avec le design existant
+   ============================================================ */
+.acc-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.acc-total {
+  background: #e8f5e9;              /* vert très léger */
+  color: #1b5e20;                   /* vert foncé lisible */
+  padding: 3px 8px;
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+}
