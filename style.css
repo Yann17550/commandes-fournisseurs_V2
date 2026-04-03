@@ -67,6 +67,12 @@ body { font-family: var(--font); background: var(--bg); color: var(--text); min-
 /* ============================================================
    ACCORDÉON FOURNISSEURS
    ============================================================ */
+/* Espace avant l’accordéon gérant */
+body.etab-gerant #productList,
+body.etab-gerant #product-list {
+  margin-top: 20px;
+}
+
 main { padding: 0 14px; }
 
 .accordion-block {
