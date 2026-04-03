@@ -323,7 +323,6 @@ function showSaveStatus(msg) {
   if(msg.includes('OK')) saveStatusEl._t=setTimeout(()=>{ saveStatusEl.style.opacity='0'; },2500);
 }
 
-// ---- Ecran etablissement ----------------------------------
 // ---- Écran établissement ----------------------------------
 function renderEtabScreen() {
   etabCards.innerHTML = CONFIG.ETABS.map(e => `
@@ -1083,73 +1082,217 @@ function resetCommande() {
   render();
   showToast('🗑 Commande vidée');
 }
+
+// ============================================================
+//  ARCHIVAGE ET RESET QTé GÉRANT ET ETAB A & B
+// ============================================================
+async function validateSupplier(sup) {
+  if (!confirm("Valider la commande du fournisseur " + sup + " ?")) return;
+
+  // 1. Archivage A et B pour CE fournisseur
+  const itemsA = [];
+  const itemsB = [];
+
+  state.produits
+    .filter(p => p.fournisseur === sup)
+    .forEach(p => {
+      const key = productKey(p);
+      const prix = getPrixColis(p);
+
+      const qa = state.quantities_a[key] || 0;
+      const qb = state.quantities_b[key] || 0;
+
+      if (qa > 0) {
+        itemsA.push({
+          key,
+          nomCourt: p.nom_court,
+          ref: p.reference,
+          qty: qa,
+          prixHt: p.prix_ht,
+          total: qa * prix
+        });
+      }
+
+      if (qb > 0) {
+        itemsB.push({
+          key,
+          nomCourt: p.nom_court,
+          ref: p.reference,
+          qty: qb,
+          prixHt: p.prix_ht,
+          total: qb * prix
+        });
+      }
+    });
+
+  // Envoi archive A
+  if (itemsA.length && CONFIG.APPS_SCRIPT_URL) {
+    fetch(CONFIG.APPS_SCRIPT_URL + '?action=archive&etab=a', {
+      method: 'POST',
+      mode: 'no-cors',
+      headers: { 'Content-Type': 'text/plain' },
+      body: JSON.stringify({
+        semaine: getWeekId(),
+        etabLabel: "Établissement A",
+        items: itemsA
+      })
+    });
+  }
+
+  // Envoi archive B
+  if (itemsB.length && CONFIG.APPS_SCRIPT_URL) {
+    fetch(CONFIG.APPS_SCRIPT_URL + '?action=archive&etab=b', {
+      method: 'POST',
+      mode: 'no-cors',
+      headers: { 'Content-Type': 'text/plain' },
+      body: JSON.stringify({
+        semaine: getWeekId(),
+        etabLabel: "Établissement B",
+        items: itemsB
+      })
+    });
+  }
+
+  // 2. Reset des quantités A/B pour CE fournisseur
+  state.produits
+    .filter(p => p.fournisseur === sup)
+    .forEach(p => {
+      const key = productKey(p);
+      delete state.quantities_a[key];
+      delete state.quantities_b[key];
+    });
+
+  // 3. Sauvegarde distante (efface aussi côté A/B)
+  scheduleSave();
+
+  // 4. Re-render
+  renderAccordionGerant();
+
+  // 5. Toast
+  showToast("📦 Commande validée pour " + sup);
+}
+
 // ============================================================
 //  RENDER ACCORDION GÉRANT
 // ============================================================
 function renderAccordionGerant() {
   const produits = state.produits;
-
-  // Tri : produits commandés en premier
-  const sorted = [...produits].sort((a, b) => {
-    const ka = productKey(a), kb = productKey(b);
-    const ta = (state.quantities_a[ka] || 0) + (state.quantities_b[ka] || 0);
-    const tb = (state.quantities_a[kb] || 0) + (state.quantities_b[kb] || 0);
-    return tb - ta;
-  });
+  const suppliers = [...new Set(produits.map(p => p.fournisseur))]
+    .sort((a, b) => a.localeCompare(b, 'fr'));
 
   const logoA = CONFIG.ETABS.find(e => e.id === 'a').icon;
   const logoB = CONFIG.ETABS.find(e => e.id === 'b').icon;
 
-  let html = `
-    <table class="gerant-table">
-      <thead>
-        <tr>
-          <th rowspan="2">Produit</th>
-          <th><img src="${logoA}" class="etab-logo-head"></th>
-          <th><img src="${logoB}" class="etab-logo-head"></th>
-        </tr>
-        <tr>
-          <th>Total €</th>
-          <th>Total €</th>
-        </tr>
-      </thead>
-      <tbody>
-  `;
+  let html = '';
 
-  sorted.forEach(p => {
-    const key = productKey(p);
-    const qa = state.quantities_a[key] || 0;
-    const qb = state.quantities_b[key] || 0;
-    const prix = getPrixColis(p);
+  suppliers.forEach(sup => {
+    const items = produits.filter(p => p.fournisseur === sup);
+
+    // Totaux A/B pour CE fournisseur
+    let totalA = 0, totalB = 0;
+    items.forEach(p => {
+      const key = productKey(p);
+      const prix = getPrixColis(p);
+      totalA += (state.quantities_a[key] || 0) * prix;
+      totalB += (state.quantities_b[key] || 0) * prix;
+    });
+
+    const isOpen = state.openSupplier === sup;
 
     html += `
-      <tr data-key="${escHtml(key)}">
-        <td>${escHtml(p.nom_court)}</td>
-
-        <td>
-          <div class="qty-cell">
-            <button class="qty-btn-g" data-key="${escHtml(key)}" data-etab="a" data-delta="-1">−</button>
-            <input class="qty-input-g" type="number" value="${qa}" min="0" data-key="${escHtml(key)}" data-etab="a">
-            <button class="qty-btn-g" data-key="${escHtml(key)}" data-etab="a" data-delta="1">+</button>
-            <span class="total-cell">${qa ? fmtPrice(qa * prix) : ''}</span>
+      <div class="accordion-block ${isOpen ? 'is-open' : ''}">
+        <div class="accordion-header" data-supplier="${sup}">
+          <div class="acc-left">
+            <span class="acc-name">${escHtml(sup)}</span>
           </div>
-        </td>
-
-        <td>
-          <div class="qty-cell">
-            <button class="qty-btn-g" data-key="${escHtml(key)}" data-etab="b" data-delta="-1">−</button>
-            <input class="qty-input-g" type="number" value="${qb}" min="0" data-key="${escHtml(key)}" data-etab="b">
-            <button class="qty-btn-g" data-key="${escHtml(key)}" data-etab="b" data-delta="1">+</button>
-            <span class="total-cell">${qb ? fmtPrice(qb * prix) : ''}</span>
-          </div>
-        </td>
-      </tr>
+          <button class="validate-supplier-btn" data-supplier="${sup}">
+            Valider
+          </button>
+        </div>
     `;
+
+    if (isOpen) {
+      html += `
+        <table class="gerant-table">
+          <thead>
+            <tr>
+              <th rowspan="2">Produit</th>
+              <th><img src="${logoA}" class="etab-logo-head"></th>
+              <th><img src="${logoB}" class="etab-logo-head"></th>
+            </tr>
+            <tr>
+              <th>${fmtPrice(totalA)}</th>
+              <th>${fmtPrice(totalB)}</th>
+            </tr>
+          </thead>
+          <tbody>
+      `;
+
+      // Tri : produits commandés en premier
+      const sorted = [...items].sort((a, b) => {
+        const ka = productKey(a), kb = productKey(b);
+        const ta = (state.quantities_a[ka] || 0) + (state.quantities_b[ka] || 0);
+        const tb = (state.quantities_a[kb] || 0) + (state.quantities_b[kb] || 0);
+        return tb - ta;
+      });
+
+      sorted.forEach(p => {
+        const key = productKey(p);
+        const qa = state.quantities_a[key] || 0;
+        const qb = state.quantities_b[key] || 0;
+
+        html += `
+          <tr data-key="${escHtml(key)}">
+            <td>${escHtml(p.designation)}</td>
+
+            <td>
+              <div class="qty-cell">
+                <button class="qty-btn-g" data-key="${key}" data-etab="a" data-delta="-1">−</button>
+                <input class="qty-input-g" type="number" value="${qa}" min="0" data-key="${key}" data-etab="a">
+                <button class="qty-btn-g" data-key="${key}" data-etab="a" data-delta="1">+</button>
+              </div>
+            </td>
+
+            <td>
+              <div class="qty-cell">
+                <button class="qty-btn-g" data-key="${key}" data-etab="b" data-delta="-1">−</button>
+                <input class="qty-input-g" type="number" value="${qb}" min="0" data-key="${key}" data-etab="b">
+                <button class="qty-btn-g" data-key="${key}" data-etab="b" data-delta="1">+</button>
+              </div>
+            </td>
+          </tr>
+        `;
+      });
+
+      html += `
+          </tbody>
+        </table>
+      `;
+    }
+
+    html += `</div>`;
   });
 
-  html += `</tbody></table>`;
-
   productList.innerHTML = html;
+
+  // Gestion ouverture accordéon
+  document.querySelectorAll('.accordion-header').forEach(h => {
+    h.addEventListener('click', e => {
+      if (e.target.classList.contains('validate-supplier-btn')) return;
+      const sup = h.dataset.supplier;
+      state.openSupplier = (state.openSupplier === sup ? null : sup);
+      renderAccordionGerant();
+    });
+  });
+
+  // Bouton valider
+  document.querySelectorAll('.validate-supplier-btn').forEach(btn => {
+    btn.addEventListener('click', e => {
+      e.stopPropagation();
+      validateSupplier(btn.dataset.supplier);
+    });
+  });
+
   bindGerantSteppers();
 }
 
