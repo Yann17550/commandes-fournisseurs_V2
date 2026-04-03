@@ -1168,9 +1168,15 @@ async function validateSupplier(sup) {
   // 4. Re-render
   renderAccordionGerant();
 
-  // 5. Toast
+  // 5. Met à jour le total dans la barre du bas ("Voir la commande")
+  if (typeof updateTotal === 'function') {
+    updateTotal();
+  }
+
+  // 6. Toast
   showToast("📦 Commande validée pour " + sup);
 }
+
 
 // ============================================================
 //  RENDER ACCORDION GÉRANT
