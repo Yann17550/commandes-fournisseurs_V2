@@ -21,7 +21,6 @@ function saveEtabLocal(id) { localStorage.setItem(ETAB_KEY, id); }
 
 // ---- State ------------------------------------------------
 
-
 // ---- DOM --------------------------------------------------
 const screenEtab = $('screenEtab'), screenApp = $('screenApp');
 const etabCards = $('etabCards'), etabPill = $('etabPill');
@@ -39,18 +38,9 @@ const editModal = $('editModal'), addModal = $('addModal');
 
 // ---- Utils ------------------------------------------------
 
-
-
-
-
 // ---- Nettoyage designation --------------------------------
 
-
 // ---- Parsing ----------------------------------------------
-
-
-
-
 
 // ---- Filtrage etablissement -------------------------------
 function getProduitsForEtab() {
