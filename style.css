@@ -526,3 +526,34 @@ select.edit-input { height:40px; cursor:pointer; }
 .copy-btn--a { background: #1D4ED8; }
 .copy-btn--b { background: #C2410C; }
 .modal-footer { flex-wrap: wrap; }
+/* ============================================================
+   BOUTON "VALIDER" DANS L’EN-TÊTE FOURNISSEUR (VUE GÉRANT)
+   - Option B : bouton placé à droite du nom du fournisseur
+   - Style compact, cohérent avec ton design
+   ============================================================ */
+.validate-supplier-btn {
+  background: var(--accent);        /* même couleur que bouton valider global */
+  color: #fff;
+  border: none;
+  padding: 6px 12px;
+  border-radius: var(--radius-sm);  /* cohérent avec ton design */
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.validate-supplier-btn:hover {
+  background: #1B4332;              /* accent foncé */
+}
+
+.validate-supplier-btn:active {
+  opacity: 0.85;
+}
+
+/* Forcer l’alignement propre dans l’en-tête */
+.accordion-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
