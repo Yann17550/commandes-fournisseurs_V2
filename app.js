@@ -371,23 +371,6 @@ function updateAccordionBadge(changedKey) {
   } else if(badge) badge.remove();
 }
 
-  // Mode A ou B (inchangé)
-  let total = 0, hasAny = false;
-
-  getProduitsForEtab().forEach(p => {
-    const qty = state.quantities[productKey(p)] || 0;
-    if (qty > 0) {
-      total += qty * getPrixColis(p);
-      hasAny = true;
-    }
-  });
-
-  totalAmount.textContent = fmtPrice(total);
-  bottomBar.style.display = hasAny ? 'flex' : 'none';
-  summaryBtn.style.display = hasAny ? 'flex' : 'none';
-
-
-
 // ---- Modal edition ----------------------------------------
 function openEditModal(key) {
   const p=state.produits.find(p=>productKey(p)===key); if(!p) return;
