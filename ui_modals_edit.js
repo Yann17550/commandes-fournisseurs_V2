@@ -64,12 +64,20 @@ async function applyEdit() {
     const json = await res.json();
     if (!json.ok) throw new Error(json.error || 'Erreur inconnue');
 
-    closeEditModal();
-    showToast('🔄 Mise à jour…');
+    // Mise à jour locale
+    p.reference = newRef;
+    p.prix_ht   = newPrix;
+    p.colissage = newColissage;
 
+    delete state.overrides[key];
+
+    closeEditModal();
+    renderAccordion();
+    showToast('✅ Mis à jour dans le Sheet');
+    
     // 🔥 Recharge complète de l'application
     setTimeout(() => location.reload(), 400);
-
+    
   } catch (err) {
     showToast('⚠️ Échec : ' + err.message);
 
@@ -78,7 +86,6 @@ async function applyEdit() {
     btn.textContent = 'Sauvegarder';
   }
 }
-
 
 // ---- Listeners modale --------------------------------------
 $('saveEditBtn').addEventListener('click', applyEdit);
