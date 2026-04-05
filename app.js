@@ -150,18 +150,6 @@ function sortProducts(prods) {
 }
 
 // ---- Rendu ------------------------------------------------
-function render() {
-  loadingState.style.display='none'; productList.style.display='block';
-  weekLabel.textContent=getWeekLabel();
-  renderAccordion(); updateTotal();
-}
-
-function renderError() {
-  document.querySelectorAll('.error-banner').forEach(e=>e.remove());
-  const div=document.createElement('div'); div.className='error-banner';
-  div.innerHTML='<strong>Erreur</strong><br>'+escHtml(state.error);
-  mainContent.prepend(div);
-}
 
 // ---- Accordeon --------------------------------------------
 function renderAccordion() {
@@ -382,15 +370,6 @@ function updateAccordionBadge(changedKey) {
     if(badge) badge.outerHTML=h; else left.insertAdjacentHTML('beforeend',h);
   } else if(badge) badge.remove();
 }
-
-function updateTotal() {
-  // Si on est en mode gérant → on masque totalement la barre du bas
-  if (state.etab && state.etab.id === 'gerant') {
-    bottomBar.style.display = 'none';
-    summaryBtn.style.display = 'none';
-    totalAmount.textContent = fmtPrice(0);
-    return;
-  }
 
   // Mode A ou B (inchangé)
   let total = 0, hasAny = false;
