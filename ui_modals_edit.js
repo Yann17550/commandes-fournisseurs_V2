@@ -64,15 +64,14 @@ async function applyEdit() {
     const json = await res.json();
     if (!json.ok) throw new Error(json.error || 'Erreur inconnue');
 
-    // Mise à jour locale
-    p.reference = newRef;
-    p.prix_ht   = newPrix;
-    p.colissage = newColissage;
-
-    delete state.overrides[key];
-
     closeEditModal();
-    renderAccordion();
+
+    // 🔥 Recharge propre des données depuis le Sheet
+    await loadDataCore();
+
+    // 🔥 Re-render complet
+    render();
+
     showToast('✅ Mis à jour dans le Sheet');
 
   } catch (err) {
