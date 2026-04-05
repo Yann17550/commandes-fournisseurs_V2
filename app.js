@@ -385,7 +385,7 @@ function updateAccordionBadge(changedKey) {
   totalAmount.textContent = fmtPrice(total);
   bottomBar.style.display = hasAny ? 'flex' : 'none';
   summaryBtn.style.display = hasAny ? 'flex' : 'none';
-}
+
 
 
 // ---- Modal edition ----------------------------------------
