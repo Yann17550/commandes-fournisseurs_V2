@@ -154,28 +154,6 @@ function sortProducts(prods) {
 // ---- Accordeon --------------------------------------------
 
 // ---- Qty --------------------------------------------------
-function onQtyBtn(e) {
-  const key=e.currentTarget.dataset.key;
-  setQty(key,Math.max(0,(state.quantities[key]||0)+parseInt(e.currentTarget.dataset.delta)));
-}
-function onQtyInput(e) { setQty(e.currentTarget.dataset.key,Math.max(0,parseInt(e.currentTarget.value)||0)); }
-
-function setQty(key,qty) {
-  state.quantities[key]=qty;
-  const card=productList.querySelector(`.product-card[data-key="${CSS.escape(key)}"]`);
-  if(card){
-    const p=state.produits.find(p=>productKey(p)===key);
-    if(p){
-      const isV=card.classList.contains('is-variant');
-      const tmp=document.createElement('div'); tmp.innerHTML=renderRow(p,isV);
-      const nc=tmp.firstElementChild; card.replaceWith(nc);
-      nc.querySelectorAll('.qty-btn').forEach(b=>b.addEventListener('click',onQtyBtn));
-      nc.querySelectorAll('.qty-input').forEach(i=>{ i.addEventListener('change',onQtyInput); i.addEventListener('focus',e=>e.target.select()); });
-      nc.querySelectorAll('.edit-btn').forEach(b=>b.addEventListener('click',ev=>{ ev.stopPropagation(); openEditModal(b.dataset.key); }));
-    }
-  }
-  updateAccordionBadge(key); updateTotal(); scheduleSave();
-}
 
 // ---- Modal edition ----------------------------------------
 function openEditModal(key) {
