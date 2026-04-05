@@ -1,30 +1,3 @@
-// ============================================================
-//  UI — MODALE D'ÉDITION PRODUIT
-// ============================================================
-
-// Ouvrir la modale
-function openEditModal(key) {
-  const p = state.produits.find(p => productKey(p) === key);
-  if (!p) return;
-
-  const d = getProductData(p);
-  state.editKey = key;
-
-  $('editModalTitle').textContent = 'Modifier : ' + p.nom_court;
-  $('editRef').value = d.reference;
-  $('editPrix').value = d.prix_ht;
-  $('editColissage').value = d.colissage;
-
-  editModal.style.display = 'flex';
-}
-
-// Fermer la modale
-function closeEditModal() {
-  editModal.style.display = 'none';
-  state.editKey = null;
-}
-
-// Appliquer les modifications
 async function applyEdit() {
   const key = state.editKey;
   if (!key) return;
@@ -66,7 +39,7 @@ async function applyEdit() {
 
     closeEditModal();
 
-    // 🔥 Recharge propre des données depuis le Sheet
+    // 🔥 Recharge propre des données
     await loadDataCore();
 
     // 🔥 Re-render complet
@@ -82,12 +55,3 @@ async function applyEdit() {
     btn.textContent = 'Sauvegarder';
   }
 }
-
-// ---- Listeners modale --------------------------------------
-$('saveEditBtn').addEventListener('click', applyEdit);
-$('closeEditModal').addEventListener('click', closeEditModal);
-$('cancelEditBtn').addEventListener('click', closeEditModal);
-
-editModal.addEventListener('click', e => {
-  if (e.target === editModal) closeEditModal();
-});
