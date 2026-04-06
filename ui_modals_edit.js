@@ -11,7 +11,7 @@ function openEditModal(key) {
   state.editKey = key;
 
   $('editModalTitle').textContent = 'Modifier : ' + p.nom_court;
-  $('editRef').value = d.reference;
+  $('editRef').disabled = true;
   $('editPrix').value = d.prix_ht;
   $('editColissage').value = d.colissage;
 
@@ -53,10 +53,7 @@ async function applyEdit() {
       method: 'POST',
       headers: { 'Content-Type': 'text/plain' },
       body: JSON.stringify({
-        fournisseur:  p.fournisseur,
-        oldReference: d.reference,
-        nomCourt:     p.nom_court,
-        reference:    newRef,
+        reference: d.reference,
         prix_ht:      newPrix,
         colissage:    newColissage,
       }),
