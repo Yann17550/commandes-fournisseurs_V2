@@ -1,6 +1,10 @@
 // ============================================================
 //  COPIE / ARCHIVAGE / RESET
 // ============================================================
+
+window.__FILE_VERSIONS__ = window.__FILE_VERSIONS__ || {};
+window.__FILE_VERSIONS__["copy.js"] = "2026-04-06T18:31:00";
+
 async function copySummary(mode) {
   let text = '';
   const isGerant = state.etab && state.etab.id === 'gerant';
