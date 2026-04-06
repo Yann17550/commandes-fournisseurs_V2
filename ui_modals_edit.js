@@ -64,7 +64,7 @@ async function applyEdit() {
     const json = await res.json();
     if (!json.ok) throw new Error(json.error || 'Erreur inconnue');
 
-    // Mise à jour locale
+    // Mise à jour locale minimale
     p.reference = newRef;
     p.prix_ht   = newPrix;
     p.colissage = newColissage;
@@ -72,10 +72,15 @@ async function applyEdit() {
     delete state.overrides[key];
 
     closeEditModal();
-    renderAccordion();
-    showToast('✅ Mis à jour dans le Sheet');
+    showToast('🔄 Mise à jour réussie, rafraîchissement...');
+
+    // 🔥 Refresh retardé pour laisser la requête se terminer proprement
+    setTimeout(() => {
+      location.reload();
+    }, 800);
 
   } catch (err) {
+    console.error(err);
     showToast('⚠️ Échec : ' + err.message);
 
   } finally {
