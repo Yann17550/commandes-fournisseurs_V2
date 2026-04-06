@@ -7,7 +7,7 @@ const CONFIG = {
   ETABS: [
     { id: 'a', label: "Pizza d'Oléron",  icon: 'Logo_Pizza-oleron.png' },
     { id: 'b', label: 'Le Vesuvio',      icon: 'Logo-Vesuvio.png' },
-    {id: 'gerant', label: 'Gérant',       icon: 'asset/incons/icone-gerant.png'}
+    {id: 'gerant', label: 'Gérant',       icon: 'assets/icons/icone-gerant.png'}
 
   ],
 
