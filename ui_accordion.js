@@ -1,6 +1,8 @@
 // ============================================================
 //  UI — ACCORDÉON (ÉTAB A / B)
 // ============================================================
+window.__FILE_VERSIONS__ = window.__FILE_VERSIONS__ || {};
+window.__FILE_VERSIONS__["ui_accordion.js"] = "2026-04-06T18:20:00";
 
 // ---- Accordéon principal -----------------------------------
 function renderAccordion() {
