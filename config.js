@@ -7,7 +7,8 @@ const CONFIG = {
   ETABS: [
     { id: 'a', label: "Pizza d'Oléron",  icon: 'Logo_Pizza-oleron.png' },
     { id: 'b', label: 'Le Vesuvio',      icon: 'Logo-Vesuvio.png' },
-    { id: 'gerant', label: 'Gérant',     icon: '👔' },
+    {id: 'gerant', label: 'Gérant',       icon: 'Logo-business.png'}
+
   ],
 
   // ---- Google Sheets (URLs publiées en TSV) ---------------
