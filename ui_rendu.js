@@ -2,6 +2,9 @@
 //  UI — RENDU GLOBAL (render, erreurs, total)
 // ============================================================
 
+window.__FILE_VERSIONS__ = window.__FILE_VERSIONS__ || {};
+window.__FILE_VERSIONS__["ui_rendu.js"] = "2026-04-06T18:31:00";
+
 // ---- Rendu principal ---------------------------------------
 function render() {
   loadingState.style.display = 'none';
