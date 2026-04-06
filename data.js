@@ -2,6 +2,9 @@
 //  DATA MODULE — Chargement / Sauvegarde / Historique
 // ============================================================
 
+window.__FILE_VERSIONS__ = window.__FILE_VERSIONS__ || {};
+window.__FILE_VERSIONS__["data.js"] = "2026-04-06T18:31:00";
+
 // ---- Sauvegarde distante ----------------------------------
 let saveTimer = null;
 
