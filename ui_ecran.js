@@ -2,6 +2,9 @@
 //  UI — GESTION DES ÉCRANS (choix établissement / écran app)
 // ============================================================
 
+window.__FILE_VERSIONS__ = window.__FILE_VERSIONS__ || {};
+window.__FILE_VERSIONS__["ui_ecran.js"] = "2026-04-06T18:31:00";
+
 // ---- Écran de sélection d'établissement --------------------
 function renderEtabScreen() {
   etabCards.innerHTML = CONFIG.ETABS.map(e => `
