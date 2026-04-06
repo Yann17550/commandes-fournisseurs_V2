@@ -63,6 +63,7 @@ async function applyEdit() {
     });
 
     const json = await res.json();
+    console.log("FETCH OK");
     if (!json.ok) throw new Error(json.error || 'Erreur inconnue');
 
     closeEditModal();
