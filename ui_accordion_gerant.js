@@ -2,10 +2,6 @@
 //  UI — ACCORDÉON MODE GÉRANT
 // ============================================================
 
-// ============================================================
-//  UI — ACCORDÉON MODE GÉRANT (VERSION COMPLÈTE + FIX BOUTON)
-// ============================================================
-
 function renderAccordionGerant() {
   const allProds = state.produits;
   const suppliers = [...new Set(allProds.map(p => p.fournisseur))].sort((a, b) =>
@@ -15,7 +11,6 @@ function renderAccordionGerant() {
   if (!suppliers.length) {
     productList.innerHTML =
       '<div class="empty-state"><div class="emoji">📭</div><p>Aucun produit</p></div>';
-    updateValidationButton();
     return;
   }
 
@@ -25,7 +20,6 @@ function renderAccordionGerant() {
     const prods = allProds.filter(p => p.fournisseur === sup);
     const isOpen = state.openSupplier === sup;
 
-    // Totaux A/B
     const orderedA = prods.filter(p => (state.quantities_a[productKey(p)] || 0) > 0);
     const orderedB = prods.filter(p => (state.quantities_b[productKey(p)] || 0) > 0);
 
@@ -37,12 +31,11 @@ function renderAccordionGerant() {
       (s, p) => s + (state.quantities_b[productKey(p)] || 0) * getPrixColis(p),
       0
     );
-
+    const totalGlobal = totalA + totalB;
     const badgeHtml =
-      orderedA.length || orderedB.length
+      (orderedA.length || orderedB.length)
         ? `<span class="acc-badge">
-             A:${orderedA.length} · ${fmtPrice(totalA)}<br>
-             B:${orderedB.length} · ${fmtPrice(totalB)}
+             Total : ${fmtPrice(totalGlobal)}
            </span>`
         : '';
 
@@ -69,28 +62,40 @@ function renderAccordionGerant() {
       const sup = btn.dataset.sup;
 
       if (state.openSupplier === sup) {
-        // On referme → plus de fournisseur sélectionné
         state.openSupplier = null;
-        state.selectedSupplier = null;
       } else {
-        // On ouvre → fournisseur sélectionné
         state.openSupplier = sup;
-        state.selectedSupplier = sup;
       }
 
       renderAccordionGerant();
-      updateValidationButton();
-
-      setTimeout(() => {
-        const o = productList.querySelector('.accordion-block.is-open');
-        if (o) o.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      }, 40);
     });
   });
 
   bindSteppersGerant();
-  updateValidationButton(); // 🔥 toujours après le render
+
+  // 🔥 Ajout du bouton de validation ici
+  if (state.etab && state.etab.id === 'gerant') {
+    const container = document.createElement('div');
+    container.id = 'gerant-validation-container';
+    container.style.textAlign = 'center';
+    container.style.padding = '20px';
+
+    const btn = document.createElement('button');
+    btn.id = 'btn-valider-commande';
+    btn.textContent = 'Valider la commande';
+    btn.className = 'btn-valider';
+
+    btn.style.display = state.openSupplier ? 'block' : 'none';
+
+    btn.addEventListener('click', () => {
+      console.log('Validation de la commande pour :', state.openSupplier);
+    });
+
+    container.appendChild(btn);
+    productList.appendChild(container);
+  }
 }
+
 function updateValidationButton() {
   const btn = document.getElementById('btn-valider-commande');
   if (!btn) return;
