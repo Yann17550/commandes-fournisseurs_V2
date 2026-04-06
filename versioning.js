@@ -3,6 +3,9 @@
 const LS_VERSION_META = 'cf_v3_version_meta';
 const LS_CACHE_DATA   = 'cf_v3_cache_data';
 
+// -----------------------------------------------------------
+//  Cache produits
+// -----------------------------------------------------------
 function loadCache() {
   try {
     const raw = localStorage.getItem(LS_CACHE_DATA);
@@ -21,7 +24,6 @@ function saveCache() {
       overrides:    state.overrides,
       lastOrder:    state.lastOrder,
       lastSemaine:  state.lastSemaine,
-      // si tu veux ajouter d’autres choses plus tard, c’est ici
     };
     localStorage.setItem(LS_CACHE_DATA, JSON.stringify(payload));
   } catch (e) {
@@ -29,6 +31,9 @@ function saveCache() {
   }
 }
 
+// -----------------------------------------------------------
+//  Version locale
+// -----------------------------------------------------------
 function loadVersionMeta() {
   try {
     const raw = localStorage.getItem(LS_VERSION_META);
@@ -41,25 +46,32 @@ function loadVersionMeta() {
 function saveVersionMeta(version) {
   try {
     localStorage.setItem(LS_VERSION_META, JSON.stringify({
-      version,
+      version: Number(version),
       ts: Date.now(),
     }));
   } catch {}
 }
 
+// -----------------------------------------------------------
+//  Version distante (Apps Script)
+// -----------------------------------------------------------
 async function fetchRemoteVersion() {
   if (!CONFIG.APPS_SCRIPT_URL) return null;
   try {
     const r = await fetch(CONFIG.APPS_SCRIPT_URL + '?action=version', { cache: 'no-store' });
     if (!r.ok) return null;
-    const txt = await r.text();
-    return (txt || '').trim();
+
+    const json = await r.json();
+    return Number(json.version_data) || null;
+
   } catch {
     return null;
   }
 }
 
-// Cette fonction remplace le loadData() global
+// -----------------------------------------------------------
+//  Chargement principal
+// -----------------------------------------------------------
 async function loadData() {
   loadingState.style.display = 'flex';
   productList.style.display  = 'none';
@@ -71,9 +83,9 @@ async function loadData() {
     const cache         = loadCache();
 
     const canUseCache =
-      remoteVersion &&
+      typeof remoteVersion === 'number' &&
       meta &&
-      meta.version === remoteVersion &&
+      Number(meta.version) === remoteVersion &&
       cache &&
       Array.isArray(cache.produits) &&
       cache.produits.length > 0;
@@ -88,7 +100,7 @@ async function loadData() {
       state.lastSemaine  = cache.lastSemaine  || '';
       state.loaded       = true;
 
-      // Gestion des commandes distantes comme avant
+      // Gestion des commandes distantes
       if (state.etab && state.etab.id === 'gerant') {
         const savedA = await loadCommandeRemoteById('a');
         const savedB = await loadCommandeRemoteById('b');
@@ -111,18 +123,19 @@ async function loadData() {
     }
 
     console.log('[VERSIONING] Pas de cache valide → chargement complet distant');
-    // On appelle ton ancienne logique
+
+    // Chargement complet
     await loadDataCore();
 
-    // Si on a une version distante, on met à jour le cache
-    if (remoteVersion) {
+    // Mise à jour du cache
+    if (typeof remoteVersion === 'number') {
       saveCache();
       saveVersionMeta(remoteVersion);
     }
 
   } catch (err) {
     console.error('[VERSIONING] Erreur loadData()', err);
-    // Fallback : on tente au moins ton ancien comportement
+
     try {
       await loadDataCore();
     } catch (e2) {
