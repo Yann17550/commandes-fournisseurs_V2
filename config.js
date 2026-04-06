@@ -1,8 +1,11 @@
 // ============================================================
 //  CONFIG — à modifier selon vos besoins
 // ============================================================
-const CONFIG = {
 
+window.__FILE_VERSIONS__ = window.__FILE_VERSIONS__ || {};
+window.__FILE_VERSIONS__["config.js"] = "2026-04-06T18:31:00";
+
+const CONFIG = {
   // ---- Établissements -------------------------------------
   ETABS: [
     { id: 'a', label: "Pizza d'Oléron",  icon: 'Logo_Pizza-oleron.png' },
