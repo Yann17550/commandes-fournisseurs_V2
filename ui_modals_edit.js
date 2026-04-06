@@ -2,7 +2,6 @@
 //  UI — MODALE D'ÉDITION PRODUIT
 // ============================================================
 
-// Ouvrir la modale
 function openEditModal(key) {
   const p = state.produits.find(p => productKey(p) === key);
   if (!p) return;
@@ -18,13 +17,11 @@ function openEditModal(key) {
   editModal.style.display = 'flex';
 }
 
-// Fermer la modale
 function closeEditModal() {
   editModal.style.display = 'none';
   state.editKey = null;
 }
 
-// Appliquer les modifications
 async function applyEdit() {
   const key = state.editKey;
   if (!key) return;
@@ -64,21 +61,14 @@ async function applyEdit() {
     const json = await res.json();
     if (!json.ok) throw new Error(json.error || 'Erreur inconnue');
 
-    // Mise à jour locale
-    p.reference = newRef;
-    p.prix_ht   = newPrix;
-    p.colissage = newColissage;
-
-    delete state.overrides[key];
-
     closeEditModal();
-    renderAccordion();
-    showToast('✅ Mis à jour dans le Sheet');
-    
+    showToast('🔄 Mise à jour…');
+
     // 🔥 Recharge complète de l'application
-    setTimeout(() => location.reload(), 400);
-    
+    setTimeout(() => location.reload(), 300);
+
   } catch (err) {
+    console.error(err);
     showToast('⚠️ Échec : ' + err.message);
 
   } finally {
