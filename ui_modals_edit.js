@@ -34,7 +34,7 @@ async function applyEdit() {
 
   const d = getProductData(p);
 
-  const newRef       = $('editRef').value.trim();
+
   const newPrix      = parseFloat($('editPrix').value) || 0;
   const newColissage = parseInt($('editColissage').value) || 1;
 
