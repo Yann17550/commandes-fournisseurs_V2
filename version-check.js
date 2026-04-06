@@ -1,4 +1,4 @@
-function() {
+(function() {
   const current = window.__FILE_VERSIONS__ || {};
   const previous = JSON.parse(localStorage.getItem("file_versions") || "{}");
 
