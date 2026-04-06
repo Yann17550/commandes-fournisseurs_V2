@@ -2,6 +2,9 @@
 //  UI — MODALE D'AJOUT PRODUIT
 // ============================================================
 
+window.__FILE_VERSIONS__ = window.__FILE_VERSIONS__ || {};
+window.__FILE_VERSIONS__["ui_modals_add.js"] = "2026-04-06T18:31:00";
+
 // Ouvrir la modale d'ajout
 function openAddModal() {
   const sel = $('addFournisseur');
