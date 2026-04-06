@@ -1,3 +1,7 @@
+
+window.__FILE_VERSIONS__ = window.__FILE_VERSIONS__ || {};
+window.__FILE_VERSIONS__["versioning.js"] = "2026-04-06T18:31:00";
+
 // ---- Versioning & cache -----------------------------------
 
 const LS_VERSION_META = 'cf_v3_version_meta';
