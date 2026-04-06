@@ -48,6 +48,7 @@ async function applyEdit() {
   btn.textContent = 'Sauvegarde...';
 
   try {
+    // 🔥 On attend la réponse AVANT de recharger
     const res = await fetch(CONFIG.APPS_SCRIPT_URL + '?action=updateProduct', {
       method: 'POST',
       headers: { 'Content-Type': 'text/plain' },
@@ -64,20 +65,11 @@ async function applyEdit() {
     const json = await res.json();
     if (!json.ok) throw new Error(json.error || 'Erreur inconnue');
 
-    // Mise à jour locale minimale
-    p.reference = newRef;
-    p.prix_ht   = newPrix;
-    p.colissage = newColissage;
-
-    delete state.overrides[key];
-
     closeEditModal();
-    showToast('🔄 Mise à jour réussie, rafraîchissement...');
+    showToast('✅ Mis à jour dans le Sheet');
 
-    // 🔥 Refresh retardé pour laisser la requête se terminer proprement
-    setTimeout(() => {
-      location.reload();
-    }, 800);
+    // 🔥 Recharge APRÈS la fin du fetch
+    setTimeout(() => location.reload(), 600);
 
   } catch (err) {
     console.error(err);
