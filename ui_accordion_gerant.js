@@ -2,6 +2,10 @@
 //  UI — ACCORDÉON MODE GÉRANT
 // ============================================================
 
+// ============================================================
+//  UI — ACCORDÉON MODE GÉRANT (VERSION COMPLÈTE + FIX BOUTON)
+// ============================================================
+
 function renderAccordionGerant() {
   const allProds = state.produits;
   const suppliers = [...new Set(allProds.map(p => p.fournisseur))].sort((a, b) =>
@@ -11,6 +15,7 @@ function renderAccordionGerant() {
   if (!suppliers.length) {
     productList.innerHTML =
       '<div class="empty-state"><div class="emoji">📭</div><p>Aucun produit</p></div>';
+    updateValidationButton();
     return;
   }
 
@@ -58,12 +63,23 @@ function renderAccordionGerant() {
 
   productList.innerHTML = html;
 
-  // Toggle accordéon
+  // Toggle accordéon + sélection fournisseur
   productList.querySelectorAll('.accordion-header').forEach(btn => {
     btn.addEventListener('click', () => {
       const sup = btn.dataset.sup;
-      state.openSupplier = state.openSupplier === sup ? null : sup;
+
+      if (state.openSupplier === sup) {
+        // On referme → plus de fournisseur sélectionné
+        state.openSupplier = null;
+        state.selectedSupplier = null;
+      } else {
+        // On ouvre → fournisseur sélectionné
+        state.openSupplier = sup;
+        state.selectedSupplier = sup;
+      }
+
       renderAccordionGerant();
+      updateValidationButton();
 
       setTimeout(() => {
         const o = productList.querySelector('.accordion-block.is-open');
@@ -73,6 +89,18 @@ function renderAccordionGerant() {
   });
 
   bindSteppersGerant();
+  updateValidationButton(); // 🔥 toujours après le render
+}
+function updateValidationButton() {
+  const btn = document.getElementById('btn-valider-commande');
+  if (!btn) return;
+
+  const visible =
+    state.etab &&
+    state.etab.id === 'gerant' &&
+    state.selectedSupplier;
+
+  btn.style.display = visible ? 'block' : 'none';
 }
 
 // ---- Corps fournisseur (gérant) ----------------------------
