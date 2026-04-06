@@ -2,6 +2,9 @@
 //  UI — ACCORDÉON MODE GÉRANT
 // ============================================================
 
+window.__FILE_VERSIONS__ = window.__FILE_VERSIONS__ || {};
+window.__FILE_VERSIONS__["ui_accordion_gerant.js"] = "2026-04-06T18:31:00";
+
 function renderAccordionGerant() {
   const allProds = state.produits;
   const suppliers = [...new Set(allProds.map(p => p.fournisseur))].sort((a, b) =>
