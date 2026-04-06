@@ -11,7 +11,7 @@ function openEditModal(key) {
   state.editKey = key;
 
   $('editModalTitle').textContent = 'Modifier : ' + p.nom_court;
-  $('editRef').disabled = true;
+  $('editRefLabel').textContent = d.reference;
   $('editPrix').value = d.prix_ht;
   $('editColissage').value = d.colissage;
 
