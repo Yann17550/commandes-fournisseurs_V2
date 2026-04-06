@@ -1,5 +1,5 @@
 // ============================================================
-//  APP.JS — Commandes Fournisseurs v3
+//  APP.JS — Commandes Fournisseurs v3 
 //  Multi-etablissement, colissage, historique, edition inline
 // ============================================================
 
