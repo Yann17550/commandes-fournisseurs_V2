@@ -1,0 +1,333 @@
+/* ============================================================
+   PAGE COMMANDES — FOURNISSEURS & PRODUITS
+   ------------------------------------------------------------
+   Ce fichier contient tout ce qui concerne :
+   - L’accordéon des fournisseurs
+   - Les sections (ex : Légumes, Viandes…)
+   - Les groupes nom court
+   - Les cartes produit
+   - Les steppers (quantités)
+   - Les badges (alcool, prix total…)
+   - Les infos fournisseur (contact, notes)
+   ============================================================ */
+
+
+/* ============================================================
+   ACCORDÉON FOURNISSEURS
+   ------------------------------------------------------------
+   Chaque fournisseur est une "carte" repliable :
+   - En-tête (nom, badge, bouton valider)
+   - Corps (produits)
+   ============================================================ */
+
+/* Espace spécifique quand on est en mode gérant */
+body.etab-gerant #productList,
+body.etab-gerant #product-list {
+  margin-top: 20px;
+}
+
+/* Fournisseur ayant déjà une commande */
+.accordion-block.has-order .accordion-header {
+  background: #f1f8e9; /* vert très léger */
+  border-left: 4px solid #4CAF50;
+}
+
+/* Bloc général du fournisseur */
+main { padding: 0 14px; }
+
+.accordion-block {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  margin-bottom: 8px;
+  overflow: hidden;
+}
+.accordion-block.is-open { border-color: var(--accent); }
+
+/* En-tête du fournisseur */
+.accordion-header {
+  width: 100%;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 13px 14px;
+  background: none; border: none;
+  cursor: pointer;
+  text-align: left;
+  gap: 10px;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Ligne de séparation quand ouvert */
+.accordion-block.is-open .accordion-header {
+  border-bottom: 1px solid var(--border);
+}
+
+/* Zone gauche : nom + badge + icône */
+.acc-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 1;
+  min-width: 0;
+}
+
+/* Nom du fournisseur */
+.acc-name {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Badge indiquant le nombre de produits */
+.acc-badge {
+  flex-shrink: 0;
+  font-size: 12px;
+  font-weight: 500;
+  padding: 3px 10px;
+  border-radius: 99px;
+  background: var(--accent);
+  color: #fff;
+  white-space: nowrap;
+}
+
+/* Petite flèche à droite */
+.acc-chevron {
+  font-size: 14px;
+  color: var(--text-muted);
+  flex-shrink: 0;
+}
+
+/* Bouton "Valider" dans l’en-tête */
+.btn-valider-outline {
+  background: transparent;
+  color: var(--accent);
+  border: 1px solid var(--accent);
+  padding: 4px 10px;
+  border-radius: var(--radius-sm);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  flex-shrink: 0;
+  line-height: 1;
+  transition: all 0.15s ease;
+}
+.btn-valider-outline:hover { background: var(--accent-light); }
+.btn-valider-outline:active { background: var(--accent); color: #fff; }
+
+/* Corps du fournisseur */
+.acc-body { padding: 6px 0 4px; }
+
+/* Bandeau d’informations (contact, notes…) */
+.acc-info-bar {
+  font-size: 12px;
+  color: var(--text-muted);
+  padding: 7px 14px;
+  background: var(--bg);
+  border-bottom: 1px solid var(--border);
+  line-height: 1.5;
+}
+
+
+/* ============================================================
+   SECTIONS (ex : Légumes, Viandes…)
+   ============================================================ */
+.section-label {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--accent-text);
+  background: var(--accent-light);
+  padding: 5px 14px;
+  margin: 4px 0 2px;
+}
+
+/* Variante plus discrète */
+.section-label--secondary {
+  color: var(--text-muted);
+  background: var(--bg);
+}
+
+
+/* ============================================================
+   GROUPES NOM COURT
+   ------------------------------------------------------------
+   Exemple : "Fruits", "Boissons", "Épicerie"
+   ============================================================ */
+.nc-group {
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+  margin: 4px 0;
+}
+
+.nc-header {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  padding: 5px 14px;
+  background: var(--bg);
+}
+
+
+/* ============================================================
+   CARTES PRODUIT
+   ------------------------------------------------------------
+   Chaque produit est une ligne :
+   - Nom
+   - Sous-nom
+   - Référence
+   - Prix
+   - Stepper quantité
+   ============================================================ */
+.product-card {
+  display: flex; align-items: center; gap: 10px;
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--border);
+  background: var(--surface);
+  transition: background 0.1s;
+}
+.product-card:last-child { border-bottom: none; }
+
+/* Produit avec quantité sélectionnée */
+.product-card.has-qty { background: var(--accent-light); }
+
+/* Variante (produit enfant) */
+.product-card.is-variant { padding-left: 20px; }
+
+/* Zone texte */
+.product-info { flex: 1; min-width: 0; }
+
+/* Ligne nom + bouton edit */
+.product-nom-row {
+  display: flex; align-items: center; gap: 6px;
+}
+
+/* Nom du produit */
+.product-nom {
+  flex: 1;
+  font-size: 14px;
+  font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Sous-nom */
+.product-sub {
+  font-size: 12px;
+  color: var(--text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Métadonnées (référence, prix…) */
+.product-meta {
+  display: flex;
+  gap: 7px;
+  margin-top: 2px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+/* Référence produit */
+.product-ref {
+  font-size: 11px;
+  color: var(--text-light);
+  font-family: var(--font-mono);
+}
+
+/* Référence modifiée */
+.ref-override {
+  color: var(--accent-text) !important;
+  font-weight: 600;
+}
+
+/* Prix unitaire */
+.product-prix {
+  font-size: 12px;
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+/* Prix total (quantité × prix) */
+.product-prix-total {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--accent-text);
+  font-family: var(--font-mono);
+}
+
+/* Infos colissage */
+.colissage-info {
+  font-size: 11px;
+  color: var(--text-light);
+  font-style: italic;
+}
+
+/* Badge alcool */
+.badge-alcool { font-size: 13px; }
+
+/* Dernière commande */
+.last-order {
+  font-size: 11px;
+  color: var(--text-light);
+  margin-top: 3px;
+  font-style: italic;
+}
+
+
+/* ============================================================
+   STEPPER (quantité)
+   ------------------------------------------------------------
+   Boutons + / - et champ quantité
+   ============================================================ */
+.qty-stepper {
+  display: flex; align-items: center;
+  flex-shrink: 0;
+  background: var(--bg);
+  border: 1px solid var(--border-mid);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+}
+
+/* Bouton - et + */
+.qty-btn {
+  width: 36px;
+  height: 40px;
+  border: none;
+  background: transparent;
+  font-size: 20px;
+  font-weight: 400;
+  color: var(--text-muted);
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  -webkit-tap-highlight-color: transparent;
+}
+.qty-btn:active { background: var(--border); }
+
+/* Champ quantité */
+.qty-input {
+  width: 36px;
+  height: 40px;
+  border: none;
+  border-left: 1px solid var(--border);
+  border-right: 1px solid var(--border);
+  background: var(--surface);
+  text-align: center;
+  font-family: var(--font-mono);
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text);
+  outline: none;
+  -moz-appearance: textfield;
+}
+.qty-input::-webkit-inner-spin-button,
+.qty-input::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+}
