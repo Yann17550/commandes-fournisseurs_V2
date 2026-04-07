@@ -51,6 +51,5 @@ function setQty(key, qty) {
   }
 
   updateAccordionBadge(key);
-  updateTotal();
   scheduleSave();
 }
