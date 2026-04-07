@@ -96,7 +96,6 @@ main { padding: 0 14px; }
   -webkit-tap-highlight-color: transparent;
 }
 .accordion-block.is-open .accordion-header { border-bottom: 1px solid var(--border); }
-
 .acc-left { display: flex; align-items: center; gap: 10px; flex: 1; min-width: 0; }
 .acc-name { font-size: 15px; font-weight: 600; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .acc-badge { flex-shrink: 0; font-size: 12px; font-weight: 500; padding: 3px 10px; border-radius: 99px; background: var(--accent); color: #fff; white-space: nowrap; }
@@ -605,6 +604,31 @@ select.edit-input { height:40px; cursor:pointer; }
   justify-content: space-between;
   align-items: center;
 }
+/* Bouton "Valider" style outline (version 3) */
+.btn-valider-outline {
+  background: transparent;
+  color: var(--accent);
+  border: 1px solid var(--accent);
+  padding: 4px 10px;
+  border-radius: var(--radius-sm);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  flex-shrink: 0;
+  line-height: 1;
+  transition: all 0.15s ease;
+}
+
+.btn-valider-outline:hover {
+  background: var(--accent-light);
+}
+
+.btn-valider-outline:active {
+  background: var(--accent);
+  color: #fff;
+}
+
 /* ============================================================
    BADGE MONTANT GLOBAL A+B DANS L’EN-TÊTE FOURNISSEUR
    - Affichage propre du total global
