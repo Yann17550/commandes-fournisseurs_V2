@@ -42,26 +42,27 @@ function renderAccordionGerant() {
            </span>`
         : '';
 
-    html += `
-      <div class="accordion-block${isOpen ? ' is-open' : ''}" data-sup="${escHtml(sup)}">
-        <button class="accordion-header" data-sup="${escHtml(sup)}">
-          <div class="acc-left">
-            <span class="acc-name">${escHtml(sup)}</span>
-            ${badgeHtml}
-          </div>
-          <span class="acc-chevron">${isOpen ? '▾' : '▸'}</span>
-        </button>
-    
+html += `
+  <div class="accordion-block${isOpen ? ' is-open' : ''}" data-sup="${escHtml(sup)}">
+    <button class="accordion-header" data-sup="${escHtml(sup)}">
+      <div class="acc-left">
+        <span class="acc-name">${escHtml(sup)}</span>
+        ${badgeHtml}
+
         ${isOpen ? `
-          <div class="acc-actions">
-            <button class="btn-valider" data-sup="${escHtml(sup)}">
-              Valider la commande
-            </button>
-          </div>
-          ${renderSupplierBodyGerant(prods)}
+          <button class="btn-valider" data-sup="${escHtml(sup)}">
+            Valider
+          </button>
         ` : ''}
       </div>
-    `;
+
+      <span class="acc-chevron">${isOpen ? '▾' : '▸'}</span>
+    </button>
+
+    ${isOpen ? renderSupplierBodyGerant(prods) : ''}
+  </div>
+`;
+
   });
   productList.innerHTML = html;
   // Toggle accordéon + sélection fournisseur
