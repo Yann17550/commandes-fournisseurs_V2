@@ -101,6 +101,36 @@ main { padding: 0 14px; }
 .acc-name { font-size: 15px; font-weight: 600; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .acc-badge { flex-shrink: 0; font-size: 12px; font-weight: 500; padding: 3px 10px; border-radius: 99px; background: var(--accent); color: #fff; white-space: nowrap; }
 .acc-chevron { font-size: 14px; color: var(--text-muted); flex-shrink: 0; }
+/* Bouton "Valider" dans l’en-tête fournisseur (vue gérant) */
+.btn-valider {
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  padding: 4px 10px;
+  border-radius: var(--radius-sm);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  flex-shrink: 0;
+  line-height: 1;
+}
+
+.btn-valider:active {
+  opacity: 0.85;
+}
+
+/* Alignement propre dans l’en-tête */
+.accordion-header .acc-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Pour éviter que le bouton pousse tout et casse le layout */
+.accordion-header {
+  align-items: center;
+}
 
 /* ============================================================
    CORPS FOURNISSEUR
