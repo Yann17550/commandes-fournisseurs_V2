@@ -84,6 +84,21 @@ body {
      justify-content: space-between;
      gap: 10px;
    }
+   .etab-pill {
+     display: flex;
+     align-items: center;
+     gap: 8px;
+   
+     background: var(--surface);
+     padding: 8px 14px;
+   
+     border-radius: 50px; /* <-- pill arrondi */
+     border: 1px solid var(--border);
+   
+     cursor: pointer;
+     font-size: 14px;
+     font-weight: 500;
+   }
 
 /* Zone gauche : logo + titre */
 .header-left { display: flex; align-items: center; gap: 10px; }
