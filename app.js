@@ -3,9 +3,6 @@
 //  Multi-etablissement, colissage, historique, edition inline
 // ============================================================
 
-window.__FILE_VERSIONS__ = window.__FILE_VERSIONS__ || {};
-window.__FILE_VERSIONS__["app.js"] = "2026-04-06T18:31:00";
-
 // ---- Apprentissage ----------------------------------------
 const LEARN_KEY = 'cmd_scores';
 function getScores() { try { return JSON.parse(localStorage.getItem(LEARN_KEY)||'{}'); } catch { return {}; } }
@@ -29,8 +26,7 @@ const etabCards = $('etabCards'), etabPill = $('etabPill');
 const switchEtabBtn = $('switchEtabBtn');
 const weekLabel = $('weekLabel'), mainContent = $('mainContent');
 const productList = $('productList'), loadingState = $('loadingState');
-const bottomBar = $('bottomBar'), totalAmount = $('totalAmount');
-const validateBtn = $('validateBtn'), summaryBtn = $('summaryBtn');
+const summaryBtn = $('summaryBtn');
 const refreshBtn = $('refreshBtn'), summaryModal = $('summaryModal');
 const summaryContent = $('summaryContent'), searchInput = $('searchInput');
 const saveStatusEl = $('saveStatus');
@@ -166,7 +162,6 @@ function sortProducts(prods) {
 //  RÉCAPITULATIF
 // ============================================================
 summaryBtn.addEventListener('click', openSummary);
-validateBtn.addEventListener('click', openSummary);
 $('closeModal').addEventListener('click', closeSummary);
 $('resetBtn').addEventListener('click', resetCommande);
 $('copyBtn').addEventListener('click', () => copySummary('all'));
