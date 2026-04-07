@@ -2,11 +2,10 @@
 //  UI — GESTION DES ÉCRANS (choix établissement / écran app)
 // ============================================================
 
-window.__FILE_VERSIONS__ = window.__FILE_VERSIONS__ || {};
-window.__FILE_VERSIONS__["ui_ecran.js"] = "2026-04-06T18:31:00";
-
 // ---- Écran de sélection d'établissement --------------------
 function renderEtabScreen() {
+  document.body.classList.add("etab-select"); // <-- AJOUT
+
   etabCards.innerHTML = CONFIG.ETABS.map(e => `
     <button class="etab-card" data-etab="${e.id}">
       <img src="${e.icon}" alt="${escHtml(e.label)}" class="etab-logo">
@@ -21,6 +20,7 @@ function renderEtabScreen() {
   screenApp.style.display  = 'none';
 }
 
+
 // ---- Sélection d'un établissement --------------------------
 async function selectEtab(id) {
   const etab = CONFIG.ETABS.find(e => e.id === id);
@@ -29,8 +29,10 @@ async function selectEtab(id) {
   const prevId = state.etab ? state.etab.id : null;
   state.etab = etab;
 
+  document.body.classList.remove("etab-select"); // <-- AJOUT
   document.body.classList.toggle('etab-gerant', id === 'gerant');
   saveEtabLocal(id);
+
 
   etabPill.innerHTML = `
     <img src="${etab.icon}" class="etab-logo-pill">
