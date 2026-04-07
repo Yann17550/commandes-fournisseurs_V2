@@ -48,17 +48,15 @@ html += `
       <div class="acc-left">
         <span class="acc-name">${escHtml(sup)}</span>
         ${badgeHtml}
-
         ${isOpen ? `
-          <button class="btn-valider" data-sup="${escHtml(sup)}">
+          <button class="btn-valider-outline" data-sup="${escHtml(sup)}">
             Valider
           </button>
         ` : ''}
       </div>
-
+      
       <span class="acc-chevron">${isOpen ? '▾' : '▸'}</span>
     </button>
-
     ${isOpen ? renderSupplierBodyGerant(prods) : ''}
   </div>
 `;
