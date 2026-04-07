@@ -104,3 +104,13 @@
   transition: opacity 0.3s;
   white-space: nowrap;
 }
+
+/* Masquer le header uniquement sur l'écran d'accueil */
+body.etab-select .app-header {
+  display: none;
+}
+
+/* Quand le header est masqué, l'écran d'accueil peut se centrer parfaitement */
+body.etab-select #app {
+  padding-top: 0; /* supprime l'espace réservé au header */
+}
