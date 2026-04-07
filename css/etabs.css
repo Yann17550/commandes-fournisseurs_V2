@@ -1,0 +1,106 @@
+/* ============================================================
+   ÉCRAN D’ACCUEIL — CHOIX DE L’ÉTABLISSEMENT
+   ------------------------------------------------------------
+   Ce fichier contient uniquement les styles liés à la première
+   page que l’utilisateur voit :
+   - Logo de l’établissement
+   - Cartes de sélection
+   - Sous‑titre
+   - Bouton pour changer d’établissement
+   - Statut de sauvegarde
+   ============================================================ */
+
+/* Conteneur général de l’écran d’accueil */
+.etab-screen {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  padding: 2rem;
+  gap: 1rem;
+  background: var(--bg);
+}
+
+/* Gros logo affiché au-dessus du nom de l’établissement */
+.etab-logo {
+  font-size: 48px;
+  margin-bottom: 0.5rem;
+}
+
+/* Nom de l’établissement */
+.etab-title {
+  font-size: 24px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+/* Sous‑titre (ex : “Sélectionnez votre établissement”) */
+.etab-sub {
+  font-size: 15px;
+  color: var(--text-muted);
+  margin-bottom: 0.5rem;
+}
+
+/* Conteneur des cartes d’établissement */
+.etab-cards {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+  max-width: 320px;
+}
+
+/* Carte cliquable représentant un établissement */
+.etab-card {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px 20px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  cursor: pointer;
+  font-size: 16px;
+  font-weight: 500;
+  color: var(--text);
+  transition: border-color 0.15s, background 0.15s;
+}
+
+/* Effet visuel lors du clic */
+.etab-card:active {
+  background: var(--accent-light);
+  border-color: var(--accent);
+}
+
+/* Petite icône à gauche de la carte */
+.etab-card-icon {
+  font-size: 24px;
+}
+
+/* Texte de la carte */
+.etab-card-label {
+  flex: 1;
+  text-align: left;
+}
+
+/* Lien discret pour changer d’établissement */
+.etab-switch-link {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  font-size: 13px;
+  cursor: pointer;
+  text-decoration: underline;
+  margin-top: 0.5rem;
+}
+
+/* Indicateur de sauvegarde (ex : “Sauvegardé”) */
+.save-status {
+  font-size: 11px;
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+  opacity: 0; /* devient visible via JS */
+  transition: opacity 0.3s;
+  white-space: nowrap;
+}
