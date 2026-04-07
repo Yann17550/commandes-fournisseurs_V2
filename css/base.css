@@ -288,52 +288,6 @@ body {
 }
 
 /* ============================================================
-   BOTTOM BAR (barre fixe en bas)
-   ------------------------------------------------------------
-   - Total général
-   - Bouton "Valider"
-   ============================================================ */
-.bottom-bar {
-  position: fixed; bottom: 0; left: 0; right: 0; z-index: 40;
-  background: var(--surface);
-  border-top: 1px solid var(--border);
-  padding: 10px 14px;
-  display: flex; align-items: center; justify-content: space-between;
-  gap: 10px;
-  max-width: 680px; margin: 0 auto;
-  box-shadow: 0 -4px 16px rgba(0,0,0,0.06);
-}
-
-.total-block { display: flex; flex-direction: column; }
-
-.total-label {
-  font-size: 10px;
-  color: var(--text-muted);
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-}
-
-.total-amount {
-  font-size: 20px;
-  font-weight: 600;
-  font-family: var(--font-mono);
-}
-
-/* Bouton valider */
-.validate-btn {
-  height: 44px;
-  padding: 0 18px;
-  background: var(--accent);
-  color: #fff;
-  border: none;
-  border-radius: var(--radius);
-  font-size: 14px;
-  font-weight: 600;
-  cursor: pointer;
-}
-.validate-btn:active { opacity: 0.85; }
-
-/* ============================================================
    ÉTATS SPÉCIAUX (loading, vide, erreur)
    ============================================================ */
 .loading-state {
