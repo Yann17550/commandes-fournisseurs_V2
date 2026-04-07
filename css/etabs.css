@@ -114,3 +114,9 @@ body.etab-select .app-header {
 body.etab-select #app {
   padding-top: 0; /* supprime l'espace réservé au header */
 }
+
+/* Par sécurité : pas de bottom bar sur la page d'accueil */
+body.etab-select .bottom-bar {
+  display: none;
+}
+
