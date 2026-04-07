@@ -51,14 +51,19 @@ function renderAccordionGerant() {
           </div>
           <span class="acc-chevron">${isOpen ? '▾' : '▸'}</span>
         </button>
-
-        ${isOpen ? renderSupplierBodyGerant(prods) : ''}
+    
+        ${isOpen ? `
+          <div class="acc-actions">
+            <button class="btn-valider" data-sup="${escHtml(sup)}">
+              Valider la commande
+            </button>
+          </div>
+          ${renderSupplierBodyGerant(prods)}
+        ` : ''}
       </div>
     `;
   });
-
   productList.innerHTML = html;
-
   // Toggle accordéon + sélection fournisseur
   productList.querySelectorAll('.accordion-header').forEach(btn => {
     btn.addEventListener('click', () => {
@@ -69,12 +74,21 @@ function renderAccordionGerant() {
       } else {
         state.openSupplier = sup;
       }
-
       renderAccordionGerant();
     });
   });
 
   bindSteppersGerant();
+
+  // Bouton de validation dans chaque fournisseur ouvert
+  productList.querySelectorAll('.btn-valider').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const sup = btn.dataset.sup;
+      console.log("Validation de la commande pour :", sup);
+      // ici tu mettras ta logique
+    });
+  });
+
 
   // 🔥 Ajout du bouton de validation ici
   if (state.etab && state.etab.id === 'gerant') {
