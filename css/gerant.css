@@ -359,3 +359,31 @@ body.etab-gerant .gerant-badge {
   width: 7ch; /* Ajustable : 6ch, 7ch, 8ch selon tes prix */
   text-align: right;
 }
+/* ============================================================
+   Badges établissements sous le header fournisseur
+   ============================================================ */
+
+.acc-etabs {
+  display: flex;
+  justify-content: space-between;
+  padding: 4px 14px 8px;
+  gap: 10px;
+}
+
+.etab-badge {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  background: var(--bg);
+  border: 1px solid var(--border-mid);
+  border-radius: 99px;
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+.etab-logo {
+  width: 16px;
+  height: 16px;
+  object-fit: contain;
+}
