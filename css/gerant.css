@@ -1,41 +1,21 @@
 /* ============================================================
-   VUE GÉRANT — RÉPARTITION PAR ÉTABLISSEMENT
-   ------------------------------------------------------------
-   Ce fichier contient tout ce qui concerne l’écran gérant :
-   - Affichage des produits avec colonnes A et B
-   - Steppers empilés (quantités par établissement)
-   - Sous‑totaux A / B / Total
-   - Badges récapitulatifs
-   - Version gérant du récap dans le modal
-   ============================================================ */
-
-/* ============================================================
-   BADGE DANS L’EN‑TÊTE FOURNISSEUR (MODE GÉRANT)
-   ------------------------------------------------------------
-   Petit badge affichant A / B / Total dans l’accordéon.
+   BADGE TOTAL DANS LE HEADER FOURNISSEUR
    ============================================================ */
 .gerant-badge {
-  display: inline-flex !important;
+  display: inline-flex;
   align-items: center;
   gap: 4px;
   font-size: 11px;
   padding: 3px 8px;
   border-radius: 99px;
-  background: var(--bg) !important;
-  color: var(--text) !important;
+  background: var(--bg);
+  color: var(--text);
   border: 1px solid var(--border-mid);
 }
 
-.gb-a { color: #1D4ED8; font-weight: 600; }
-.gb-b { color: #C2410C; font-weight: 600; }
-.gb-sep { color: var(--text-light); }
-.gb-total { color: var(--text); font-weight: 600; }
-
-
 /* ============================================================
-   Badges établissements sous le header fournisseur
+   BADGES ÉTABLISSEMENTS (AFFICHÉS UNIQUEMENT SI OUVERT)
    ============================================================ */
-
 .acc-etabs {
   display: flex;
   justify-content: space-between;
@@ -59,4 +39,62 @@
   width: 14px;
   height: 14px;
   object-fit: contain;
+}
+
+/* ============================================================
+   LIGNE PRODUIT — NOUVEAU LAYOUT (2 LIGNES)
+   ============================================================ */
+.product-card {
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--border);
+}
+
+.product-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 6px;
+}
+
+.product-header .product-nom {
+  font-size: 14px;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.product-header .product-prix {
+  font-size: 12px;
+  color: var(--text-light);
+}
+
+/* ============================================================
+   STEPPERS A & B CÔTE À CÔTÉ
+   ============================================================ */
+.product-steppers {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.qty-stepper {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 1;
+  min-width: 0;
+}
+
+.qty-input-a,
+.qty-input-b {
+  width: 26px;
+  text-align: center !important;
+}
+
+.qty-total {
+  display: inline-block;
+  width: 7ch;
+  text-align: right;
+  flex-shrink: 0;
 }
