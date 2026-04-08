@@ -149,7 +149,7 @@ function renderSupplierBodyGerant(prods) {
         <div class="qty-stepper qty-stepper-a">
           <span class="qty-label">A</span>
           <button class="qty-btn-a" data-key="${escHtml(key)}" data-delta="-1">−</button>
-          <input class="qty-input-a" type="number" min="0" step="1" value="${qa}" data-key="${escHtml(key)}">
+          <input class="qty-input-a" type="number" min="0" step="1" value="${qa}" data-key="${escHtml(key)}" style="width:26px">
           <button class="qty-btn-a" data-key="${escHtml(key)}" data-delta="1">+</button>
           <span class="qty-total" style="flex-shrink:0">${fmtPrice(totalA)}</span>
         </div>
@@ -157,7 +157,7 @@ function renderSupplierBodyGerant(prods) {
         <div class="qty-stepper qty-stepper-a" style="flex-shrink:1; min-width:0;">
           <span class="qty-label">B</span>
           <button class="qty-btn-b" data-key="${escHtml(key)}" data-delta="-1">−</button>
-          <input class="qty-input-b" type="number" min="0" step="1" value="${qb}" data-key="${escHtml(key)}">
+          <input class="qty-input-b" type="number" min="0" step="1" value="${qb}" data-key="${escHtml(key)}" style="width:26px">
           <button class="qty-btn-b" data-key="${escHtml(key)}" data-delta="1">+</button>
           <span class="qty-total" style="flex-shrink:0">${fmtPrice(totalB)}</span>
         </div>
