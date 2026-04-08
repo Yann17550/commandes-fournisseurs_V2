@@ -353,3 +353,9 @@ body.etab-gerant .gerant-badge {
 .qty-input-b {
   text-align: center !important;
 }
+
+.qty-total {
+  display: inline-block;
+  width: 7ch; /* Ajustable : 6ch, 7ch, 8ch selon tes prix */
+  text-align: center;
+}
