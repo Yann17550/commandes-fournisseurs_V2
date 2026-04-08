@@ -294,3 +294,22 @@
   font-size: 16px !important;
   font-weight: 600;
 }
+/* Header fournisseur en mode gérant : Fournisseur | Total | Valider sur une ligne */
+body.etab-gerant .accordion-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+/* Partie gauche : nom + badge total + bouton Valider alignés sur une ligne */
+body.etab-gerant .accordion-header .acc-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* On s'assure que le badge reste inline et ne prenne pas toute la ligne */
+body.etab-gerant .gerant-badge {
+  display: inline-flex;
+}
+
