@@ -44,22 +44,26 @@ function renderAccordionGerant() {
 
 html += `
   <div class="accordion-block${isOpen ? ' is-open' : ''}" data-sup="${escHtml(sup)}">
-    <button class="accordion-header" data-sup="${escHtml(sup)}">
+
+    <div class="accordion-header" data-sup="${escHtml(sup)}">
       <div class="acc-left">
         <span class="acc-name">${escHtml(sup)}</span>
         ${badgeHtml}
+
         ${isOpen ? `
           <button class="btn-valider-outline" data-sup="${escHtml(sup)}">
             Valider
           </button>
         ` : ''}
       </div>
-      
+
       <span class="acc-chevron">${isOpen ? '▾' : '▸'}</span>
-    </button>
+    </div>
+
     ${isOpen ? renderSupplierBodyGerant(prods) : ''}
   </div>
 `;
+
 
   });
   productList.innerHTML = html;
