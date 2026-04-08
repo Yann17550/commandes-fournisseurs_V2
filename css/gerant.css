@@ -349,3 +349,7 @@ body.etab-gerant .gerant-badge {
   overflow: hidden;
   text-overflow: ellipsis;
 }
+.qty-input-a,
+.qty-input-b {
+  text-align: center !important;
+}
