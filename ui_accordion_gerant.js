@@ -2,9 +2,6 @@
 //  UI — ACCORDÉON MODE GÉRANT
 // ============================================================
 
-window.__FILE_VERSIONS__ = window.__FILE_VERSIONS__ || {};
-window.__FILE_VERSIONS__["ui_accordion_gerant.js"] = "2026-04-06T18:31:00";
-
 function renderAccordionGerant() {
   const allProds = state.produits;
   const suppliers = [...new Set(allProds.map(p => p.fournisseur))].sort((a, b) =>
@@ -44,26 +41,19 @@ function renderAccordionGerant() {
 
 html += `
   <div class="accordion-block${isOpen ? ' is-open' : ''}" data-sup="${escHtml(sup)}">
-
     <div class="accordion-header" data-sup="${escHtml(sup)}">
       <div class="acc-left">
         <span class="acc-name">${escHtml(sup)}</span>
         ${badgeHtml}
-
         ${isOpen ? `
-          <button class="btn-valider-outline" data-sup="${escHtml(sup)}">
-            Valider
-          </button>
+          <button class="btn-valider-outline" data-sup="${escHtml(sup)}">Valider commande</button>
         ` : ''}
       </div>
-
       <span class="acc-chevron">${isOpen ? '▾' : '▸'}</span>
     </div>
-
     ${isOpen ? renderSupplierBodyGerant(prods) : ''}
   </div>
 `;
-
 
   });
   productList.innerHTML = html;
