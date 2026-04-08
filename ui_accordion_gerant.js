@@ -138,10 +138,9 @@ function updateValidationButton() {
 }
 
 // ---- Corps fournisseur (gérant) ----------------------------
+
 function renderSupplierBodyGerant(prods) {
-  let html = `
-    <div class="acc-body">
-  `;
+  let html = `<div class="acc-body">`;
 
   prods.forEach(p => {
     const key = productKey(p);
@@ -187,10 +186,7 @@ function renderSupplierBodyGerant(prods) {
     `;
   });
 
-  html += `
-    </div>
-  `;
-
+  html += `</div>`;
   return html;
 }
 
