@@ -387,3 +387,27 @@ body.etab-gerant .gerant-badge {
   height: 16px;
   object-fit: contain;
 }
+.acc-etabs {
+  display: flex;
+  justify-content: space-between;
+  padding: 4px 14px 6px;
+  gap: 8px;
+}
+
+.etab-badge {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 8px;
+  background: var(--bg);
+  border: 1px solid var(--border-mid);
+  border-radius: 99px;
+  font-size: 11px;
+  white-space: nowrap;
+}
+
+.etab-logo {
+  width: 14px;
+  height: 14px;
+  object-fit: contain;
+}
