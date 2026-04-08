@@ -139,11 +139,12 @@ function updateValidationButton() {
 
 // ---- Corps fournisseur (gérant) ----------------------------
 function renderSupplierBodyGerant(prods) {
-  let html = '<div class="acc-body">';
+  let html = `
+    <div class="acc-body">
+  `;
 
   prods.forEach(p => {
     const key = productKey(p);
-    const d = getProductData(p);
 
     const qa = state.quantities_a[key] || 0;
     const qb = state.quantities_b[key] || 0;
@@ -161,10 +162,9 @@ function renderSupplierBodyGerant(prods) {
           <span class="product-prix">${fmtPrice(prixColis)}/colis</span>
         </div>
 
-        <!-- Ligne 2 : Steppers A et B côte à côte -->
+        <!-- Ligne 2 : Steppers A et B -->
         <div class="product-steppers">
 
-          <!-- ÉTAB A -->
           <div class="qty-stepper qty-stepper-a">
             <button class="qty-btn-a" data-key="${escHtml(key)}" data-delta="-1">−</button>
             <input class="qty-input-a" type="number" min="0" step="1"
@@ -173,7 +173,6 @@ function renderSupplierBodyGerant(prods) {
             <span class="qty-total">${fmtPrice(totalA)}</span>
           </div>
 
-          <!-- ÉTAB B -->
           <div class="qty-stepper qty-stepper-b">
             <button class="qty-btn-b" data-key="${escHtml(key)}" data-delta="-1">−</button>
             <input class="qty-input-b" type="number" min="0" step="1"
@@ -188,7 +187,10 @@ function renderSupplierBodyGerant(prods) {
     `;
   });
 
-  html += '</div>';
+  html += `
+    </div>
+  `;
+
   return html;
 }
 
