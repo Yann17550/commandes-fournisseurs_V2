@@ -49,10 +49,10 @@
 ============================================================ */
 .Article_gerant {
   display: grid;
-  grid-template-rows: auto auto; /* 2 rangées */
-  row-gap: 8px;
+  grid-template-rows: auto auto;
+  row-gap: 4px;              /* réduit */
   width: 99%;
-  padding: 10px 14px;
+  padding: 6px 10px;         /* réduit */
   border-bottom: 1px solid var(--border);
 }
 
@@ -61,8 +61,9 @@
 ============================================================ */
 .nom_prix {
   display: grid;
-  grid-template-columns: 1fr auto; /* nom flexible, prix auto */
+  grid-template-columns: 1fr auto;
   align-items: center;
+  margin-bottom: 2px; /* léger espace */
 }
 
 .nom_article {
@@ -83,10 +84,10 @@
 ============================================================ */
 .qte_article {
   display: grid;
-  grid-template-columns: 0.6fr 0.6fr; /* steppers 40% plus étroits */
-  justify-content: center; /* centre les deux colonnes */
-  column-gap: 10px;
+  grid-template-columns: 1fr 1fr;
+  column-gap: 8px; /* légèrement réduit */
 }
+
 
 /* ============================================================
    STEPPERS A & B (grids internes)
@@ -97,7 +98,7 @@
   grid-template-columns: auto auto auto 1fr; /* - | input | + | total */
   align-items: center;
   column-gap: 4px;
-  padding: 3px 6px;
+  padding: 2px 4px;
   border-radius: 8px;
   box-shadow: 0 1px 2px rgba(0,0,0,0.08);
 
