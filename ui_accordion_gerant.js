@@ -68,7 +68,9 @@ html += `
       </div>
     ` : ''}
 
-    ${isOpen ? renderSupplierBodyGerant(prods) : ''}
+    ${isOpen ? renderSupplierBodyGerant(
+      sortForDisplay(sortProducts(prods), state)
+    ) : ''}
 
   </div>
 `;
