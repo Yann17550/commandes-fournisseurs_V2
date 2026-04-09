@@ -1,8 +1,6 @@
 // ============================================================
 //  UI — ACCORDÉON (ÉTAB A / B) 
 // ============================================================
-window.__FILE_VERSIONS__ = window.__FILE_VERSIONS__ || {};
-window.__FILE_VERSIONS__["ui_accordion.js"] = "2026-04-06T18:20:00";
 
 // ---- Accordéon principal -----------------------------------
 function renderAccordion() {
@@ -61,7 +59,13 @@ function renderAccordion() {
           <span class="acc-chevron">${isOpen ? '▾' : '▸'}</span>
         </button>
 
-        ${isOpen ? renderSupplierBody(prods) : ''}
+        ${isOpen ? renderSupplierBody(
+          sortForDisplay(
+          sortProducts(prods),
+            state
+          )
+        ) : ''}
+
       </div>
     `;
   });
@@ -124,7 +128,8 @@ function renderSupplierBody(prods) {
     html += renderGrouped(sorted);
   }
 
-  html += '</div>';
+  html += 
+    '</div>';
   return html;
 }
 
