@@ -97,7 +97,7 @@
   grid-template-columns: auto auto auto 1fr; /* - | input | + | total */
   align-items: center;
   column-gap: 4px;
-  padding: 6px 8px;
+  padding: 3px 6px;
   border-radius: 8px;
   box-shadow: 0 1px 2px rgba(0,0,0,0.08);
 
@@ -119,17 +119,20 @@
 /* Boutons */
 .stepperA button,
 .stepperB button {
-  width: 26px;
-  height: 30px;
+  width: 22px;
+  height: 20px;
   border: none;
   background: transparent;
-  font-size: 18px;
+  font-size: 14px;
 }
 
 /* Inputs */
 .qty-input-a,
 .qty-input-b {
-  width: 28px;
+  width: 24px;
+  height: 20px;
+  font-size: 12px;
+  padding: 0;
   text-align: center;
   border: none;
   background: white;
@@ -142,4 +145,5 @@
 .totalB {
   text-align: right;
   font-family: var(--font-mono);
+  font-size: 11px;
 }
