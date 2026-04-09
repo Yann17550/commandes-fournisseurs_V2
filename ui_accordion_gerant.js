@@ -140,6 +140,7 @@ function updateValidationButton() {
 // ---- Corps fournisseur (gérant) ----------------------------
 // Version 100% alignée avec TON masque :
 // Article_gerant → nom_prix + qte_article (2 colonnes)
+// ------------------------------------------------------------
 
 function renderSupplierBodyGerant(prods) {
   let html = `<div class="acc-body">`;
