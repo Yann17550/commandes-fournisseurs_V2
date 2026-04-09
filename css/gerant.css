@@ -17,10 +17,10 @@
    BADGES ÉTABLISSEMENTS (AFFICHÉS UNIQUEMENT SI OUVERT)
 ============================================================ */
 .acc-etabs {
-  display: flex;
-  justify-content: space-between;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  column-gap: 10px;
   padding: 4px 14px 6px;
-  gap: 8px;
 }
 
 .etab-badge {
@@ -83,7 +83,8 @@
 ============================================================ */
 .qte_article {
   display: grid;
-  grid-template-columns: 1fr 1fr; /* 2 colonnes identiques */
+  grid-template-columns: 0.6fr 0.6fr; /* steppers 40% plus étroits */
+  justify-content: center; /* centre les deux colonnes */
   column-gap: 10px;
 }
 
