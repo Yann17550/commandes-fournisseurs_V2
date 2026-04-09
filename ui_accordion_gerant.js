@@ -169,7 +169,7 @@ function renderSupplierBodyGerant(prods) {
              1 colonne : nom + prix
         ============================================================ -->
         <div class="nom_prix">
-          <span class="nom_article">${escHtml(p.nom_court)}</span>
+          <span class="nom_article">${escHtml(p.designation || p.nom || p.nom_court)}</span>
           <span class="prix_article">${fmtPrice(prixColis)}/colis</span>
         </div>
 
