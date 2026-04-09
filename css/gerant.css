@@ -1,6 +1,6 @@
 /* ============================================================
    BADGE TOTAL DANS LE HEADER FOURNISSEUR
-   ============================================================ */
+============================================================ */
 .gerant-badge {
   display: inline-flex;
   align-items: center;
@@ -15,7 +15,7 @@
 
 /* ============================================================
    BADGES ÉTABLISSEMENTS (AFFICHÉS UNIQUEMENT SI OUVERT)
-   ============================================================ */
+============================================================ */
 .acc-etabs {
   display: flex;
   justify-content: space-between;
@@ -42,22 +42,30 @@
 }
 
 /* ============================================================
-   LIGNE PRODUIT — EXACTEMENT 2 LIGNES
-   ============================================================ */
-.product-card {
+   LAYOUT ARTICLE (TON MASQUE)
+   Article_gerant = bloc principal
+   nom_prix = grid 1 colonne
+   qte_article = grid 2 colonnes fixes
+============================================================ */
+.Article_gerant {
+  display: grid;
+  grid-template-rows: auto auto; /* 2 rangées */
+  row-gap: 8px;
+  width: 99%;
   padding: 10px 14px;
   border-bottom: 1px solid var(--border);
 }
 
-/* Ligne 1 : nom + prix */
-.product-header {
-  display: flex;
-  justify-content: space-between;
+/* ============================================================
+   GRID 1 : nom_prix (1 colonne)
+============================================================ */
+.nom_prix {
+  display: grid;
+  grid-template-columns: 1fr auto; /* nom flexible, prix auto */
   align-items: center;
-  margin-bottom: 8px; /* Séparation nette */
 }
 
-.product-header .product-nom {
+.nom_article {
   font-size: 14px;
   font-weight: 600;
   white-space: nowrap;
@@ -65,55 +73,56 @@
   text-overflow: ellipsis;
 }
 
-.product-header .product-prix {
+.prix_article {
   font-size: 12px;
   color: var(--text-light);
 }
 
 /* ============================================================
-   Ligne 2 : steppers A & B côte à côte
-   ============================================================ */
-.product-steppers {
-  display: flex;
-  justify-content: space-between;
-  gap: 10px;
+   GRID 2 : qte_article (2 colonnes fixes)
+============================================================ */
+.qte_article {
+  display: grid;
+  grid-template-columns: 1fr 1fr; /* 2 colonnes identiques */
+  column-gap: 10px;
 }
 
-/* Stepper générique */
-.qty-stepper {
-  display: flex;
+/* ============================================================
+   STEPPERS A & B (grids internes)
+============================================================ */
+.stepperA,
+.stepperB {
+  display: grid;
+  grid-template-columns: auto auto auto 1fr; /* - | input | + | total */
   align-items: center;
-  gap: 4px;
+  column-gap: 4px;
   padding: 6px 8px;
   border-radius: 8px;
-  flex-shrink: 1;
-  min-width: 0;
   box-shadow: 0 1px 2px rgba(0,0,0,0.08);
+
+  /* Auto-shrink si ça dépasse */
+  font-size: clamp(10px, 3vw, 14px);
 }
 
-/* A = bleu */
-.qty-stepper-a {
+/* Couleurs */
+.stepperA {
   background: #EFF6FF;
   border: 1px solid #BFDBFE;
 }
 
-/* B = orange */
-.qty-stepper-b {
+.stepperB {
   background: #FFF7ED;
   border: 1px solid #FED7AA;
 }
 
 /* Boutons */
-.qty-stepper button {
-  width: 28px;
-  height: 32px;
+.stepperA button,
+.stepperB button {
+  width: 26px;
+  height: 30px;
   border: none;
   background: transparent;
   font-size: 18px;
-  color: var(--text-muted);
-  display: flex;
-  align-items: center;
-  justify-content: center;
 }
 
 /* Inputs */
@@ -125,14 +134,11 @@
   background: white;
   border-radius: 4px;
   font-family: var(--font-mono);
-  font-size: 13px;
 }
 
 /* Totaux */
-.qty-total {
-  display: inline-block;
-  width: 7ch;
+.totalA,
+.totalB {
   text-align: right;
   font-family: var(--font-mono);
-  font-size: 12px;
 }
