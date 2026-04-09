@@ -50,6 +50,10 @@ function fmtPrice(n) {
   })+' €';
 }
 
+function fmtPriceNoEuro(v) {
+  return (Math.round(v * 100) / 100).toFixed(2).replace('.', ',');
+}
+
 function productKey(p) {
   return p.fournisseur+'||'+p.reference+'||'+p.nom_court;
 }
