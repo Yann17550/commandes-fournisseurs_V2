@@ -138,6 +138,8 @@ function updateValidationButton() {
 }
 
 // ---- Corps fournisseur (gérant) ----------------------------
+// Version 100% alignée avec TON masque :
+// Article_gerant → nom_prix + qte_article (2 colonnes)
 
 function renderSupplierBodyGerant(prods) {
   let html = `<div class="acc-body">`;
@@ -153,31 +155,45 @@ function renderSupplierBodyGerant(prods) {
     const totalB = qb * prixColis;
 
     html += `
-      <div class="product-card" data-key="${escHtml(key)}">
+      <!-- ============================================================
+           ARTICLE_GERANT : bloc principal pour 1 article
+           Contient 2 grids internes :
+             - nom_prix (1 colonne)
+             - qte_article (2 colonnes)
+      ============================================================ -->
+      <div class="Article_gerant" data-key="${escHtml(key)}">
 
-        <!-- Ligne 1 : Nom + prix -->
-        <div class="product-header">
-          <span class="product-nom">${escHtml(p.nom_court)}</span>
-          <span class="product-prix">${fmtPrice(prixColis)}/colis</span>
+        <!-- ============================================================
+             GRID 1 : nom_prix
+             1 colonne : nom + prix
+        ============================================================ -->
+        <div class="nom_prix">
+          <span class="nom_article">${escHtml(p.nom_court)}</span>
+          <span class="prix_article">${fmtPrice(prixColis)}/colis</span>
         </div>
 
-        <!-- Ligne 2 : Steppers A et B -->
-        <div class="product-steppers">
+        <!-- ============================================================
+             GRID 2 : qte_article
+             2 colonnes fixes : stepper A | stepper B
+        ============================================================ -->
+        <div class="qte_article">
 
-          <div class="qty-stepper qty-stepper-a">
+          <!-- Stepper A -->
+          <div class="stepperA">
             <button class="qty-btn-a" data-key="${escHtml(key)}" data-delta="-1">−</button>
             <input class="qty-input-a" type="number" min="0" step="1"
                    value="${qa}" data-key="${escHtml(key)}">
             <button class="qty-btn-a" data-key="${escHtml(key)}" data-delta="1">+</button>
-            <span class="qty-total">${fmtPrice(totalA)}</span>
+            <span class="totalA">${fmtPrice(totalA)}</span>
           </div>
 
-          <div class="qty-stepper qty-stepper-b">
+          <!-- Stepper B -->
+          <div class="stepperB">
             <button class="qty-btn-b" data-key="${escHtml(key)}" data-delta="-1">−</button>
             <input class="qty-input-b" type="number" min="0" step="1"
                    value="${qb}" data-key="${escHtml(key)}">
             <button class="qty-btn-b" data-key="${escHtml(key)}" data-delta="1">+</button>
-            <span class="qty-total">${fmtPrice(totalB)}</span>
+            <span class="totalB">${fmtPrice(totalB)}</span>
           </div>
 
         </div>
