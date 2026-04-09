@@ -2,9 +2,6 @@
 //  STATE GLOBAL + UTILITAIRES GÉNÉRAUX
 // ============================================================
 
-window.__FILE_VERSIONS__ = window.__FILE_VERSIONS__ || {};
-window.__FILE_VERSIONS__["state.js"] = "2026-04-06T18:31:00";
-
 // ---- State --------------------------------------------------
 let state = {
   etab: null,
