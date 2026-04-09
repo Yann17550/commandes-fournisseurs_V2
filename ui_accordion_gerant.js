@@ -185,7 +185,7 @@ function renderSupplierBodyGerant(prods) {
             <input class="qty-input-a" type="number" min="0" step="1"
                    value="${qa}" data-key="${escHtml(key)}">
             <button class="qty-btn-a" data-key="${escHtml(key)}" data-delta="1">+</button>
-            <span class="totalA">${fmtPrice(totalA)}</span>
+            <span class="totalA">${fmtPriceNoEuro(totalA)}</span>
           </div>
 
           <!-- Stepper B -->
@@ -194,7 +194,7 @@ function renderSupplierBodyGerant(prods) {
             <input class="qty-input-b" type="number" min="0" step="1"
                    value="${qb}" data-key="${escHtml(key)}">
             <button class="qty-btn-b" data-key="${escHtml(key)}" data-delta="1">+</button>
-            <span class="totalB">${fmtPrice(totalB)}</span>
+            <span class="totalB">${fmtPriceNoEuro(totalB)}</span>
           </div>
 
         </div>
