@@ -34,7 +34,7 @@ function renderAccordion() {
     let prods = allProds.filter(p => p.fournisseur === sup);
 
     // 🟩 Tri global + tri dynamique (LE SEUL TRI)
-    prods = sortForDisplay(sortProducts(prods), state);
+    prods = triPipeline(prods, state.etab.id, state);
 
     const isOpen = state.openSupplier === sup;
 
