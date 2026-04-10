@@ -49,39 +49,8 @@ function renderAccordionGerant() {
            </span>`
         : '';
 
-    html += `
-  <div class="accordion-block${isOpen ? ' is-open' : ''}" data-sup="${escHtml(sup)}">
+    html += renderFournisseurBlock(sup, prods, isOpen, state);
 
-    <div class="accordion-header" data-sup="${escHtml(sup)}">
-      <div class="acc-left">
-        <span class="acc-name">${escHtml(sup)}</span>
-        ${badgeHtml}
-        ${isOpen ? `
-          <button class="btn-valider-outline" data-sup="${escHtml(sup)}">Valider commande</button>
-        ` : ''}
-      </div>
-
-      <span class="acc-chevron">${isOpen ? '▾' : '▸'}</span>
-    </div>
-
-    ${isOpen ? `
-      <div class="acc-etabs">
-        <span class="etab-badge">
-          <img src="main/Logo_Pizza-oleron.png" class="etab-logo">
-          Pizza d'Oléron
-        </span>
-
-        <span class="etab-badge">
-          <img src="main/Logo-Vesuvio.png" class="etab-logo">
-          Le Vesuvio
-        </span>
-      </div>
-    ` : ''}
-
-    ${isOpen ? renderSupplierBodyGerant(prods) : ''}
-
-  </div>
-`;
   });
 
   productList.innerHTML = html;
