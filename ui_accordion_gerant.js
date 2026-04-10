@@ -4,9 +4,13 @@
 
 function renderAccordionGerant() {
   const allProds = state.produits;
-  const suppliers = [...new Set(allProds.map(p => p.fournisseur))].sort((a, b) =>
-    a.localeCompare(b, 'fr')
-  );
+
+  // 🔥 Fournisseurs triés par ordre_fournisseur (comme A/B)
+  const suppliers = [...new Set(allProds.map(p => p.fournisseur))].sort((a, b) => {
+    const fa = allProds.find(p => p.fournisseur === a)?.ordre_fournisseur || 999;
+    const fb = allProds.find(p => p.fournisseur === b)?.ordre_fournisseur || 999;
+    return fa - fb;
+  });
 
   if (!suppliers.length) {
     productList.innerHTML =
@@ -17,7 +21,12 @@ function renderAccordionGerant() {
   let html = '';
 
   suppliers.forEach(sup => {
-    const prods = allProds.filter(p => p.fournisseur === sup);
+    let prods = allProds.filter(p => p.fournisseur === sup);
+
+    // 🔥 Tri global (ordre_fournisseur / ordre_categorie / nom_court / designation)
+    // + tri dynamique (commandés en haut, regroupement nom court)
+    prods = sortForDisplay(sortProducts(prods), state);
+
     const isOpen = state.openSupplier === sup;
 
     const orderedA = prods.filter(p => (state.quantities_a[productKey(p)] || 0) > 0);
@@ -32,6 +41,7 @@ function renderAccordionGerant() {
       0
     );
     const totalGlobal = totalA + totalB;
+
     const badgeHtml =
       (orderedA.length || orderedB.length)
         ? `<span class="acc-badge">
@@ -39,7 +49,7 @@ function renderAccordionGerant() {
            </span>`
         : '';
 
-html += `
+    html += `
   <div class="accordion-block${isOpen ? ' is-open' : ''}" data-sup="${escHtml(sup)}">
 
     <div class="accordion-header" data-sup="${escHtml(sup)}">
@@ -68,16 +78,14 @@ html += `
       </div>
     ` : ''}
 
-    ${isOpen ? renderSupplierBodyGerant(
-      sortForDisplay(sortProducts(prods), state)
-    ) : ''}
+    ${isOpen ? renderSupplierBodyGerant(prods) : ''}
 
   </div>
 `;
-
-
   });
+
   productList.innerHTML = html;
+
   // Toggle accordéon + sélection fournisseur
   productList.querySelectorAll('.accordion-header').forEach(btn => {
     btn.addEventListener('click', () => {
@@ -102,7 +110,6 @@ html += `
       // ici tu mettras ta logique
     });
   });
-
 
   // 🔥 Ajout du bouton de validation ici
   if (state.etab && state.etab.id === 'gerant') {
