@@ -27,6 +27,7 @@ const CONFIG = {
   // ---- Colonnes feuille produits --------------------------
   COLS: {
       fournisseur:    'Fournisseur',
+      ordre_fournisseur: 'ordre_fournisseur',
       reference:      'Référence',
       designation:    'Désignation Produit',
       tva:            'TVA (%)',
@@ -35,6 +36,7 @@ const CONFIG = {
       taxe_secu:      'TAXE SECURITE SOCIALE',
       nom_court:      'Nom Court',
       categorie:      'Catégorie',
+      ordre_categorie:   'ordre_categorie',
       colissage:      'colissage',
       prix_colis:     'prix_colis',
       actif:          'actif',
