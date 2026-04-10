@@ -28,8 +28,7 @@ function setQty(key, qty) {
     if (p) {
       const isVariant = card.classList.contains('is-variant');
       const tmp = document.createElement('div');
-      tmp.innerHTML = renderRow(p, isVariant);
-
+      tmp.innerHTML = renderProduitAB(p, isVariant, state);
       const newCard = tmp.firstElementChild;
       card.replaceWith(newCard);
 
