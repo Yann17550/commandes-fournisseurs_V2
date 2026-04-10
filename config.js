@@ -26,20 +26,20 @@ const CONFIG = {
 
   // ---- Colonnes feuille produits --------------------------
   COLS: {
-    fournisseur:    'Fournisseur',
-    reference:      'Référence',
-    designation:    'Désignation Produit',
-    tva:            'TVA (%)',
-    prix_ht:        'P.U. HT',
-    droit_alcool:   'DROIT ALCOOL',
-    taxe_secu:      'TAXE SECURITE SOCIALE',
-    nom_court:      'Nom Court',
-    categorie:      'Catégorie',
-    colissage:      'colissage',
-    prix_colis:     'prix_colis',
-    actif:          'actif',
-    etablissement:  'etablissement',   // 'A', 'B', 'AB' ou vide = les deux
-  },
+      fournisseur:    'Fournisseur',
+      reference:      'Référence',
+      designation:    'Désignation Produit',
+      tva:            'TVA (%)',
+      prix_ht:        'P.U. HT',
+      droit_alcool:   'DROIT ALCOOL',
+      taxe_secu:      'TAXE SECURITE SOCIALE',
+      nom_court:      'Nom Court',
+      categorie:      'Catégorie',
+      colissage:      'colissage',
+      prix_colis:     'prix_colis',
+      actif:          'actif',
+      etablissement:  'etablissement',   // 'A', 'B', 'AB' ou vide = les deux
+    },
 
   // ---- Colonnes feuille fournisseurs ----------------------
   COLS_F: {
