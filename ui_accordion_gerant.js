@@ -7,9 +7,9 @@ function renderAccordionGerant() {
 
   // 🔥 Fournisseurs triés par ordre_fournisseur (comme A/B)
   const suppliers = [...new Set(allProds.map(p => p.fournisseur))].sort((a, b) => {
-    const fa = allProds.find(p => p.fournisseur === a)?.ordre_fournisseur || 999;
-    const fb = allProds.find(p => p.fournisseur === b)?.ordre_fournisseur || 999;
-    return fa - fb;
+  const fa = allProds.find(p => p.fournisseur === a)?.ordre_fournisseur || 999;
+  const fb = allProds.find(p => p.fournisseur === b)?.ordre_fournisseur || 999;
+  return fa - fb;
   });
 
   if (!suppliers.length) {
@@ -25,7 +25,7 @@ function renderAccordionGerant() {
 
     // 🔥 Tri global (ordre_fournisseur / ordre_categorie / nom_court / designation)
     // + tri dynamique (commandés en haut, regroupement nom court)
-    prods = sortForDisplay(sortProducts(prods), state);
+    prods = triPipeline(prods, 'GERANT', state);
 
     const isOpen = state.openSupplier === sup;
 
