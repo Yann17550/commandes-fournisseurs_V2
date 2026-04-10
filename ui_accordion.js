@@ -5,12 +5,17 @@
 // ---- Accordéon principal -----------------------------------
 function renderAccordion() {
   if (state.etab && state.etab.id === 'gerant') {
-    // Le mode gérant est géré dans ui_accordion_gerant.js
     renderAccordionGerant();
     return;
   }
 
-  const suppliers = getSuppliers();
+  // 🟩 Tri des fournisseurs
+  const suppliers = getSuppliers().sort((a, b) => {
+    const fa = state.produits.find(p => p.fournisseur === a)?.ordre_fournisseur || 999;
+    const fb = state.produits.find(p => p.fournisseur === b)?.ordre_fournisseur || 999;
+    return fa - fb;
+  });
+
   const allProds = getProduitsForEtab();
 
   if (!suppliers.length) {
@@ -26,7 +31,11 @@ function renderAccordion() {
   `;
 
   suppliers.forEach(sup => {
-    const prods = allProds.filter(p => p.fournisseur === sup);
+    let prods = allProds.filter(p => p.fournisseur === sup);
+
+    // 🟩 Tri global + tri dynamique (LE SEUL TRI)
+    prods = sortForDisplay(sortProducts(prods), state);
+
     const isOpen = state.openSupplier === sup;
 
     const ordered = prods.filter(p => (state.quantities[productKey(p)] || 0) > 0);
@@ -59,12 +68,7 @@ function renderAccordion() {
           <span class="acc-chevron">${isOpen ? '▾' : '▸'}</span>
         </button>
 
-        ${isOpen ? renderSupplierBody(
-          sortForDisplay(
-          sortProducts(prods),
-            state
-          )
-        ) : ''}
+        ${isOpen ? renderSupplierBody(prods) : ''}
 
       </div>
     `;
@@ -72,11 +76,9 @@ function renderAccordion() {
 
   productList.innerHTML = html;
 
-  // FAB
   const fab = $('fabAddBtn');
   if (fab) fab.addEventListener('click', openAddModal);
 
-  // Toggle accordéon
   productList.querySelectorAll('.accordion-header').forEach(btn => {
     btn.addEventListener('click', () => {
       const sup = btn.dataset.sup;
@@ -93,28 +95,28 @@ function renderAccordion() {
   bindSteppers();
 }
 
+
 // ---- Corps du fournisseur ----------------------------------
 function renderSupplierBody(prods) {
   if (!prods.length)
     return '<div class="acc-body"><div class="empty-state"><p>Aucun produit</p></div></div>';
 
   const scores = getScores();
-  const sorted = prods; 
+  const sorted = prods; // 🟩 NE PAS RE-TRIER ICI
+
   const sup = prods[0].fournisseur;
   const fInfo = state.fournisseurs[sup] || {};
 
   let html = '<div class="acc-body">';
 
-  // Infos fournisseur
   const infos = [];
-  if (fInfo.contact)   infos.push('👤 ' + escHtml(fInfo.contact));
+  if (fInfo.contact) infos.push('👤 ' + escHtml(fInfo.contact));
   if (fInfo.telephone) infos.push('📱 ' + escHtml(fInfo.telephone));
-  if (fInfo.notes)     infos.push('⚠️ ' + escHtml(fInfo.notes));
+  if (fInfo.notes) infos.push('⚠️ ' + escHtml(fInfo.notes));
 
   if (infos.length)
     html += `<div class="acc-info-bar">${infos.join(' · ')}</div>`;
 
-  // Habituels / autres
   const habituels = sorted.filter(p => scores[productKey(p)] > 0);
   const autres    = sorted.filter(p => !scores[productKey(p)]);
 
