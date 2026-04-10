@@ -196,8 +196,8 @@ function renderRow(p, isVariant) {
          </div>`
       : '';
 
-  return `
-    <div class="product-card${qtyColis > 0 ? ' has-qty' : ''}${isVariant ? ' is-variant' : ''}${hasOverride ? ' has-override' : ''}" data-key="${escHtml(key)}">
+  return renderProduitAB(p, isVariant, state);
+
       <div class="product-info">
         <div class="product-nom-row">
           <span class="product-nom">${escHtml(mainLabel)}</span>
