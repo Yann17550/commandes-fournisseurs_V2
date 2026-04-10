@@ -182,7 +182,7 @@ function renderSummary() {
   let html = '';
   let grandTotal = 0;
 
-  const produits = state.produits;
+  const produits = triPipeline(state.produits, 'SUMMARY', state);
 
   if (isGerant) {
     // --- Mode gérant ---
