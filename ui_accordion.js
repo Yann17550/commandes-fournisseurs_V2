@@ -137,19 +137,10 @@ function renderSupplierBody(prods) {
 
 // ---- Groupement par nom court ------------------------------
 function getNomCourtsMultiples(fournisseur) {
-  const counts = {};
-  state.produits
-    .filter(p => p.fournisseur === fournisseur)
-    .forEach(p => {
-      counts[p.nom_court] = (counts[p.nom_court] || 0) + 1;
-    });
-
-  return new Set(
-    Object.entries(counts)
-      .filter(([, n]) => n > 1)
-      .map(([k]) => k)
-  );
+  const prods = state.produits.filter(p => p.fournisseur === fournisseur);
+  return nomsCourtsMultiples(prods);
 }
+
 
 function renderGrouped(prods) {
   if (!prods.length) return '';
@@ -157,11 +148,7 @@ function renderGrouped(prods) {
   const fournisseur = prods[0].fournisseur;
   const multiNoms = getNomCourtsMultiples(fournisseur);
 
-  const groups = {};
-  prods.forEach(p => {
-    if (!groups[p.nom_court]) groups[p.nom_court] = [];
-    groups[p.nom_court].push(p);
-  });
+  const groups = regrouperParNomCourt(prods);
 
   return Object.entries(groups)
     .map(([nc, items]) => {
