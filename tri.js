@@ -46,6 +46,10 @@ function sortForDisplay(prods, state) {
     }
   });
 
+  // 🟩 IMPORTANT :
+  // On conserve l'ordre global (déjà trié par sortProducts)
+  // donc on NE RE-TRIE PAS par nom court ici.
+
   // Regroupement des non commandés par nom court
   const groups = {};
   notOrdered.forEach(p => {
@@ -54,19 +58,15 @@ function sortForDisplay(prods, state) {
     groups[g].push(p);
   });
 
-  // Tri des groupes par nom court
-  const sortedGroups = Object.keys(groups).sort((a, b) =>
-    a.localeCompare(b, 'fr')
-  );
-
-  // Reconstruction de la liste des non commandés
+  // 🟩 On respecte l'ordre global : on parcourt notOrdered dans l'ordre existant
   const notOrderedFinal = [];
-  sortedGroups.forEach(groupName => {
-    const group = groups[groupName];
-    group.sort((a, b) => a.designation.localeCompare(b.designation, 'fr'));
-    notOrderedFinal.push(...group);
+  notOrdered.forEach(p => {
+    const g = p.nom_court.toLowerCase().trim();
+    if (groups[g]) {
+      notOrderedFinal.push(...groups[g]);
+      delete groups[g];
+    }
   });
 
-  // Résultat final
   return [...ordered, ...notOrderedFinal];
 }
