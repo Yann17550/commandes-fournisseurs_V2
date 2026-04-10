@@ -169,35 +169,9 @@ function renderGrouped(prods) {
 
 // ---- Ligne produit -----------------------------------------
 function renderRow(p, isVariant) {
-  const key = productKey(p);
-  const d = getProductData(p);
-
-  const qtyColis = state.quantities[key] || 0;
-  const prixColis = getPrixColis(p);
-  const nbUnites = getNbUnites(p, qtyColis);
-  const totalLigne = qtyColis * prixColis;
-
-  const hasAlcool = p.droit_alcool > 0 || p.taxe_secu > 0;
-  const mainLabel = isVariant ? d.label : p.nom_court;
-  const subLabel = !isVariant && d.label !== p.nom_court ? d.label : '';
-
-  const lastQty = state.lastOrder[key] || 0;
-  const hasOverride = !!state.overrides[key];
-
-  const colissageInfo =
-    d.colissage > 1
-      ? `<span class="colissage-info">${fmtPrice(d.prix_ht)}/u · ${d.colissage}u/colis</span>`
-      : '';
-
-  const lastHtml =
-    lastQty > 0 && !qtyColis
-      ? `<div class="last-order" title="${escHtml(state.lastSemaine)}">
-           ↩ ${lastQty} colis la derniere fois
-         </div>`
-      : '';
-
   return renderProduitAB(p, isVariant, state);
 }
+
 // ---- Steppers ----------------------------------------------
 function bindSteppers() {
   productList.querySelectorAll('.qty-btn').forEach(b =>
