@@ -51,27 +51,8 @@ function renderAccordion() {
          </span>`
       : '';
 
-    html += `
-      <div class="accordion-block${isOpen ? ' is-open' : ''}" data-sup="${escHtml(sup)}">
-        <button class="accordion-header" data-sup="${escHtml(sup)}">
-          <div class="acc-left">
-            <div class="acc-title-row">
-              <span class="acc-name">${escHtml(sup)}</span>
-              ${appelHtml}
-            </div>
-            ${
-              ordered.length
-                ? `<span class="acc-badge">${ordered.length} art. · ${fmtPrice(supTotal)}</span>`
-                : ''
-            }
-          </div>
-          <span class="acc-chevron">${isOpen ? '▾' : '▸'}</span>
-        </button>
+  html += renderFournisseurBlock(sup, prods, isOpen, state);
 
-        ${isOpen ? renderSupplierBody(prods) : ''}
-
-      </div>
-    `;
   });
 
   productList.innerHTML = html;
