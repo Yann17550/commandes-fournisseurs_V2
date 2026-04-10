@@ -136,6 +136,8 @@ function parseProduits(tsv) {
         etablissement: etabVal||'AB',
         actif: true,
         isTemp: false,
+        ordre_fournisseur: parseNum(r[C.ordre_fournisseur]) || 999,
+        ordre_categorie:   parseNum(r[C.ordre_categorie]) || 999,
       };
     });
 }
