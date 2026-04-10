@@ -99,7 +99,7 @@ function renderSupplierBody(prods) {
     return '<div class="acc-body"><div class="empty-state"><p>Aucun produit</p></div></div>';
 
   const scores = getScores();
-  const sorted = sortProducts(prods);
+  const sorted = prods; 
   const sup = prods[0].fournisseur;
   const fInfo = state.fournisseurs[sup] || {};
 
@@ -128,10 +128,10 @@ function renderSupplierBody(prods) {
     html += renderGrouped(sorted);
   }
 
-  html += 
-    '</div>';
+  html += '</div>';
   return html;
 }
+
 
 // ---- Groupement par nom court ------------------------------
 function getNomCourtsMultiples(fournisseur) {
