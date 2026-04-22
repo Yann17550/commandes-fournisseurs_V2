@@ -331,3 +331,121 @@ main { padding: 0 14px; }
 .qty-input::-webkit-outer-spin-button {
   -webkit-appearance: none;
 }
+
+/* ============================================================
+   LAYOUT COMPACT A/B
+   Inspiré du masque gérant, adapté à un seul établissement
+============================================================ */
+
+.Article_ab {
+  display: grid;
+  grid-template-rows: auto auto;
+  row-gap: 4px;
+  width: 100%;
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--border);
+  background: var(--surface);
+}
+
+.Article_ab.has-qty {
+  background: var(--accent-light);
+}
+
+.Article_ab.is-variant {
+  padding-left: 18px;
+}
+
+.nom_prix_ab {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: start;
+  column-gap: 8px;
+}
+
+.nom_block_ab {
+  min-width: 0;
+}
+
+.nom_article_ab {
+  font-size: 14px;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.prix_block_ab {
+  text-align: right;
+  white-space: nowrap;
+}
+
+.prix_article_ab {
+  font-size: 12px;
+  color: var(--text-light);
+}
+
+.qte_article_ab {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  column-gap: 8px;
+}
+
+.meta_ab {
+  min-width: 0;
+}
+
+.stepper-ab {
+  display: grid;
+  grid-template-columns: 22px 28px 22px minmax(44px, auto);
+  align-items: center;
+  column-gap: 4px;
+  padding: 2px 4px;
+  border-radius: 8px;
+  background: var(--bg);
+  border: 1px solid var(--border-mid);
+  box-shadow: 0 1px 2px rgba(0,0,0,0.08);
+}
+
+.stepper-ab .qty-btn {
+  width: 22px;
+  height: 22px;
+  border: none;
+  background: transparent;
+  font-size: 14px;
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.stepper-ab .qty-input {
+  width: 28px;
+  height: 22px;
+  font-size: 12px;
+  padding: 0;
+  text-align: center;
+  border: none;
+  background: white;
+  border-radius: 4px;
+  font-family: var(--font-mono);
+}
+
+.total_ab {
+  text-align: right;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  white-space: nowrap;
+  color: var(--accent-text);
+}
+
+@media (max-width: 420px) {
+  .qte_article_ab {
+    grid-template-columns: 1fr;
+    row-gap: 6px;
+  }
+
+  .stepper-ab {
+    justify-self: start;
+  }
+}
