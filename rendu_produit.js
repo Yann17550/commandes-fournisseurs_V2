@@ -8,31 +8,24 @@ function renderProduitAB(p, isVariant, state) {
   const d = getProductData(p);
 
   const qtyColis = state.quantities[key] || 0;
+  const prixColis = getPrixColis(p);
+  const totalLigne = qtyColis * prixColis;
   const hasOverride = !!state.overrides[key];
 
   const mainLabel = isVariant ? d.label : p.nom_court;
-
-  const colissageInfo =
-    d.colissage > 1
-      ? `${d.colissage}u/colis`
-      : '1u/colis';
+  const colissageInfo = d.colissage > 1 ? `${d.colissage}u/colis` : '1u/colis';
 
   return `
-    <div class="product-card product-card--compact${qtyColis > 0 ? ' has-qty' : ''}${isVariant ? ' is-variant' : ''}${hasOverride ? ' has-override' : ''}" data-key="${escHtml(key)}">
-      
-      <div class="product-line-1">
-        <span class="product-nom">${escHtml(mainLabel)}</span>
-        <span class="product-colissage">${escHtml(colissageInfo)}</span>
-      </div>
+    <div class="Article_ab${qtyColis > 0 ? ' has-qty' : ''}${isVariant ? ' is-variant' : ''}${hasOverride ? ' has-override' : ''}" data-key="${escHtml(key)}">
+      <div class="nom_article_ab">${escHtml(mainLabel)}</div>
+      <div class="colissage_ab">${escHtml(colissageInfo)}</div>
+      <div class="reference_ab product-ref${hasOverride ? ' ref-override' : ''}">${escHtml(d.reference)}</div>
 
-      <div class="product-line-2">
-        <span class="product-ref${hasOverride ? ' ref-override' : ''}">${escHtml(d.reference)}</span>
-
-        <div class="qty-stepper qty-stepper--compact">
-          <button class="qty-btn" data-key="${escHtml(key)}" data-delta="-1">−</button>
-          <input class="qty-input" type="number" min="0" step="1" value="${qtyColis}" data-key="${escHtml(key)}" inputmode="numeric">
-          <button class="qty-btn" data-key="${escHtml(key)}" data-delta="1">+</button>
-        </div>
+      <div class="stepper-ab">
+        <button class="qty-btn" data-key="${escHtml(key)}" data-delta="-1">−</button>
+        <input class="qty-input" type="number" min="0" step="1" value="${qtyColis}" data-key="${escHtml(key)}" inputmode="numeric">
+        <button class="qty-btn" data-key="${escHtml(key)}" data-delta="1">+</button>
+        <span class="total_ab">${qtyColis > 0 ? fmtPriceNoEuro(totalLigne) : ''}</span>
       </div>
     </div>
   `;
