@@ -17,15 +17,20 @@ function renderProduitAB(p, isVariant, state) {
 
   return `
     <div class="Article_ab${qtyColis > 0 ? ' has-qty' : ''}${isVariant ? ' is-variant' : ''}${hasOverride ? ' has-override' : ''}" data-key="${escHtml(key)}">
-      <div class="nom_article_ab">${escHtml(mainLabel)}</div>
-      <div class="colissage_ab">${escHtml(colissageInfo)}</div>
-      <div class="reference_ab product-ref${hasOverride ? ' ref-override' : ''}">${escHtml(d.reference)}</div>
+      <div class="line1_ab">
+        <span class="nom_article_ab">${escHtml(mainLabel)}</span>
+        <span class="colissage_ab">${escHtml(colissageInfo)}</span>
+      </div>
 
-      <div class="stepper-ab">
-        <button class="qty-btn" data-key="${escHtml(key)}" data-delta="-1">−</button>
-        <input class="qty-input" type="number" min="0" step="1" value="${qtyColis}" data-key="${escHtml(key)}" inputmode="numeric">
-        <button class="qty-btn" data-key="${escHtml(key)}" data-delta="1">+</button>
-        <span class="total_ab">${qtyColis > 0 ? fmtPriceNoEuro(totalLigne) : ''}</span>
+      <div class="line2_ab">
+        <span class="reference_ab product-ref${hasOverride ? ' ref-override' : ''}">${escHtml(d.reference)}</span>
+
+        <div class="stepper_ab">
+          <button class="qty-btn" data-key="${escHtml(key)}" data-delta="-1">−</button>
+          <input class="qty-input" type="number" min="0" step="1" value="${qtyColis}" data-key="${escHtml(key)}" inputmode="numeric">
+          <button class="qty-btn" data-key="${escHtml(key)}" data-delta="1">+</button>
+          <span class="total_ab">${qtyColis > 0 ? fmtPriceNoEuro(totalLigne) : ''}</span>
+        </div>
       </div>
     </div>
   `;
