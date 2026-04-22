@@ -25,7 +25,7 @@ function sortProducts(prods) {
   });
 }
 
-}// ------------------------------------------------------------
+// ------------------------------------------------------------
 // 2) Tri dynamique : commandés en haut / non commandés regroupés
 // ------------------------------------------------------------
 function sortForDisplay(prods, state) {
