@@ -25,30 +25,48 @@ function sortProducts(prods) {
   });
 }
 
-
-// ------------------------------------------------------------
+}// ------------------------------------------------------------
 // 2) Tri dynamique : commandés en haut / non commandés regroupés
 // ------------------------------------------------------------
 function sortForDisplay(prods, state) {
   const ordered = [];
   const notOrdered = [];
 
+  // Détecte si on est en mode gérant
+  const isGerant = state.etab && state.etab.id === 'gerant';
+
   // Séparation commandés / non commandés
   prods.forEach(p => {
     const key = productKey(p);
-    const qa = state.quantities_a[key] || 0;
-    const qb = state.quantities_b[key] || 0;
 
-    if (qa > 0 || qb > 0) {
+    let qty = 0;
+
+    // En mode gérant :
+    // un produit est considéré "commandé" s'il existe dans A ou dans B
+    if (isGerant) {
+      const qa = state.quantities_a[key] || 0;
+      const qb = state.quantities_b[key] || 0;
+      qty = qa + qb;
+    }
+
+    // En mode établissement A ou B :
+    // on utilise la commande courante de l'établissement affiché
+    else {
+      qty = state.quantities[key] || 0;
+    }
+
+    // Les produits commandés remontent en haut
+    if (qty > 0) {
       ordered.push(p);
     } else {
       notOrdered.push(p);
     }
   });
 
-  // 🟩 IMPORTANT :
-  // On conserve l'ordre global (déjà trié par sortProducts)
-  // donc on NE RE-TRIE PAS par nom court ici.
+  // IMPORTANT :
+  // On conserve l'ordre global déjà obtenu avant
+  // (fournisseur / catégorie / historique / etc.)
+  // donc on ne retrie pas ici.
 
   // Regroupement des non commandés par nom court
   const groups = {};
@@ -58,7 +76,8 @@ function sortForDisplay(prods, state) {
     groups[g].push(p);
   });
 
-  // 🟩 On respecte l'ordre global : on parcourt notOrdered dans l'ordre existant
+  // Reconstruction des non commandés
+  // en respectant l'ordre d'origine
   const notOrderedFinal = [];
   notOrdered.forEach(p => {
     const g = p.nom_court.toLowerCase().trim();
@@ -68,5 +87,7 @@ function sortForDisplay(prods, state) {
     }
   });
 
+  // Résultat final :
+  // d'abord les commandés, puis les autres regroupés
   return [...ordered, ...notOrderedFinal];
 }
