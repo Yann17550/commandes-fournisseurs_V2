@@ -173,12 +173,15 @@ main {
 
 .Article_ab {
   display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
   grid-template-rows: auto auto;
+  column-gap: 8px;
   row-gap: 4px;
   width: 100%;
   padding: 8px 10px;
   border-bottom: 1px solid var(--border);
   background: var(--surface);
+  align-items: center;
 }
 
 .Article_ab.has-qty {
@@ -189,18 +192,10 @@ main {
   padding-left: 18px;
 }
 
-.nom_prix_ab {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  align-items: center;
-  column-gap: 8px;
-}
-
-.nom_block_ab {
-  min-width: 0;
-}
-
 .nom_article_ab {
+  grid-column: 1;
+  grid-row: 1;
+  min-width: 0;
   font-size: 14px;
   font-weight: 600;
   white-space: nowrap;
@@ -208,26 +203,25 @@ main {
   text-overflow: ellipsis;
 }
 
-.prix_block_ab {
-  text-align: right;
-  white-space: nowrap;
-}
-
-.prix_article_ab {
+.colissage_ab {
+  grid-column: 2;
+  grid-row: 1;
   font-size: 11px;
   color: var(--text-muted);
   white-space: nowrap;
+  justify-self: end;
 }
 
-.qte_article_ab {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  align-items: center;
-  column-gap: 8px;
-}
-
-.meta_ab {
+.reference_ab {
+  grid-column: 1;
+  grid-row: 2;
   min-width: 0;
+  font-size: 11px;
+  color: var(--text-light);
+  font-family: var(--font-mono);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .product-ref {
@@ -246,18 +240,15 @@ main {
   font-weight: 600;
 }
 
-
-/* ============================================================
-   STEPPER
-   ============================================================ */
-
-.qty-stepper,
 .stepper-ab {
-  display: inline-flex;
+  grid-column: 2;
+  grid-row: 2;
+  display: grid;
+  grid-template-columns: 22px 28px 22px auto;
   align-items: center;
-  justify-self: start;
+  column-gap: 4px;
+  justify-self: end;
   width: auto;
-  flex-shrink: 0;
   padding: 2px 4px;
   border-radius: 8px;
   background: var(--bg);
@@ -265,50 +256,47 @@ main {
   box-shadow: 0 1px 2px rgba(0,0,0,0.08);
 }
 
-.qty-btn,
 .stepper-ab .qty-btn {
-  width: 28px;
-  height: 28px;
+  width: 22px;
+  height: 22px;
   border: none;
   background: transparent;
-  font-size: 16px;
-  font-weight: 400;
+  font-size: 14px;
   color: var(--text-muted);
-  cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  -webkit-tap-highlight-color: transparent;
 }
 
-.qty-btn:active,
 .stepper-ab .qty-btn:active {
   background: var(--border);
 }
 
-.qty-input,
 .stepper-ab .qty-input {
-  width: 30px;
-  height: 28px;
-  border: none;
-  border-left: 1px solid var(--border);
-  border-right: 1px solid var(--border);
-  background: var(--surface);
-  text-align: center;
-  font-family: var(--font-mono);
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--text);
-  outline: none;
+  width: 28px;
+  height: 22px;
+  font-size: 12px;
   padding: 0;
-  -moz-appearance: textfield;
+  text-align: center;
+  border: none;
+  background: white;
+  border-radius: 4px;
+  font-family: var(--font-mono);
+  outline: none;
 }
 
-.qty-input::-webkit-inner-spin-button,
-.qty-input::-webkit-outer-spin-button,
 .stepper-ab .qty-input::-webkit-inner-spin-button,
 .stepper-ab .qty-input::-webkit-outer-spin-button {
   -webkit-appearance: none;
+}
+
+.total_ab {
+  min-width: 42px;
+  text-align: right;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  white-space: nowrap;
+  color: var(--accent-text);
 }
 
 
@@ -318,34 +306,38 @@ main {
 
 @media (max-width: 420px) {
   .Article_ab {
-    padding: 8px 9px;
-  }
-
-  .nom_prix_ab,
-  .qte_article_ab {
     column-gap: 6px;
+    padding: 8px 9px;
   }
 
   .nom_article_ab {
     font-size: 13px;
   }
 
-  .prix_article_ab,
-  .product-ref {
+  .colissage_ab,
+  .reference_ab,
+  .total_ab {
     font-size: 11px;
   }
 
-  .qty-btn,
-  .stepper-ab .qty-btn {
-    width: 26px;
-    height: 26px;
-    font-size: 15px;
+  .stepper-ab {
+    grid-template-columns: 20px 26px 20px auto;
+    column-gap: 3px;
   }
 
-  .qty-input,
+  .stepper-ab .qty-btn {
+    width: 20px;
+    height: 20px;
+    font-size: 13px;
+  }
+
   .stepper-ab .qty-input {
-    width: 28px;
-    height: 26px;
+    width: 26px;
+    height: 20px;
     font-size: 12px;
+  }
+
+  .total_ab {
+    min-width: 38px;
   }
 }
