@@ -38,7 +38,6 @@ function sortForDisplay(prods, state) {
   // Séparation commandés / non commandés
   prods.forEach(p => {
     const key = productKey(p);
-
     let qty = 0;
 
     // En mode gérant :
@@ -52,7 +51,7 @@ function sortForDisplay(prods, state) {
     // En mode établissement A ou B :
     // on utilise la commande courante de l'établissement affiché
     else {
-      qty = state.quantities[key] || 0;
+      qty = (state.quantities && state.quantities[key]) || 0;
     }
 
     // Les produits commandés remontent en haut
@@ -65,7 +64,6 @@ function sortForDisplay(prods, state) {
 
   // IMPORTANT :
   // On conserve l'ordre global déjà obtenu avant
-  // (fournisseur / catégorie / historique / etc.)
   // donc on ne retrie pas ici.
 
   // Regroupement des non commandés par nom court
