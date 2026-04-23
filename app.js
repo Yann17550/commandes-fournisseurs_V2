@@ -1,97 +1,152 @@
 // ============================================================
-//  APP.JS — Commandes Fournisseurs v3 
+//  APP.JS — Commandes Fournisseurs v3
 //  Multi-etablissement, colissage, historique, edition inline
 // ============================================================
 
-// ---- Apprentissage ----------------------------------------
+
+// ============================================================
+//  APPRENTISSAGE
+// ============================================================
 const LEARN_KEY = 'cmd_scores';
-function getScores() { try { return JSON.parse(localStorage.getItem(LEARN_KEY)||'{}'); } catch { return {}; } }
-function saveScores(s) { try { localStorage.setItem(LEARN_KEY, JSON.stringify(s)); } catch {} }
+
+function getScores() {
+  try {
+    return JSON.parse(localStorage.getItem(LEARN_KEY) || '{}');
+  } catch {
+    return {};
+  }
+}
+
+function saveScores(s) {
+  try {
+    localStorage.setItem(LEARN_KEY, JSON.stringify(s));
+  } catch {}
+}
+
 function recordOrder(quantities) {
   const scores = getScores();
-  Object.entries(quantities).forEach(([k,q]) => { if(q>0) scores[k] = (scores[k]||0)+1; });
+  Object.entries(quantities).forEach(([k, q]) => {
+    if (q > 0) scores[k] = (scores[k] || 0) + 1;
+  });
   saveScores(scores);
 }
 
-// ---- Etablissement (localStorage ok pour identite) --------
+
+// ============================================================
+//  ETABLISSEMENT
+// ============================================================
 const ETAB_KEY = 'cmd_etab';
-function getSavedEtab() { return localStorage.getItem(ETAB_KEY)||null; }
-function saveEtabLocal(id) { localStorage.setItem(ETAB_KEY, id); }
 
-// ---- State ------------------------------------------------
+function getSavedEtab() {
+  return localStorage.getItem(ETAB_KEY) || null;
+}
 
-// ---- DOM --------------------------------------------------
-const screenEtab = $('screenEtab'), screenApp = $('screenApp');
-const etabCards = $('etabCards'), etabPill = $('etabPill');
+function saveEtabLocal(id) {
+  localStorage.setItem(ETAB_KEY, id);
+}
+
+
+// ============================================================
+//  DOM
+// ============================================================
+const screenEtab = $('screenEtab');
+const screenApp = $('screenApp');
+
+const etabCards = $('etabCards');
+const etabPill = $('etabPill');
 const switchEtabBtn = $('switchEtabBtn');
-const weekLabel = $('weekLabel'), mainContent = $('mainContent');
-const productList = $('productList'), loadingState = $('loadingState');
+
+const weekLabel = $('weekLabel');
+const mainContent = $('mainContent');
+
+const productList = $('productList');
+const loadingState = $('loadingState');
+
 const summaryBtn = $('summaryBtn');
-const refreshBtn = $('refreshBtn'), summaryModal = $('summaryModal');
-const summaryContent = $('summaryContent'), searchInput = $('searchInput');
+const refreshBtn = $('refreshBtn');
+const summaryModal = $('summaryModal');
+const summaryContent = $('summaryContent');
+
+const searchInput = $('searchInput');
 const saveStatusEl = $('saveStatus');
-const editModal = $('editModal'), addModal = $('addModal');
+
+const editModal = $('editModal');
+const addModal = $('addModal');
 
 
-
-// ---- Utils ------------------------------------------------
-
-// ---- Nettoyage designation --------------------------------
-
-// ---- Parsing ----------------------------------------------
-
-// ---- Filtrage etablissement -------------------------------
+// ============================================================
+//  FILTRAGE ETABLISSEMENT
+// ============================================================
 function getProduitsForEtab() {
-  if(!state.etab||state.etab.id==='gerant') return state.produits;
-  const up = state.etab.id==='a' ? 'A' : 'B';
-  return state.produits.filter(p=>{
-    const e = (p.etablissement||'AB').toUpperCase();
-    return e==='AB'||e===''||e===up;
+  if (!state.etab || state.etab.id === 'gerant') return state.produits;
+
+  const up = state.etab.id === 'a' ? 'A' : 'B';
+
+  return state.produits.filter(p => {
+    const e = (p.etablissement || 'AB').toUpperCase();
+    return e === 'AB' || e === '' || e === up;
   });
 }
-// ---- Overrides et colissage -------------------------------
+
+
+// ============================================================
+//  OVERRIDES ET COLISSAGE
+// ============================================================
 function getProductData(p) {
-  const ov = state.overrides[productKey(p)]||{};
-  return { ...p,
-    reference: ov.reference!==undefined ? ov.reference : p.reference,
-    prix_ht:   ov.prix_ht!==undefined   ? ov.prix_ht   : p.prix_ht,
-    colissage: ov.colissage!==undefined ? ov.colissage  : p.colissage,
+  const ov = state.overrides[productKey(p)] || {};
+
+  return {
+    ...p,
+    reference: ov.reference !== undefined ? ov.reference : p.reference,
+    prix_ht: ov.prix_ht !== undefined ? ov.prix_ht : p.prix_ht,
+    colissage: ov.colissage !== undefined ? ov.colissage : p.colissage,
   };
 }
+
 function getPrixColis(p) {
   const d = getProductData(p);
-  return d.prix_colis>0 ? d.prix_colis : d.prix_ht * d.colissage;
+  return d.prix_colis > 0 ? d.prix_colis : d.prix_ht * d.colissage;
 }
-function getNbUnites(p, qtyColis) { return qtyColis * getProductData(p).colissage; }
 
-// ---- Sauvegarde distante ----------------------------------
+function getNbUnites(p, qtyColis) {
+  return qtyColis * getProductData(p).colissage;
+}
 
-// ---- Écran établissement ----------------------------------
 
-// ---- Chargement -------------------------------------------
+// ============================================================
+//  CHARGEMENT
+// ============================================================
 async function loadDataCore() {
   loadingState.style.display = 'flex';
-  productList.style.display  = 'none';
+  productList.style.display = 'none';
   state.error = null;
 
   try {
     const tsvP = await fetch(CONFIG.SHEETS.produits, { cache: 'no-store' })
-      .then(r => { if (!r.ok) throw new Error('HTTP ' + r.status); return r.text(); });
+      .then(r => {
+        if (!r.ok) throw new Error('HTTP ' + r.status);
+        return r.text();
+      });
 
     const tsvF = await fetch(CONFIG.SHEETS.fournisseurs, { cache: 'no-store' })
       .then(r => r.text())
       .catch(() => '');
 
-    state.produits     = parseProduits(tsvP);
+    state.produits = parseProduits(tsvP);
     state.fournisseurs = parseFournisseurs(tsvF);
-    state.loaded       = true;
+    state.loaded = true;
 
     if (state.etab && state.etab.id === 'gerant') {
       const savedA = await loadCommandeRemoteById('a');
       const savedB = await loadCommandeRemoteById('b');
+
       state.quantities_a = savedA || {};
       state.quantities_b = savedB || {};
-      if (Object.keys(state.quantities_a).length > 0 || Object.keys(state.quantities_b).length > 0) {
+
+      if (
+        Object.keys(state.quantities_a).length > 0 ||
+        Object.keys(state.quantities_b).length > 0
+      ) {
         showToast('📂 Commandes restaurées');
       }
     } else {
@@ -104,7 +159,7 @@ async function loadDataCore() {
       }
 
       if (histo && histo.quantities) {
-        state.lastOrder   = histo.quantities;
+        state.lastOrder = histo.quantities;
         state.lastSemaine = histo.semaine || '';
       }
     }
@@ -118,48 +173,56 @@ async function loadDataCore() {
   }
 }
 
-// ---- Fournisseurs -----------------------------------------
+
+// ============================================================
+//  FOURNISSEURS
+// ============================================================
 function getSuppliers() {
   const p = getProduitsForEtab();
-  return [...new Set(p.map(x=>x.fournisseur))].sort((a,b)=>a.localeCompare(b,'fr'));
+  return [...new Set(p.map(x => x.fournisseur))].sort((a, b) => a.localeCompare(b, 'fr'));
 }
 
 function getJourAppel(nom) {
-  const f = state.fournisseurs[nom]; if(!f) return null;
-  const jours = isSaison() ? f.jour_saison : f.jour_hors_saison; if(!jours) return null;
+  const f = state.fournisseurs[nom];
+  if (!f) return null;
+
+  const jours = isSaison() ? f.jour_saison : f.jour_hors_saison;
+  if (!jours) return null;
+
   const today = new Date().getDay();
-  const MAP = {lun:1,mar:2,mer:3,jeu:4,ven:5,sam:6,dim:0};
+  const MAP = { lun: 1, mar: 2, mer: 3, jeu: 4, ven: 5, sam: 6, dim: 0 };
   const low = jours.toLowerCase();
-  if(low.includes('tlj')) return {label:jours,today:true};
-  const parts = low.split(/[\/,; ]+/).map(s=>s.trim().slice(0,3));
-  const nums = parts.map(p=>MAP[p]).filter(n=>n!==undefined);
-  return {label:jours, today:nums.includes(today)};
+
+  if (low.includes('tlj')) return { label: jours, today: true };
+
+  const parts = low.split(/[\\/,; ]+/).map(s => s.trim().slice(0, 3));
+  const nums = parts.map(p => MAP[p]).filter(n => n !== undefined);
+
+  return { label: jours, today: nums.includes(today) };
 }
 
 function sortProducts(prods) {
   const scores = getScores();
-  return [...prods].sort((a,b)=>{
-    const qa=state.quantities[productKey(a)]||0, qb=state.quantities[productKey(b)]||0;
-    if(qb>0&&qa===0) return 1; if(qa>0&&qb===0) return -1;
-    const sa=scores[productKey(a)]||0, sb=scores[productKey(b)]||0;
-    if(sb!==sa) return sb-sa;
-    return a.nom_court.localeCompare(b.nom_court,'fr');
+
+  return [...prods].sort((a, b) => {
+    const qa = state.quantities[productKey(a)] || 0;
+    const qb = state.quantities[productKey(b)] || 0;
+
+    if (qb > 0 && qa === 0) return 1;
+    if (qa > 0 && qb === 0) return -1;
+
+    const sa = scores[productKey(a)] || 0;
+    const sb = scores[productKey(b)] || 0;
+
+    if (sb !== sa) return sb - sa;
+
+    return a.nom_court.localeCompare(b.nom_court, 'fr');
   });
 }
 
-// ---- Rendu ------------------------------------------------
-
-// ---- Accordeon --------------------------------------------
-
-// ---- Qty --------------------------------------------------
-
-// ---- Modal edition ----------------------------------------
-
-// ---- Modal ajout ------------------------------------------
-
 
 // ============================================================
-//  RÉCAPITULATIF
+//  RECAPITULATIF
 // ============================================================
 summaryBtn.addEventListener('click', openSummary);
 $('closeModal').addEventListener('click', closeSummary);
@@ -185,12 +248,14 @@ function renderSummary() {
   const produits = triPipeline(state.produits, 'SUMMARY', state);
 
   if (isGerant) {
-    // --- Mode gérant ---
-    const suppliers = [...new Set(produits.map(p => p.fournisseur))].sort((a, b) => a.localeCompare(b, 'fr'));
+    const suppliers = [...new Set(produits.map(p => p.fournisseur))].sort((a, b) =>
+      a.localeCompare(b, 'fr')
+    );
 
     suppliers.forEach(sup => {
       const items = produits.filter(p => p.fournisseur === sup);
-      let totalA = 0, totalB = 0;
+      let totalA = 0;
+      let totalB = 0;
 
       let block = `<div class="summary-supplier">
         <div class="summary-supplier-name">${escHtml(sup)}</div>`;
@@ -258,12 +323,12 @@ function renderSummary() {
     $('copyBtnB').style.display = 'block';
 
   } else {
-    // --- Mode normal ---
     const suppliers = getSuppliers();
 
     suppliers.forEach(sup => {
       const items = produits.filter(p => p.fournisseur === sup);
       let total = 0;
+
       let block = `<div class="summary-supplier">
         <div class="summary-supplier-name">${escHtml(sup)}</div>`;
 
@@ -307,19 +372,8 @@ function renderSummary() {
 
 
 // ============================================================
-//  COPIE / ARCHIVAGE / RESET
+//  STEPPERS GERANT
 // ============================================================
-
-// ============================================================
-//  ARCHIVAGE ET RESET QTé GÉRANT ET ETAB A & B
-// ============================================================
-
-
-// ============================================================
-//  RENDER ACCORDION GÉRANT
-// ============================================================
-
-
 function bindGerantSteppers() {
   document.querySelectorAll('.qty-btn-g').forEach(btn => {
     btn.addEventListener('click', () => {
@@ -334,7 +388,7 @@ function bindGerantSteppers() {
       }
 
       scheduleSave();
-      renderAccordionGerant(); // 🔥 Re-render pour mettre à jour totaux A/B + steppers
+      renderAccordionGerant();
     });
   });
 
@@ -351,12 +405,15 @@ function bindGerantSteppers() {
       }
 
       scheduleSave();
-      renderAccordionGerant(); // 🔥 Mise à jour instantanée
+      renderAccordionGerant();
     });
   });
 }
 
-// ---- Démarrage de l'application ----
+
+// ============================================================
+//  DEMARRAGE APPLICATION
+// ============================================================
 console.log("[TRACE] Initialisation de l'application");
 
 document.addEventListener("DOMContentLoaded", () => {
