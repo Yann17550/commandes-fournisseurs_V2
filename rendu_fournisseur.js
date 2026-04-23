@@ -1,5 +1,5 @@
 // ============================================================
-//  RENDU FOURNISSEUR — A / B
+//  RENDU FOURNISSEUR — A / B 
 //  Extraction propre de l'accordéon fournisseur
 // ============================================================
 //
