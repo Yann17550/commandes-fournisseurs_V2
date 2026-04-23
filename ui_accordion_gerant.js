@@ -1,17 +1,39 @@
 // ============================================================
 //  UI — ACCORDÉON MODE GÉRANT
 // ============================================================
+//
+//  RÔLE DE CE FICHIER
+//  ------------------
+//  - afficher les fournisseurs en mode gérant
+//  - ouvrir / fermer un fournisseur
+//  - afficher les quantités A / B
+//  - permettre la saisie via steppers
+//  - afficher un bouton "Valider commande" pour le fournisseur ouvert
+//
+//  IMPORTANT
+//  ---------
+//  Ce fichier ne contient PAS la logique métier de validation.
+//  Il appelle simplement : validateSupplier(sup)
+//  La vraie logique de validation est maintenant dans validation.js
+// ============================================================
+
 
 function renderAccordionGerant() {
   const allProds = state.produits;
 
-  // 🔥 Fournisseurs triés par ordre_fournisseur (comme A/B)
+  // ----------------------------------------------------------
+  // Fournisseurs triés selon ordre_fournisseur
+  // pour garder le même ordre que dans l'interface métier
+  // ----------------------------------------------------------
   const suppliers = [...new Set(allProds.map(p => p.fournisseur))].sort((a, b) => {
     const fa = allProds.find(p => p.fournisseur === a)?.ordre_fournisseur || 999;
     const fb = allProds.find(p => p.fournisseur === b)?.ordre_fournisseur || 999;
     return fa - fb;
   });
 
+  // ----------------------------------------------------------
+  // Si aucun fournisseur / produit, on affiche un état vide
+  // ----------------------------------------------------------
   if (!suppliers.length) {
     productList.innerHTML =
       '<div class="empty-state"><div class="emoji">📭</div><p>Aucun produit</p></div>';
@@ -20,18 +42,31 @@ function renderAccordionGerant() {
 
   let html = '';
 
+  // ----------------------------------------------------------
+  // Construction HTML fournisseur par fournisseur
+  // ----------------------------------------------------------
   suppliers.forEach(sup => {
     let prods = allProds.filter(p => p.fournisseur === sup);
 
-    // 🔥 Tri global (ordre_fournisseur / ordre_categorie / nom_court / designation)
-    // + tri dynamique (commandés en haut, regroupement nom court)
+    // --------------------------------------------------------
+    // Tri métier + tri dynamique
+    // --------------------------------------------------------
     prods = triPipeline(prods, 'GERANT', state);
 
+    // --------------------------------------------------------
+    // Le fournisseur est-il actuellement ouvert ?
+    // --------------------------------------------------------
     const isOpen = state.openSupplier === sup;
 
+    // --------------------------------------------------------
+    // Produits commandés pour A et B
+    // --------------------------------------------------------
     const orderedA = prods.filter(p => (state.quantities_a[productKey(p)] || 0) > 0);
     const orderedB = prods.filter(p => (state.quantities_b[productKey(p)] || 0) > 0);
 
+    // --------------------------------------------------------
+    // Totaux par établissement
+    // --------------------------------------------------------
     const totalA = orderedA.reduce(
       (s, p) => s + (state.quantities_a[productKey(p)] || 0) * getPrixColis(p),
       0
@@ -42,6 +77,10 @@ function renderAccordionGerant() {
     );
     const totalGlobal = totalA + totalB;
 
+    // --------------------------------------------------------
+    // Badge total : n'apparaît que s'il y a au moins une ligne
+    // commandée pour A ou B
+    // --------------------------------------------------------
     const badgeHtml =
       (orderedA.length || orderedB.length)
         ? `<span class="acc-badge">
@@ -49,6 +88,13 @@ function renderAccordionGerant() {
            </span>`
         : '';
 
+    // --------------------------------------------------------
+    // Bloc HTML du fournisseur
+    //
+    // Le bouton "Valider commande" n'apparaît que si :
+    // - le fournisseur est ouvert
+    // Cela évite de surcharger visuellement l'accordéon
+    // --------------------------------------------------------
     html += `
       <div class="accordion-block${isOpen ? ' is-open' : ''}" data-sup="${escHtml(sup)}">
 
@@ -56,8 +102,12 @@ function renderAccordionGerant() {
           <div class="acc-left">
             <span class="acc-name">${escHtml(sup)}</span>
             ${badgeHtml}
+
             ${isOpen ? `
-              <button class="btn-valider-outline" data-sup="${escHtml(sup)}" type="button">
+              <button
+                class="btn-valider-outline"
+                data-sup="${escHtml(sup)}"
+                type="button">
                 Valider commande
               </button>
             ` : ''}
@@ -86,12 +136,20 @@ function renderAccordionGerant() {
     `;
   });
 
+  // ----------------------------------------------------------
+  // Injection du HTML complet dans la liste
+  // ----------------------------------------------------------
   productList.innerHTML = html;
 
-  // Toggle accordéon + sélection fournisseur
+  // ----------------------------------------------------------
+  // Gestion ouverture / fermeture accordéon
+  //
+  // Important :
+  // si on clique sur le bouton "Valider commande",
+  // on ne doit PAS refermer / rouvrir l'accordéon
+  // ----------------------------------------------------------
   productList.querySelectorAll('.accordion-header').forEach(header => {
     header.addEventListener('click', (e) => {
-      // Si on clique sur le bouton Valider, on n'ouvre/ferme pas l'accordéon
       if (e.target.closest('.btn-valider-outline')) return;
 
       const sup = header.dataset.sup;
@@ -106,7 +164,12 @@ function renderAccordionGerant() {
     });
   });
 
-  // Bouton de validation du fournisseur ouvert
+  // ----------------------------------------------------------
+  // Boutons "Valider commande"
+  //
+  // Ici on ne fait qu'appeler validateSupplier(sup),
+  // la logique métier complète est dans validation.js
+  // ----------------------------------------------------------
   productList.querySelectorAll('.btn-valider-outline').forEach(btn => {
     btn.addEventListener('click', (e) => {
       e.stopPropagation();
@@ -115,13 +178,22 @@ function renderAccordionGerant() {
     });
   });
 
+  // ----------------------------------------------------------
+  // Binding des steppers de quantité A / B
+  // ----------------------------------------------------------
   bindSteppersGerant();
 }
 
-// ---- Corps fournisseur (gérant) ----------------------------
-// Version 100% alignée avec TON masque :
-// Article_gerant → nom_prix + qte_article (2 colonnes)
-// ------------------------------------------------------------
+
+// ============================================================
+//  CORPS DU FOURNISSEUR (MODE GÉRANT)
+// ============================================================
+//
+//  Structure voulue :
+//  - 1 bloc par article
+//  - 1 zone nom + prix
+//  - 1 zone quantité A / quantité B
+// ============================================================
 
 function renderSupplierBodyGerant(prods) {
   let html = `<div class="acc-body">`;
@@ -163,8 +235,13 @@ function renderSupplierBodyGerant(prods) {
           <!-- Stepper A -->
           <div class="stepperA">
             <button class="qty-btn-a" data-key="${escHtml(key)}" data-delta="-1">−</button>
-            <input class="qty-input-a" type="number" min="0" step="1"
-                   value="${qa}" data-key="${escHtml(key)}">
+            <input
+              class="qty-input-a"
+              type="number"
+              min="0"
+              step="1"
+              value="${qa}"
+              data-key="${escHtml(key)}">
             <button class="qty-btn-a" data-key="${escHtml(key)}" data-delta="1">+</button>
             <span class="totalA">${fmtPriceNoEuro(totalA)}</span>
           </div>
@@ -172,8 +249,13 @@ function renderSupplierBodyGerant(prods) {
           <!-- Stepper B -->
           <div class="stepperB">
             <button class="qty-btn-b" data-key="${escHtml(key)}" data-delta="-1">−</button>
-            <input class="qty-input-b" type="number" min="0" step="1"
-                   value="${qb}" data-key="${escHtml(key)}">
+            <input
+              class="qty-input-b"
+              type="number"
+              min="0"
+              step="1"
+              value="${qb}"
+              data-key="${escHtml(key)}">
             <button class="qty-btn-b" data-key="${escHtml(key)}" data-delta="1">+</button>
             <span class="totalB">${fmtPriceNoEuro(totalB)}</span>
           </div>
@@ -188,45 +270,76 @@ function renderSupplierBodyGerant(prods) {
   return html;
 }
 
-// ---- Steppers gérant ---------------------------------------
+
+// ============================================================
+//  BIND DES STEPPERS GÉRANT
+// ============================================================
+//
+//  A = Pizza d'Oléron
+//  B = Le Vesuvio
+//
+//  À chaque changement :
+//  - mise à jour du state
+//  - re-render accordéon gérant
+//  - sauvegarde distante différée
+// ============================================================
+
 function bindSteppersGerant() {
-  // A
-  productList.querySelectorAll('.qty-btn-a').forEach(b =>
-    b.addEventListener('click', e => {
+  // ----------------------------------------------------------
+  // Stepper A — boutons + / -
+  // ----------------------------------------------------------
+  productList.querySelectorAll('.qty-btn-a').forEach(btn =>
+    btn.addEventListener('click', e => {
       const key = e.currentTarget.dataset.key;
       const delta = parseInt(e.currentTarget.dataset.delta, 10);
+
       state.quantities_a[key] = Math.max(0, (state.quantities_a[key] || 0) + delta);
+
       renderAccordionGerant();
       scheduleSave();
     })
   );
 
-  productList.querySelectorAll('.qty-input-a').forEach(i =>
-    i.addEventListener('change', e => {
+  // ----------------------------------------------------------
+  // Stepper A — saisie directe
+  // ----------------------------------------------------------
+  productList.querySelectorAll('.qty-input-a').forEach(input =>
+    input.addEventListener('change', e => {
       const key = e.currentTarget.dataset.key;
       const qty = Math.max(0, parseInt(e.currentTarget.value, 10) || 0);
+
       state.quantities_a[key] = qty;
+
       renderAccordionGerant();
       scheduleSave();
     })
   );
 
-  // B
-  productList.querySelectorAll('.qty-btn-b').forEach(b =>
-    b.addEventListener('click', e => {
+  // ----------------------------------------------------------
+  // Stepper B — boutons + / -
+  // ----------------------------------------------------------
+  productList.querySelectorAll('.qty-btn-b').forEach(btn =>
+    btn.addEventListener('click', e => {
       const key = e.currentTarget.dataset.key;
       const delta = parseInt(e.currentTarget.dataset.delta, 10);
+
       state.quantities_b[key] = Math.max(0, (state.quantities_b[key] || 0) + delta);
+
       renderAccordionGerant();
       scheduleSave();
     })
   );
 
-  productList.querySelectorAll('.qty-input-b').forEach(i =>
-    i.addEventListener('change', e => {
+  // ----------------------------------------------------------
+  // Stepper B — saisie directe
+  // ----------------------------------------------------------
+  productList.querySelectorAll('.qty-input-b').forEach(input =>
+    input.addEventListener('change', e => {
       const key = e.currentTarget.dataset.key;
       const qty = Math.max(0, parseInt(e.currentTarget.value, 10) || 0);
+
       state.quantities_b[key] = qty;
+
       renderAccordionGerant();
       scheduleSave();
     })
