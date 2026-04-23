@@ -7,9 +7,9 @@ function renderAccordionGerant() {
 
   // 🔥 Fournisseurs triés par ordre_fournisseur (comme A/B)
   const suppliers = [...new Set(allProds.map(p => p.fournisseur))].sort((a, b) => {
-  const fa = allProds.find(p => p.fournisseur === a)?.ordre_fournisseur || 999;
-  const fb = allProds.find(p => p.fournisseur === b)?.ordre_fournisseur || 999;
-  return fa - fb;
+    const fa = allProds.find(p => p.fournisseur === a)?.ordre_fournisseur || 999;
+    const fb = allProds.find(p => p.fournisseur === b)?.ordre_fournisseur || 999;
+    return fa - fb;
   });
 
   if (!suppliers.length) {
@@ -50,102 +50,72 @@ function renderAccordionGerant() {
         : '';
 
     html += `
-  <div class="accordion-block${isOpen ? ' is-open' : ''}" data-sup="${escHtml(sup)}">
+      <div class="accordion-block${isOpen ? ' is-open' : ''}" data-sup="${escHtml(sup)}">
 
-    <div class="accordion-header" data-sup="${escHtml(sup)}">
-      <div class="acc-left">
-        <span class="acc-name">${escHtml(sup)}</span>
-        ${badgeHtml}
+        <div class="accordion-header" data-sup="${escHtml(sup)}">
+          <div class="acc-left">
+            <span class="acc-name">${escHtml(sup)}</span>
+            ${badgeHtml}
+            ${isOpen ? `
+              <button class="btn-valider-outline" data-sup="${escHtml(sup)}" type="button">
+                Valider commande
+              </button>
+            ` : ''}
+          </div>
+
+          <span class="acc-chevron">${isOpen ? '▾' : '▸'}</span>
+        </div>
+
         ${isOpen ? `
-          <button class="btn-valider-outline" data-sup="${escHtml(sup)}">Valider commande</button>
+          <div class="acc-etabs">
+            <span class="etab-badge">
+              <img src="main/Logo_Pizza-oleron.png" class="etab-logo">
+              Pizza d'Oléron
+            </span>
+
+            <span class="etab-badge">
+              <img src="main/Logo-Vesuvio.png" class="etab-logo">
+              Le Vesuvio
+            </span>
+          </div>
         ` : ''}
+
+        ${isOpen ? renderSupplierBodyGerant(prods) : ''}
+
       </div>
-
-      <span class="acc-chevron">${isOpen ? '▾' : '▸'}</span>
-    </div>
-
-    ${isOpen ? `
-      <div class="acc-etabs">
-        <span class="etab-badge">
-          <img src="main/Logo_Pizza-oleron.png" class="etab-logo">
-          Pizza d'Oléron
-        </span>
-
-        <span class="etab-badge">
-          <img src="main/Logo-Vesuvio.png" class="etab-logo">
-          Le Vesuvio
-        </span>
-      </div>
-    ` : ''}
-
-    ${isOpen ? renderSupplierBodyGerant(prods) : ''}
-
-  </div>
-`;
-
-
+    `;
   });
 
   productList.innerHTML = html;
 
   // Toggle accordéon + sélection fournisseur
-  productList.querySelectorAll('.accordion-header').forEach(btn => {
-    btn.addEventListener('click', () => {
-      const sup = btn.dataset.sup;
+  productList.querySelectorAll('.accordion-header').forEach(header => {
+    header.addEventListener('click', (e) => {
+      // Si on clique sur le bouton Valider, on n'ouvre/ferme pas l'accordéon
+      if (e.target.closest('.btn-valider-outline')) return;
+
+      const sup = header.dataset.sup;
 
       if (state.openSupplier === sup) {
         state.openSupplier = null;
       } else {
         state.openSupplier = sup;
       }
+
       renderAccordionGerant();
     });
   });
 
-  bindSteppersGerant();
-
-  // Bouton de validation dans chaque fournisseur ouvert
-  productList.querySelectorAll('.btn-valider').forEach(btn => {
-    btn.addEventListener('click', () => {
+  // Bouton de validation du fournisseur ouvert
+  productList.querySelectorAll('.btn-valider-outline').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
       const sup = btn.dataset.sup;
-      console.log("Validation de la commande pour :", sup);
-      // ici tu mettras ta logique
+      validateSupplier(sup);
     });
   });
 
-  // 🔥 Ajout du bouton de validation ici
-  if (state.etab && state.etab.id === 'gerant') {
-    const container = document.createElement('div');
-    container.id = 'gerant-validation-container';
-    container.style.textAlign = 'center';
-    container.style.padding = '20px';
-
-    const btn = document.createElement('button');
-    btn.id = 'btn-valider-commande';
-    btn.textContent = 'Valider la commande';
-    btn.className = 'btn-valider';
-
-    btn.style.display = state.openSupplier ? 'block' : 'none';
-
-    btn.addEventListener('click', () => {
-      console.log('Validation de la commande pour :', state.openSupplier);
-    });
-
-    container.appendChild(btn);
-    productList.appendChild(container);
-  }
-}
-
-function updateValidationButton() {
-  const btn = document.getElementById('btn-valider-commande');
-  if (!btn) return;
-
-  const visible =
-    state.etab &&
-    state.etab.id === 'gerant' &&
-    state.selectedSupplier;
-
-  btn.style.display = visible ? 'block' : 'none';
+  bindSteppersGerant();
 }
 
 // ---- Corps fournisseur (gérant) ----------------------------
@@ -224,7 +194,7 @@ function bindSteppersGerant() {
   productList.querySelectorAll('.qty-btn-a').forEach(b =>
     b.addEventListener('click', e => {
       const key = e.currentTarget.dataset.key;
-      const delta = parseInt(e.currentTarget.dataset.delta);
+      const delta = parseInt(e.currentTarget.dataset.delta, 10);
       state.quantities_a[key] = Math.max(0, (state.quantities_a[key] || 0) + delta);
       renderAccordionGerant();
       scheduleSave();
@@ -234,7 +204,7 @@ function bindSteppersGerant() {
   productList.querySelectorAll('.qty-input-a').forEach(i =>
     i.addEventListener('change', e => {
       const key = e.currentTarget.dataset.key;
-      const qty = Math.max(0, parseInt(e.currentTarget.value) || 0);
+      const qty = Math.max(0, parseInt(e.currentTarget.value, 10) || 0);
       state.quantities_a[key] = qty;
       renderAccordionGerant();
       scheduleSave();
@@ -245,7 +215,7 @@ function bindSteppersGerant() {
   productList.querySelectorAll('.qty-btn-b').forEach(b =>
     b.addEventListener('click', e => {
       const key = e.currentTarget.dataset.key;
-      const delta = parseInt(e.currentTarget.dataset.delta);
+      const delta = parseInt(e.currentTarget.dataset.delta, 10);
       state.quantities_b[key] = Math.max(0, (state.quantities_b[key] || 0) + delta);
       renderAccordionGerant();
       scheduleSave();
@@ -255,7 +225,7 @@ function bindSteppersGerant() {
   productList.querySelectorAll('.qty-input-b').forEach(i =>
     i.addEventListener('change', e => {
       const key = e.currentTarget.dataset.key;
-      const qty = Math.max(0, parseInt(e.currentTarget.value) || 0);
+      const qty = Math.max(0, parseInt(e.currentTarget.value, 10) || 0);
       state.quantities_b[key] = qty;
       renderAccordionGerant();
       scheduleSave();
