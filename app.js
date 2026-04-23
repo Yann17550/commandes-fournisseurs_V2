@@ -372,46 +372,6 @@ function renderSummary() {
 
 
 // ============================================================
-//  STEPPERS GERANT
-// ============================================================
-function bindGerantSteppers() {
-  document.querySelectorAll('.qty-btn-g').forEach(btn => {
-    btn.addEventListener('click', () => {
-      const key = btn.dataset.key;
-      const etab = btn.dataset.etab;
-      const delta = parseInt(btn.dataset.delta, 10);
-
-      if (etab === 'a') {
-        state.quantities_a[key] = Math.max(0, (state.quantities_a[key] || 0) + delta);
-      } else {
-        state.quantities_b[key] = Math.max(0, (state.quantities_b[key] || 0) + delta);
-      }
-
-      scheduleSave();
-      renderAccordionGerant();
-    });
-  });
-
-  document.querySelectorAll('.qty-input-g').forEach(input => {
-    input.addEventListener('change', () => {
-      const key = input.dataset.key;
-      const etab = input.dataset.etab;
-      const val = Math.max(0, parseInt(input.value, 10) || 0);
-
-      if (etab === 'a') {
-        state.quantities_a[key] = val;
-      } else {
-        state.quantities_b[key] = val;
-      }
-
-      scheduleSave();
-      renderAccordionGerant();
-    });
-  });
-}
-
-
-// ============================================================
 //  DEMARRAGE APPLICATION
 // ============================================================
 console.log("[TRACE] Initialisation de l'application");
