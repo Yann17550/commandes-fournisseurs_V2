@@ -79,95 +79,119 @@ function resetCommande() {
 }
 
 // ============================================================
-//  ARCHIVAGE ET RESET QTé GÉRANT ET ETAB A & B
+// VALIDATION FOURNISSEUR — APPS SCRIPT
 // ============================================================
 async function validateSupplier(sup) {
-  if (!confirm("Valider la commande du fournisseur " + sup + " ?")) return;
+  if (!CONFIG.APPS_SCRIPT_URL) {
+    showToast("⚠️ URL Apps Script absente");
+    return;
+  }
 
-  // 1. Archivage A et B pour CE fournisseur
-  const itemsA = [];
-  const itemsB = [];
+  if (!sup) {
+    showToast("⚠️ Fournisseur manquant");
+    return;
+  }
 
-  state.produits
-    .filter(p => p.fournisseur === sup)
-    .forEach(p => {
-      const key = productKey(p);
-      const prix = getPrixColis(p);
+  const isGerant = state.etab && state.etab.id === 'gerant';
 
-      const qa = state.quantities_a[key] || 0;
-      const qb = state.quantities_b[key] || 0;
+  // En mode gérant, on peut valider le fournisseur pour A, pour B, ou les deux.
+  // Ici on propose une confirmation simple, puis on traite séparément A et B
+  // s'il existe des quantités pour ce fournisseur.
+  if (isGerant) {
+    const hasA = state.produits.some(p =>
+      p.fournisseur === sup && (state.quantities_a[productKey(p)] || 0) > 0
+    );
+    const hasB = state.produits.some(p =>
+      p.fournisseur === sup && (state.quantities_b[productKey(p)] || 0) > 0
+    );
 
-      if (qa > 0) {
-        itemsA.push({
-          key,
-          nomCourt: p.nom_court,
-          ref: p.reference,
-          qty: qa,
-          prixHt: p.prix_ht,
-          total: qa * prix
-        });
+    if (!hasA && !hasB) {
+      showToast("ℹ️ Aucune quantité à valider pour " + sup);
+      return;
+    }
+
+    const ok = confirm(
+      "Valider la commande du fournisseur " + sup + " ?\n\n" +
+      (hasA ? "• Établissement A concerné\n" : "") +
+      (hasB ? "• Établissement B concerné\n" : "") +
+      "\nLes lignes validées seront archivées puis retirées de la commande en cours."
+    );
+    if (!ok) return;
+
+    try {
+      if (hasA) {
+        const resA = await fetch(
+          CONFIG.APPS_SCRIPT_URL +
+          '?action=validateSupplier&etab=a&fournisseur=' + encodeURIComponent(sup),
+          { method: 'POST' }
+        );
+        const jsonA = await resA.json();
+        if (!jsonA.ok) throw new Error(jsonA.error || jsonA.message || "Erreur validation A");
       }
 
-      if (qb > 0) {
-        itemsB.push({
-          key,
-          nomCourt: p.nom_court,
-          ref: p.reference,
-          qty: qb,
-          prixHt: p.prix_ht,
-          total: qb * prix
-        });
+      if (hasB) {
+        const resB = await fetch(
+          CONFIG.APPS_SCRIPT_URL +
+          '?action=validateSupplier&etab=b&fournisseur=' + encodeURIComponent(sup),
+          { method: 'POST' }
+        );
+        const jsonB = await resB.json();
+        if (!jsonB.ok) throw new Error(jsonB.error || jsonB.message || "Erreur validation B");
       }
-    });
 
-  // Envoi archive A
-  if (itemsA.length && CONFIG.APPS_SCRIPT_URL) {
-    fetch(CONFIG.APPS_SCRIPT_URL + '?action=archive&etab=a', {
-      method: 'POST',
-      mode: 'no-cors',
-      headers: { 'Content-Type': 'text/plain' },
-      body: JSON.stringify({
-        semaine: getWeekId(),
-        etabLabel: "Établissement A",
-        items: itemsA
-      })
-    });
+      await loadData();
+      render();
+      showToast("✅ Fournisseur validé : " + sup);
+
+    } catch (err) {
+      console.error(err);
+      showToast("⚠️ " + err.message);
+    }
+
+    return;
   }
 
-  // Envoi archive B
-  if (itemsB.length && CONFIG.APPS_SCRIPT_URL) {
-    fetch(CONFIG.APPS_SCRIPT_URL + '?action=archive&etab=b', {
-      method: 'POST',
-      mode: 'no-cors',
-      headers: { 'Content-Type': 'text/plain' },
-      body: JSON.stringify({
-        semaine: getWeekId(),
-        etabLabel: "Établissement B",
-        items: itemsB
-      })
-    });
+  // Mode établissement simple : validation uniquement sur l'établissement courant
+  const etabId = state.etab && state.etab.id;
+  if (!etabId || !['a', 'b'].includes(etabId)) {
+    showToast("⚠️ Établissement invalide");
+    return;
   }
 
-  // 2. Reset des quantités A/B pour CE fournisseur
-  state.produits
-    .filter(p => p.fournisseur === sup)
-    .forEach(p => {
-      const key = productKey(p);
-      delete state.quantities_a[key];
-      delete state.quantities_b[key];
-    });
+  const hasQty = state.produits.some(p =>
+    p.fournisseur === sup && (state.quantities[productKey(p)] || 0) > 0
+  );
 
-  // 3. Sauvegarde distante
-  scheduleSave();
-
-  // 4. Re-render
-  renderAccordionGerant();
-
-  // 5. Met à jour le total
-  if (typeof updateTotal === 'function') {
-    updateTotal();
+  if (!hasQty) {
+    showToast("ℹ️ Aucune quantité à valider pour " + sup);
+    return;
   }
 
-  // 6. Toast
-  showToast("📦 Commande validée pour " + sup);
+  const ok = confirm(
+    "Valider la commande du fournisseur " + sup + " ?\n\n" +
+    "Les lignes validées seront archivées puis retirées de la commande en cours."
+  );
+  if (!ok) return;
+
+  try {
+    const res = await fetch(
+      CONFIG.APPS_SCRIPT_URL +
+      '?action=validateSupplier&etab=' + etabId + '&fournisseur=' + encodeURIComponent(sup),
+      { method: 'POST' }
+    );
+
+    const json = await res.json();
+    if (!json.ok) {
+      throw new Error(json.error || json.message || "Erreur de validation");
+    }
+
+    await loadData();
+    render();
+    closeSummary();
+    showToast("✅ Fournisseur validé : " + sup);
+
+  } catch (err) {
+    console.error(err);
+    showToast("⚠️ " + err.message);
+  }
 }
