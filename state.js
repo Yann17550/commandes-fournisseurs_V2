@@ -7,9 +7,9 @@ let state = {
   etab: null,
   produits: [],
   fournisseurs: {},
-  quantities: {},
-  quantities_a: {},
-  quantities_b: {},
+  quantities: {}, // commande de l'etab courant (A ou B)
+  quantities_a: {}, // commande Pizza d'Oleron (vue gérant)
+  quantities_b: {}, // commande Le Vesuvio (vue gérant)
   lastOrder: {},
   lastSemaine: '',
   overrides: {},
@@ -42,18 +42,18 @@ function getWeekId() {
 
 function parseNum(s) {
   if (!s || !s.toString().trim()) return 0;
-  return parseFloat(s.toString().replace(',', '.')) || 0;
+  return parseFloat(String(s).replace(',', '.')) || 0;
 }
 
 function fmtPrice(n) {
-  return n.toLocaleString('fr-FR', {
+  return Number(n || 0).toLocaleString('fr-FR', {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2
   }) + ' €';
 }
 
 function fmtPriceNoEuro(v) {
-  return (Math.round(v * 100) / 100).toFixed(2).replace('.', ',');
+  return (Math.round((Number(v) || 0) * 100) / 100).toFixed(2).replace('.', ',');
 }
 
 function productKey(p) {
@@ -79,7 +79,7 @@ function showToast(msg) {
 }
 
 function isSaison() {
-  return (CONFIG.MOIS_SAISON || []).includes(new Date().getMonth() + 1);
+  return CONFIG.MOISSAISON.includes(new Date().getMonth() + 1);
 }
 
 // ---- Nettoyage designation --------------------------------
