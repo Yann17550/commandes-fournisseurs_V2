@@ -10,9 +10,9 @@ function openEditModal(key) {
   const d = getProductData(p);
   state.editKey = key;
 
-  $('editModalTitle').textContent = 'Modifier : ' + p.nomcourt;
+  $('editModalTitle').textContent = 'Modifier : ' + p.nom_court;
   $('editRefLabel').textContent = d.reference;
-  $('editPrix').value = d.prixht;
+  $('editPrix').value = d.prix_ht;
   $('editColissage').value = d.colissage;
 
   editModal.style.display = 'flex';
