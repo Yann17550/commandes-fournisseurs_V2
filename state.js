@@ -52,7 +52,7 @@ function fmtPriceNoEuro(v) {
 }
 
 function productKey(p) {
-  return p.fournisseur+'||'+p.reference+'||'+p.nom_court;
+  return p.fournisseur+'|'+p.reference+';
 }
 
 function escHtml(s) {
