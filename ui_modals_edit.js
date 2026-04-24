@@ -42,6 +42,16 @@ async function applyEdit() {
     return;
   }
 
+  const payload = {
+    key,
+    fournisseur: p.fournisseur,
+    reference: d.reference,
+    prix_ht: newPrix,
+    colissage: newColissage,
+  };
+
+  console.log('PAYLOAD UPDATE', payload, { produit: p, data: d });
+
   const btn = $('saveEditBtn');
   btn.disabled = true;
   btn.textContent = 'Sauvegarde...';
@@ -50,13 +60,7 @@ async function applyEdit() {
     const res = await fetch(CONFIG.APPS_SCRIPT_URL + '?action=updateProduct', {
       method: 'POST',
       headers: { 'Content-Type': 'text/plain' },
-      body: JSON.stringify({
-        key,
-        fournisseur: p.fournisseur,
-        reference: d.reference,
-        prix_ht: newPrix,
-        colissage: newColissage,
-      }),
+      body: JSON.stringify(payload),
     });
 
     const json = await res.json();
