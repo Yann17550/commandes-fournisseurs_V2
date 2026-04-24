@@ -29,6 +29,7 @@ function renderProduitAB(p, isVariant, state) {
           <button class="qty-btn" data-key="${escHtml(key)}" data-delta="-1">−</button>
           <input class="qty-input" type="number" min="0" step="1" value="${qtyColis}" data-key="${escHtml(key)}" inputmode="numeric">
           <button class="qty-btn" data-key="${escHtml(key)}" data-delta="1">+</button>
+          <button class="edit-btn" data-key="${escHtml(key)}" type="button" title="Modifier l'article">✏️</button>
           <span class="total_ab">${qtyColis > 0 ? fmtPriceNoEuro(totalLigne) : ''}</span>
         </div>
       </div>
