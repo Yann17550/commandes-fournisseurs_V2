@@ -56,6 +56,7 @@ function fmtPriceNoEuro(v) {
   return (Math.round((Number(v) || 0) * 100) / 100).toFixed(2).replace('.', ',');
 }
 
+// ✅ clé simplifiée : fournisseur + référence
 function productKey(p) {
   return String(p.fournisseur || '').trim() + '|' + String(p.reference || '').trim();
 }
@@ -79,7 +80,7 @@ function showToast(msg) {
 }
 
 function isSaison() {
-  return CONFIG.MOISSAISON.includes(new Date().getMonth() + 1);
+  return (CONFIG.MOIS_SAISON || []).includes(new Date().getMonth() + 1);
 }
 
 // ---- Nettoyage designation --------------------------------
@@ -128,9 +129,9 @@ function parseProduits(tsv) {
       const a = (r[C.actif] || '').toUpperCase();
       return a === '' || a === 'TRUE';
     })
-    .filter(r => (r[C.nomcourt] || '').trim() && (r[C.fournisseur] || '').trim())
+    .filter(r => (r[C.nom_court] || '').trim() && (r[C.fournisseur] || '').trim())
     .map(r => {
-      const nomcourt = (r[C.nomcourt] || '').trim();
+      const nom_court = (r[C.nom_court] || '').trim();
       const designation = (r[C.designation] || '').trim();
       const etabVal = (r[C.etablissement] || '').trim().toUpperCase();
 
@@ -140,25 +141,25 @@ function parseProduits(tsv) {
         designation,
         label: cleanDesignation(designation),
         tva: parseNum(r[C.tva]),
-        prixht: parseNum(r[C.prixht]),
-        droitalcool: parseNum(r[C.droitalcool]),
-        taxesecu: parseNum(r[C.taxesecu]),
-        nomcourt,
+        prix_ht: parseNum(r[C.prix_ht]),
+        droit_alcool: parseNum(r[C.droit_alcool]),
+        taxe_secu: parseNum(r[C.taxe_secu]),
+        nom_court,
         categorie: (r[C.categorie] || 'Divers').trim(),
         colissage: parseNum(r[C.colissage]) || 1,
-        prixcolis: parseNum(r[C.prixcolis]),
+        prix_colis: parseNum(r[C.prix_colis]),
         etablissement: etabVal || 'AB',
         actif: true,
         isTemp: false,
-        ordrefournisseur: parseNum(r[C.ordrefournisseur]) || 999,
-        ordrecategorie: parseNum(r[C.ordrecategorie]) || 999,
+        ordre_fournisseur: parseNum(r[C.ordre_fournisseur]) || 999,
+        ordre_categorie: parseNum(r[C.ordre_categorie]) || 999,
       };
     });
 }
 
 function parseFournisseurs(tsv) {
   if (!tsv) return {};
-  const CF = CONFIG.COLSF;
+  const CF = CONFIG.COLS_F;
   const map = {};
 
   parseTSV(tsv).forEach(r => {
@@ -168,8 +169,8 @@ function parseFournisseurs(tsv) {
     map[nom] = {
       telephone: (r[CF.telephone] || '').trim(),
       contact: (r[CF.contact] || '').trim(),
-      joursaison: (r[CF.joursaison] || '').trim(),
-      jourhorssaison: (r[CF.jourhorssaison] || '').trim(),
+      jour_saison: (r[CF.jour_saison] || '').trim(),
+      jour_hors_saison: (r[CF.jour_hors_saison] || '').trim(),
       notes: (r[CF.notes] || '').trim(),
     };
   });
