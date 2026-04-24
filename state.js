@@ -1,5 +1,5 @@
 // ============================================================
-//  STATE GLOBAL + UTILITAIRES GÉNÉRAUX
+// STATE GLOBAL + UTILITAIRES GÉNÉRAUX
 // ============================================================
 
 // ---- State --------------------------------------------------
@@ -7,9 +7,9 @@ let state = {
   etab: null,
   produits: [],
   fournisseurs: {},
-  quantities:   {},   // commande de l'etab courant (A ou B)
-  quantities_a: {},   // commande Pizza d'Oleron  (vue gérant)
-  quantities_b: {},   // commande Le Vesuvio       (vue gérant)
+  quantities: {},
+  quantities_a: {},
+  quantities_b: {},
   lastOrder: {},
   lastSemaine: '',
   overrides: {},
@@ -24,27 +24,32 @@ const $ = id => document.getElementById(id);
 
 // ---- Utils --------------------------------------------------
 function getWeekLabel() {
-  const now = new Date(), start = new Date(now.getFullYear(),0,1);
-  const w = Math.ceil(((now-start)/86400000+start.getDay()+1)/7);
-  return 'S'+w+' — '+now.toLocaleDateString('fr-FR',{day:'numeric',month:'short'});
+  const now = new Date();
+  const start = new Date(now.getFullYear(), 0, 1);
+  const w = Math.ceil(((now - start) / 86400000 + start.getDay() + 1) / 7);
+  return 'S' + w + ' — ' + now.toLocaleDateString('fr-FR', {
+    day: 'numeric',
+    month: 'short'
+  });
 }
 
 function getWeekId() {
-  const now = new Date(), start = new Date(now.getFullYear(),0,1);
-  const w = Math.ceil(((now-start)/86400000+start.getDay()+1)/7);
-  return now.getFullYear()+'-S'+String(w).padStart(2,'0');
+  const now = new Date();
+  const start = new Date(now.getFullYear(), 0, 1);
+  const w = Math.ceil(((now - start) / 86400000 + start.getDay() + 1) / 7);
+  return now.getFullYear() + '-S' + String(w).padStart(2, '0');
 }
 
 function parseNum(s) {
-  if(!s||!s.toString().trim()) return 0;
-  return parseFloat(s.toString().replace(',','.'))||0;
+  if (!s || !s.toString().trim()) return 0;
+  return parseFloat(s.toString().replace(',', '.')) || 0;
 }
 
 function fmtPrice(n) {
-  return n.toLocaleString('fr-FR',{
-    minimumFractionDigits:2,
-    maximumFractionDigits:2
-  })+' €';
+  return n.toLocaleString('fr-FR', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
+  }) + ' €';
 }
 
 function fmtPriceNoEuro(v) {
@@ -52,109 +57,122 @@ function fmtPriceNoEuro(v) {
 }
 
 function productKey(p) {
-  return p.fournisseur+'|'+p.reference+';
+  return String(p.fournisseur || '').trim() + '|' + String(p.reference || '').trim();
 }
 
 function escHtml(s) {
   return String(s)
-    .replace(/&/g,'&amp;')
-    .replace(/</g,'&lt;')
-    .replace(/>/g,'&gt;')
-    .replace(/"/g,'&quot;');
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
 }
 
 function showToast(msg) {
-  document.querySelectorAll('.toast').forEach(t=>t.remove());
+  document.querySelectorAll('.toast').forEach(t => t.remove());
   const t = document.createElement('div');
-  t.className='toast';
-  t.textContent=msg;
+  t.className = 'toast';
+  t.textContent = msg;
   document.body.appendChild(t);
-  setTimeout(()=>t.remove(),2500);
+  setTimeout(() => t.remove(), 2500);
 }
 
 function isSaison() {
-  return (CONFIG.MOIS_SAISON||[]).includes(new Date().getMonth()+1);
+  return (CONFIG.MOIS_SAISON || []).includes(new Date().getMonth() + 1);
 }
 
 // ---- Nettoyage designation --------------------------------
 function cleanDesignation(s) {
-  s = (s||'');
+  s = String(s || '');
+
   [
     /\s*-\s*DROIT ALCOOL.*/i,
     /\s*-\s*droit sur alcool.*/i,
     /\s*\+\s*TAXE SECURITE SOCIALE.*/i,
     /\s*-\s*TAXE.*/i,
     /\s*\(pack x\d+\)/i
-  ].forEach(re => { s = s.replace(re,''); });
+  ].forEach(re => {
+    s = s.replace(re, '');
+  });
 
   s = s.trim();
-  if(s===s.toUpperCase()) {
-    s = s.toLowerCase().replace(/(?:^|\s)\S/g,c=>c.toUpperCase());
+
+  if (s && s === s.toUpperCase()) {
+    s = s.toLowerCase().replace(/(?:^|\s)\S/g, c => c.toUpperCase());
   }
+
   return s.trim();
 }
 
 // ---- Parsing TSV ------------------------------------------
 function parseTSV(tsv) {
-  const lines = tsv.trim().split('\n').map(l=>l.split('\t').map(c=>c.trim()));
-  if(lines.length<2) return [];
+  const lines = tsv.trim().split('\n').map(l => l.split('\t').map(c => c.trim()));
+  if (lines.length < 2) return [];
   const h = lines[0];
+
   return lines.slice(1)
-    .filter(r=>r.some(c=>c!==''))
-    .map(row=>{
-      const o={};
-      h.forEach((k,i)=>o[k]=row[i]??'');
+    .filter(r => r.some(c => c !== ''))
+    .map(row => {
+      const o = {};
+      h.forEach((k, i) => o[k] = row[i] ?? '');
       return o;
     });
 }
 
 function parseProduits(tsv) {
   const C = CONFIG.COLS;
+
   return parseTSV(tsv)
-    .filter(r=>{
-      const a=(r[C.actif]||'').toUpperCase();
-      return a===''||a==='TRUE';
+    .filter(r => {
+      const a = (r[C.actif] || '').toUpperCase();
+      return a === '' || a === 'TRUE';
     })
-    .filter(r=>(r[C.nom_court]||'').trim()&&(r[C.fournisseur]||'').trim())
-    .map(r=>{
-      const nom_court = (r[C.nom_court]||'').trim();
-      const designation = (r[C.designation]||'').trim();
-      const etabVal = (r[C.etablissement]||'').trim().toUpperCase();
+    .filter(r => (r[C.nomcourt] || '').trim() && (r[C.fournisseur] || '').trim())
+    .map(r => {
+      const nomcourt = (r[C.nomcourt] || '').trim();
+      const designation = (r[C.designation] || '').trim();
+      const etabVal = (r[C.etablissement] || '').trim().toUpperCase();
+
       return {
-        fournisseur:  (r[C.fournisseur]||'').trim(),
-        reference:    (r[C.reference]||'').trim(),
+        fournisseur: (r[C.fournisseur] || '').trim(),
+        reference: (r[C.reference] || '').trim(),
         designation,
         label: cleanDesignation(designation),
-        tva:          parseNum(r[C.tva]),
-        prix_ht:      parseNum(r[C.prix_ht]),
-        droit_alcool: parseNum(r[C.droit_alcool]),
-        taxe_secu:    parseNum(r[C.taxe_secu]),
-        nom_court,
-        categorie:    (r[C.categorie]||'Divers').trim(),
-        colissage:    parseNum(r[C.colissage])||1,
-        prix_colis:   parseNum(r[C.prix_colis]),
-        etablissement: etabVal||'AB',
+        tva: parseNum(r[C.tva]),
+        prixht: parseNum(r[C.prixht]),
+        droitalcool: parseNum(r[C.droitalcool]),
+        taxesecu: parseNum(r[C.taxesecu]),
+        nomcourt,
+        categorie: (r[C.categorie] || 'Divers').trim(),
+        colissage: parseNum(r[C.colissage]) || 1,
+        prixcolis: parseNum(r[C.prixcolis]),
+        etablissement: etabVal || 'AB',
         actif: true,
         isTemp: false,
-        ordre_fournisseur: parseNum(r[C.ordre_fournisseur]) || 999,
-        ordre_categorie:   parseNum(r[C.ordre_categorie]) || 999,
+        ordrefournisseur: parseNum(r[C.ordrefournisseur]) || 999,
+        ordrecategorie: parseNum(r[C.ordrecategorie]) || 999,
       };
     });
 }
 
 function parseFournisseurs(tsv) {
-  if(!tsv) return {};
-  const CF = CONFIG.COLS_F, map = {};
-  parseTSV(tsv).forEach(r=>{
-    const nom = (r[CF.nom]||'').trim();
-    if(!nom) return;
+  if (!tsv) return {};
+  const CF = CONFIG.COLSF;
+  const map = {};
+
+  parseTSV(tsv).forEach(r => {
+    const nom = (r[CF.nom] || '').trim();
+    if (!nom) return;
+
     map[nom] = {
-      telephone: (r[CF.telephone]||'').trim(),
-      contact: (r[CF.contact]||'').trim(),
-      jour_saison: (r[CF.jour_saison]||'').trim(),
-      jour_hors_saison: (r[CF.jour_hors_saison]||'').trim(),
-      notes: (r[CF.notes]||'').trim(),
+      telephone: (r[CF.telephone] || '').trim(),
+      contact: (r[CF.contact] || '').trim(),
+      joursaison: (r[CF.joursaison] || '').trim(),
+      jourhorssaison: (r[CF.jourhorssaison] || '').trim(),
+      notes: (r[CF.notes] || '').trim(),
     };
   });
+
   return map;
 }
