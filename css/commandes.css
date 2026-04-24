@@ -168,7 +168,7 @@ main {
 /* ============================================================
    PRODUITS A/B — LAYOUT COMPACT
    Ligne 1 : nom | colissage
-   Ligne 2 : référence | stepper
+   Ligne 2 : référence + bouton modif | stepper
    ============================================================ */
 
 .Article_ab {
@@ -214,11 +214,19 @@ main {
 }
 
 .line2_ab {
-  display: grid;
-  grid-template-columns: 1fr 2fr;
+  display: flex;
   align-items: center;
-  column-gap: 8px;
+  justify-content: space-between;
+  gap: 8px;
   min-width: 0;
+}
+
+.ref-edit_ab {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  flex: 1 1 auto;
 }
 
 .reference_ab {
@@ -231,6 +239,16 @@ main {
   text-overflow: ellipsis;
 }
 
+.edit-btn-ab {
+  flex: 0 0 auto;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  font-size: 14px;
+  line-height: 1;
+  padding: 2px 4px;
+}
+
 .ref-override {
   color: var(--accent-text) !important;
   font-weight: 600;
@@ -241,7 +259,7 @@ main {
   grid-template-columns: 22px 28px 22px auto;
   align-items: center;
   column-gap: 4px;
-  justify-self: end;
+  flex: 0 0 auto;
   width: fit-content;
   padding: 2px 4px;
   border-radius: 8px;
@@ -298,9 +316,16 @@ main {
     padding: 8px 9px;
   }
 
-  .line1_ab,
-  .line2_ab {
+  .line1_ab {
     column-gap: 6px;
+  }
+
+  .line2_ab {
+    gap: 6px;
+  }
+
+  .ref-edit_ab {
+    gap: 4px;
   }
 
   .nom_article_ab {
@@ -311,6 +336,11 @@ main {
   .reference_ab,
   .total_ab {
     font-size: 11px;
+  }
+
+  .edit-btn-ab {
+    font-size: 13px;
+    padding: 2px 3px;
   }
 
   .stepper_ab {
@@ -325,49 +355,6 @@ main {
   }
 
   .stepper_ab .qty-input {
-    width: 26px;
-    height: 20px;
-    font-size: 12px;
-  }
-
-  .total_ab {
-    min-width: 38px;
-  }
-}
-
-
-/* ============================================================
-   MOBILE
-   ============================================================ */
-
-@media (max-width: 420px) {
-  .Article_ab {
-    column-gap: 6px;
-    padding: 8px 9px;
-  }
-
-  .nom_article_ab {
-    font-size: 13px;
-  }
-
-  .colissage_ab,
-  .reference_ab,
-  .total_ab {
-    font-size: 11px;
-  }
-
-  .stepper-ab {
-    grid-template-columns: 20px 26px 20px auto;
-    column-gap: 3px;
-  }
-
-  .stepper-ab .qty-btn {
-    width: 20px;
-    height: 20px;
-    font-size: 13px;
-  }
-
-  .stepper-ab .qty-input {
     width: 26px;
     height: 20px;
     font-size: 12px;
