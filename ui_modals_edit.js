@@ -1,5 +1,5 @@
 // ============================================================
-//  UI — MODALE D'ÉDITION PRODUIT
+// UI — MODALE D'ÉDITION PRODUIT
 // ============================================================
 
 // Ouvrir la modale
@@ -10,9 +10,9 @@ function openEditModal(key) {
   const d = getProductData(p);
   state.editKey = key;
 
-  $('editModalTitle').textContent = 'Modifier : ' + p.nomcourt;  // ✅ nomcourt (pas nom_court)
+  $('editModalTitle').textContent = 'Modifier : ' + p.nomcourt;
   $('editRefLabel').textContent = d.reference;
-  $('editPrix').value = d.prixht;  // ✅ prixht (pas prix_ht)
+  $('editPrix').value = d.prixht;
   $('editColissage').value = d.colissage;
 
   editModal.style.display = 'flex';
@@ -51,7 +51,7 @@ async function applyEdit() {
       method: 'POST',
       headers: { 'Content-Type': 'text/plain' },
       body: JSON.stringify({
-        key,  // fournisseur|reference
+        key,
         fournisseur: p.fournisseur,
         reference: d.reference,
         prix_ht: newPrix,
