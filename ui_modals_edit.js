@@ -2,9 +2,6 @@
 //  UI — MODALE D'ÉDITION PRODUIT
 // ============================================================
 
-window.__FILE_VERSIONS__ = window.__FILE_VERSIONS__ || {};
-window.__FILE_VERSIONS__["ui_modals_add.js"] = "2026-04-06T18:31:00";
-
 // Ouvrir la modale
 function openEditModal(key) {
   const p = state.produits.find(p => productKey(p) === key);
@@ -13,9 +10,9 @@ function openEditModal(key) {
   const d = getProductData(p);
   state.editKey = key;
 
-  $('editModalTitle').textContent = 'Modifier : ' + p.nom_court;
+  $('editModalTitle').textContent = 'Modifier : ' + p.nomcourt;  // ✅ nomcourt (pas nom_court)
   $('editRefLabel').textContent = d.reference;
-  $('editPrix').value = d.prix_ht;
+  $('editPrix').value = d.prixht;  // ✅ prixht (pas prix_ht)
   $('editColissage').value = d.colissage;
 
   editModal.style.display = 'flex';
@@ -37,9 +34,8 @@ async function applyEdit() {
 
   const d = getProductData(p);
 
-
-  const newPrix      = parseFloat($('editPrix').value) || 0;
-  const newColissage = parseInt($('editColissage').value) || 1;
+  const newPrix = parseFloat($('editPrix').value) || 0;
+  const newColissage = parseInt($('editColissage').value, 10) || 1;
 
   if (!CONFIG.APPS_SCRIPT_URL) {
     showToast('⚠️ Apps Script non configuré dans config.js');
@@ -51,31 +47,30 @@ async function applyEdit() {
   btn.textContent = 'Sauvegarde...';
 
   try {
-    // 🔥 On attend la réponse AVANT de recharger
     const res = await fetch(CONFIG.APPS_SCRIPT_URL + '?action=updateProduct', {
       method: 'POST',
       headers: { 'Content-Type': 'text/plain' },
       body: JSON.stringify({
+        key,  // fournisseur|reference
+        fournisseur: p.fournisseur,
         reference: d.reference,
-        prix_ht:      newPrix,
-        colissage:    newColissage,
+        prix_ht: newPrix,
+        colissage: newColissage,
       }),
     });
 
     const json = await res.json();
-    console.log("FETCH OK");
+    console.log('FETCH OK', json);
+
     if (!json.ok) throw new Error(json.error || 'Erreur inconnue');
 
     closeEditModal();
     showToast('✅ Mis à jour dans le Sheet');
-
-    // 🔥 Recharge APRÈS la fin du fetch
     setTimeout(() => location.reload(), 600);
 
   } catch (err) {
     console.error(err);
     showToast('⚠️ Échec : ' + err.message);
-
   } finally {
     btn.disabled = false;
     btn.textContent = 'Sauvegarder';
