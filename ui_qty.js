@@ -5,7 +5,7 @@
 // Bouton + / -
 function onQtyBtn(e) {
   const key = e.currentTarget.dataset.key;
-  const delta = parseInt(e.currentTarget.dataset.delta);
+  const delta = parseInt(e.currentTarget.dataset.delta, 10);
   const newQty = Math.max(0, (state.quantities[key] || 0) + delta);
   setQty(key, newQty);
 }
@@ -13,7 +13,7 @@ function onQtyBtn(e) {
 // Saisie directe dans l’input
 function onQtyInput(e) {
   const key = e.currentTarget.dataset.key;
-  const qty = Math.max(0, parseInt(e.currentTarget.value) || 0);
+  const qty = Math.max(0, parseInt(e.currentTarget.value, 10) || 0);
   setQty(key, qty);
 }
 
@@ -22,7 +22,7 @@ function setQty(key, qty) {
   state.quantities[key] = qty;
 
   // Mise à jour de la ligne
-  const card = productList.querySelector(`.product-card[data-key="${CSS.escape(key)}"]`);
+  const card = productList.querySelector(`.Article_ab[data-key="${CSS.escape(key)}"]`);
   if (card) {
     const p = state.produits.find(p => productKey(p) === key);
     if (p) {
