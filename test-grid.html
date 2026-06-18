@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Test grille gérant</title>
+  <link rel="stylesheet" href="test-grid.css">
+</head>
+<body>
+
+<div class="fournisseur-bloc">
+
+  <!-- Bandeau gérant (une seule fois) -->
+  <div class="gerant-header">
+    <div class="etab-name">Pizza d'Oléron</div>
+    <div class="etab-total">118,14 €</div>
+    <div class="etab-name">Le Vesuvio</div>
+    <div class="etab-total">96,35 €</div>
+  </div>
+
+  <!-- PRODUIT 1 : MASCARPONE Ambrosi 47% 1kg -->
+  <div class="produit">
+    <div class="prod-row-info">
+      <div class="prod-nom-court">MASCARPONE</div>
+      <div class="prod-lib-fournisseur">Mascarpone Ambrosi 47% 1kg</div>
+    </div>
+    <div class="prod-row-actions">
+      <div class="prod-ref">45551</div>
+      <div class="prod-colis">1 u · 11,89 €</div>
+      <div class="prod-etab">
+        <button>-</button>
+        <span class="prod-qty">2</span>
+        <button>+</button>
+        <span class="prod-montant">23,78 €</span>
+      </div>
+      <div class="prod-etab">
+        <button>-</button>
+        <span class="prod-qty">1</span>
+        <button>+</button>
+        <span class="prod-montant">11,89 €</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- PRODUIT 2 : Maroilles AOP Ferm. 29% 720g LOUPS -->
+  <div class="produit">
+    <div class="prod-row-info">
+      <div class="prod-nom-court">MAROILLES</div>
+      <div class="prod-lib-fournisseur">Maroilles AOP fermier 29% 720gr F.LOUPS</div>
+    </div>
+    <div class="prod-row-actions">
+      <div class="prod-ref">46435</div>
+      <div class="prod-colis">1 u · 14,42 €</div>
+      <div class="prod-etab">
+        <button>-</button>
+        <span class="prod-qty">1</span>
+        <button>+</button>
+        <span class="prod-montant">14,42 €</span>
+      </div>
+      <div class="prod-etab">
+        <button>-</button>
+        <span class="prod-qty">0</span>
+        <button>+</button>
+        <span class="prod-montant">0,00 €</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- PRODUIT 3 : OEUFS Pl. Air 63/73 (x6 x96) GESLIN -->
+  <div class="produit">
+    <div class="prod-row-info">
+      <div class="prod-nom-court">ŒUFS</div>
+      <div class="prod-lib-fournisseur">OEUF 63/73 P.AIR X6 X96 GESLIN</div>
+    </div>
+    <div class="prod-row-actions">
+      <div class="prod-ref">46741</div>
+      <div class="prod-colis">96 u · 23,71 €</div>
+      <div class="prod-etab">
+        <button>-</button>
+        <span class="prod-qty">1</span>
+        <button>+</button>
+        <span class="prod-montant">23,71 €</span>
+      </div>
+      <div class="prod-etab">
+        <button>-</button>
+        <span class="prod-qty">2</span>
+        <button>+</button>
+        <span class="prod-montant">47,42 €</span>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+</body>
+</html>
