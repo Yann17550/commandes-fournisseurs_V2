@@ -1,0 +1,119 @@
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+body {
+  background: #f3f3f3;
+  padding: 8px;
+}
+
+/* Bloc fournisseur global */
+.fournisseur-bloc {
+  background: #ffffff;
+  border-radius: 6px;
+  padding: 8px;
+}
+
+/* Bandeau gérant : UNE FOIS */
+.gerant-header {
+  display: grid;
+  grid-template-columns: 25% 25% 25% 25%;
+  height: 40px;
+  border-bottom: 1px solid #ddd;
+  margin-bottom: 4px;
+}
+
+.gerant-header > div {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.etab-name {
+  font-weight: 600;
+}
+
+/* Carte produit */
+.produit {
+  border-bottom: 1px solid #eee;
+  padding: 4px 0;
+}
+
+/* Ligne B : infos produit */
+.prod-row-info {
+  display: grid;
+  grid-template-columns: 40% 60%;
+  height: 36px;       /* hauteur FIXE */
+}
+
+.prod-row-info > div {
+  display: flex;
+  align-items: center;
+  padding: 0 4px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-size: 12px;
+}
+
+.prod-nom-court {
+  font-weight: 600;
+}
+
+/* Ligne C : ref + colis + 2 établissements */
+.prod-row-actions {
+  display: grid;
+  grid-template-columns: 15% 20% 32.5% 32.5%;
+  height: 40px;      /* hauteur FIXE */
+  margin-top: 2px;
+}
+
+.prod-row-actions > div {
+  display: flex;
+  align-items: center;
+  padding: 0 4px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-size: 11px;
+}
+
+.prod-ref {
+  color: #666;
+}
+
+.prod-colis {
+  color: #333;
+}
+
+/* Bloc quantité + montant par établissement */
+.prod-etab {
+  gap: 4px;
+  justify-content: flex-start;
+}
+
+.prod-etab button {
+  width: 22px;
+  height: 22px;
+  border-radius: 4px;
+  border: 1px solid #ccc;
+  background: #fafafa;
+  font-size: 12px;
+  line-height: 1;
+}
+
+.prod-qty {
+  min-width: 12px;
+  text-align: center;
+}
+
+.prod-montant {
+  font-weight: 600;
+}
