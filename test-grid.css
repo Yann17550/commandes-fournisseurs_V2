@@ -125,3 +125,57 @@
 .ligne-montant {
   font-weight: 600;
 }
+/* Grille rigide pour le gérant */
+
+/* Article = 3 lignes logiques : nom_prix, infos_fournisseur, qte_article */
+.Article_gerant {
+  display: grid;
+  grid-template-rows: auto auto auto;
+  row-gap: 2px;
+  width: 100%;
+}
+
+/* Ligne B1 : nom court + prix_colis */
+.nom_prix {
+  display: grid;
+  grid-template-columns: 40% 60%;
+  align-items: center;
+  height: 32px;
+}
+
+.nom_article,
+.prix_article {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Ligne B2 : ref + désignation fournisseur */
+.infos_fournisseur {
+  display: grid;
+  grid-template-columns: 15% 85%;
+  align-items: center;
+  height: 32px;
+  font-size: 12px;
+}
+
+.ref_article {
+  color: var(--text-light);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.lib_fournisseur {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Ligne C : quantités A / B */
+.qte_article {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  column-gap: 8px;
+  height: 40px;
+}
