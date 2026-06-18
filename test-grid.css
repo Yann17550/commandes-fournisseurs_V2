@@ -1,119 +1,127 @@
-* {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-}
+/* On suppose que commandes.css gère déjà body, couleurs globales, etc. */
 
-body {
-  background: #f3f3f3;
-  padding: 8px;
-}
-
-/* Bloc fournisseur global */
-.fournisseur-bloc {
+/* Bloc fournisseur test (on l'isole un peu) */
+.fournisseur-bloc.is-test {
   background: #ffffff;
-  border-radius: 6px;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.08);
   padding: 8px;
+  margin: 8px;
 }
 
-/* Bandeau gérant : UNE FOIS */
+/* Bandeau gérant en haut */
 .gerant-header {
   display: grid;
   grid-template-columns: 25% 25% 25% 25%;
   height: 40px;
-  border-bottom: 1px solid #ddd;
-  margin-bottom: 4px;
+  border-radius: 6px;
+  background: #f3f4f6;
+  margin-bottom: 6px;
+  border: 1px solid #e2e4ea;
 }
 
-.gerant-header > div {
+.gerant-header__etab-name,
+.gerant-header__etab-total {
   display: flex;
   align-items: center;
   justify-content: center;
+  padding: 0 4px;
   font-size: 12px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
-.etab-name {
+.gerant-header__etab-name {
   font-weight: 600;
 }
 
 /* Carte produit */
-.produit {
-  border-bottom: 1px solid #eee;
+.produit-card {
+  border-top: 1px solid #eceff4;
   padding: 4px 0;
 }
 
 /* Ligne B : infos produit */
-.prod-row-info {
+.produit-card__row--info {
   display: grid;
   grid-template-columns: 40% 60%;
-  height: 36px;       /* hauteur FIXE */
+  height: 36px; /* FIXE */
 }
 
-.prod-row-info > div {
+.produit-card__row--info > div {
   display: flex;
   align-items: center;
   padding: 0 4px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  font-size: 12px;
+  font-size: 13px;
 }
 
-.prod-nom-court {
+.produit-card__nom-court {
   font-weight: 600;
 }
 
 /* Ligne C : ref + colis + 2 établissements */
-.prod-row-actions {
+.produit-card__row--actions {
   display: grid;
   grid-template-columns: 15% 20% 32.5% 32.5%;
-  height: 40px;      /* hauteur FIXE */
+  height: 40px; /* FIXE */
   margin-top: 2px;
 }
 
-.prod-row-actions > div {
+.produit-card__row--actions > div {
   display: flex;
   align-items: center;
   padding: 0 4px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  font-size: 11px;
+  font-size: 12px;
 }
 
-.prod-ref {
-  color: #666;
+.produit-card__ref {
+  color: #6b7280;
 }
 
-.prod-colis {
-  color: #333;
+.produit-card__colis {
+  color: #374151;
 }
 
 /* Bloc quantité + montant par établissement */
-.prod-etab {
+.produit-card__etab {
+  display: flex;
+  align-items: center;
   gap: 4px;
-  justify-content: flex-start;
 }
 
-.prod-etab button {
-  width: 22px;
-  height: 22px;
-  border-radius: 4px;
-  border: 1px solid #ccc;
-  background: #fafafa;
-  font-size: 12px;
+.qty-btn {
+  width: 24px;
+  height: 24px;
+  border-radius: 6px;
+  border: 1px solid #d1d5db;
+  background: #f9fafb;
+  color: #111827;
+  font-size: 14px;
   line-height: 1;
 }
 
-.prod-qty {
-  min-width: 12px;
+.qty-btn--minus {
+  background: #fee2e2;
+  border-color: #fecaca;
+}
+
+.qty-btn--plus {
+  background: #dcfce7;
+  border-color: #bbf7d0;
+}
+
+.qty-value {
+  min-width: 14px;
   text-align: center;
 }
 
-.prod-montant {
+.ligne-montant {
   font-weight: 600;
 }
