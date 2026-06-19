@@ -239,7 +239,7 @@ function renderSupplierBodyGerant(prods) {
           </div>
 
           <div class="bloc2-2">
-            Colis : ${escHtml(String(p.colissage || p.colis || ''))}
+            Colis : ${fmtPrice(prixColis)}
           </div>
 
           <div class="bloc2-3">
