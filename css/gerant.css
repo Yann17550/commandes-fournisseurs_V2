@@ -42,18 +42,67 @@
 }
 
 /* ============================================================
-   LAYOUT ARTICLE (TON MASQUE)
-   Article_gerant = bloc principal
-   nom_prix = grid 1 colonne
-   qte_article = grid 2 colonnes fixes
+   ARTICLE_GERANT = conteneur produit (2 lignes)
+   - largeur 100% du conteneur
+   - hauteur auto (s'adapte au contenu)
 ============================================================ */
 .Article_gerant {
-  display: grid;
-  grid-template-rows: auto auto;
-  row-gap: 4px;              /* réduit */
-  width: 99%;
-  padding: 6px 10px;         /* réduit */
+  width: 100%;
+  padding: 6px 10px;
   border-bottom: 1px solid var(--border);
+  background: #f3f4f6; /* proche de test-grid */
+}
+/* ============================================================
+   LIGNES INTERNES (inspiré de test-grid.css)
+   - ligne1 : 2 colonnes (nom court | désignation fournisseur)
+   - ligne2 : 4 colonnes (ref | colis | stepper A | stepper B)
+============================================================ */
+.ligne1,
+.ligne2 {
+  display: grid;
+  align-items: center;
+}
+
+/* Ligne 1 : 30% / 70% comme test-grid */
+.ligne1 {
+  grid-template-columns: 30% 70%;
+  height: 40px;
+  background: #e5e7eb;
+}
+
+/* Ligne 2 : 15% 15% 35% 35% comme test-grid */
+.ligne2 {
+  grid-template-columns: 15% 15% 35% 35%;
+  min-height: 40px;
+  background: #d1d5db;
+}
+
+/* Contenu des blocs : centrage + gestion du texte */
+.ligne1 > div,
+.ligne2 > div {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  padding: 0 4px;
+  font-size: 12px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Couleurs de fond des blocs (optionnel, comme test-grid) */
+.bloc1-1 { background: #fee2e2; }  /* nom court */
+.bloc1-2 { background: #ffedd5; }  /* désignation fournisseur */
+
+.bloc2-1 { background: #dcfce7; }  /* ref */
+.bloc2-2 { background: #e0f2fe; }  /* colissage */
+.bloc2-3 { background: #ede9fe; }  /* stepper A */
+.bloc2-4 { background: #fef9c3; }  /* stepper B */
+
+/* Pour que les steppers prennent toute la largeur de leur cellule */
+.bloc2-3 .stepperA,
+.bloc2-4 .stepperB {
+  width: 100%;
 }
 
 /* ============================================================
