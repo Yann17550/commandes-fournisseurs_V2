@@ -99,6 +99,16 @@
 .bloc2-3 { background: #ede9fe; }  /* stepper A */
 .bloc2-4 { background: #fef9c3; }  /* stepper B */
 
+/* Autoriser les cellules steppers à se rétrécir dans la grille */
+.bloc2-3,
+.bloc2-4 {
+  min-width: 0;
+}
+.stepperA,
+.stepperB {
+  width: 100%;
+  box-sizing: border-box;
+}
 /* Pour que les steppers prennent toute la largeur de leur cellule */
 .bloc2-3 .stepperA,
 .bloc2-4 .stepperB {
