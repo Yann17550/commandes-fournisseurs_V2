@@ -190,9 +190,9 @@ function renderAccordionGerant() {
 // ============================================================
 //
 //  Structure voulue :
-//  - 1 bloc par article
-//  - 1 zone nom + prix
-//  - 1 zone quantité A / quantité B
+//  - 1 bloc par article (Article_gerant)
+//  - Ligne 1 : nom court | désignation fournisseur
+//  - Ligne 2 : ref | colis (prix colis) | stepper A | stepper B
 // ============================================================
 
 function renderSupplierBodyGerant(prods) {
@@ -211,9 +211,9 @@ function renderSupplierBodyGerant(prods) {
     html += `
       <!-- ============================================================
            ARTICLE_GERANT : bloc principal pour 1 article
-           Contient 2 grids internes :
-             - nom_prix (1 colonne)
-             - qte_article (2 colonnes)
+           2 lignes :
+             - Ligne 1 : nom court | désignation fournisseur
+             - Ligne 2 : ref | colis (prix) | stepper A | stepper B
       ============================================================ -->
       <div class="Article_gerant" data-key="${escHtml(key)}">
 
@@ -230,7 +230,7 @@ function renderSupplierBodyGerant(prods) {
         </div>
 
         <!-- ============================================================
-             LIGNE 2 : ref | colis | stepper A | stepper B
+             LIGNE 2 : ref | colis (prix colis) | stepper A | stepper B
         ============================================================ -->
         <div class="ligne2">
 
@@ -239,7 +239,7 @@ function renderSupplierBodyGerant(prods) {
           </div>
 
           <div class="bloc2-2">
-           ${fmtPrice(prixColis)}/u
+            Colis : ${fmtPrice(prixColis)}
           </div>
 
           <div class="bloc2-3">
