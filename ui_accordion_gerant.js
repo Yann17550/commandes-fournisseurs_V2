@@ -239,7 +239,7 @@ function renderSupplierBodyGerant(prods) {
           </div>
 
           <div class="bloc2-2">
-            Colis : ${fmtPrice(prixColis)}
+            ${fmtPrice(prixColis)}/u
           </div>
 
           <div class="bloc2-3">
