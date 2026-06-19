@@ -43,117 +43,65 @@
 
 /* ============================================================
    ARTICLE_GERANT = conteneur produit (2 lignes)
-   - largeur 100% du conteneur
-   - hauteur auto (s'adapte au contenu)
 ============================================================ */
 .Article_gerant {
   width: 100%;
   padding: 6px 10px;
   border-bottom: 1px solid var(--border);
-  background: #f3f4f6; 
+  background: #f3f4f6;
 }
+
 /* ============================================================
-   LIGNES INTERNES (inspiré de test-grid.css)
+   LIGNES INTERNES
    - ligne1 : 2 colonnes (nom court | désignation fournisseur)
-   - ligne2 : 4 colonnes (ref | mnt colis | stepper A | stepper B)
+   - ligne2 : 4 colonnes (ref | colis | stepper A | stepper B)
 ============================================================ */
-.ligne1,
+.ligne1 {
+  display: grid;
+  grid-template-columns: 30% 70%;
+  height: 44px;                 /* hauteur de base ligne 1 */
+  background: #e5e7eb;          /* référentiel de ligne */
+}
+
 .ligne2 {
   display: grid;
-  align-items: center;
+  grid-template-columns: 15% 15% 35% 35%;
+  height: 44px;                 /* même hauteur que ligne 1 */
+  background: #d1d5db;          /* référentiel de ligne */
 }
 
-/* Ligne 1 : 30% / 70%  */
-.ligne1 {
-  grid-template-columns: 30% 70%;
-  height: 40px;
-  background: #e5e7eb;
-}
-
-/* Ligne 2 : 12% 15% 35% 35% comme test-grid */
-.ligne2 {
-  grid-template-columns: 12% 12% 38% 38%;
-  min-height: 40px;
-  background: #d1d5db;
-}
-
-/* Contenu des blocs : centrage + gestion du texte */
+/* Blocs : remplissent la hauteur de la ligne et portent la couleur */
 .ligne1 > div,
 .ligne2 > div {
   display: flex;
-  align-items: left;
+  align-items: center;
   justify-content: flex-start;
   padding: 0 4px;
   font-size: 12px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+
+  height: 100%;                 /* bloc = toute la hauteur de la ligne */
+  box-sizing: border-box;
 }
 
-/* Couleurs de fond des blocs (optionnel, comme test-grid) */
+/* Couleurs des blocs (visualisation de la grille) */
 .bloc1-1 { background: #fee2e2; }  /* nom court */
 .bloc1-2 { background: #ffedd5; }  /* désignation fournisseur */
 
 .bloc2-1 { background: #dcfce7; }  /* ref */
-.bloc2-2 { background: #e0f2fe; }  /* colissage */
+.bloc2-2 { background: #e0f2fe; }  /* colis (prix colis) */
 .bloc2-3 { background: #ede9fe; }  /* stepper A */
 .bloc2-4 { background: #fef9c3; }  /* stepper B */
 
-/* Autoriser les cellules steppers à se rétrécir dans la grille */
-.bloc2-3,
-.bloc2-4 {
-  min-width: 0;
-}
-.stepperA,
-.stepperB {
-  width: 100%;
-  box-sizing: border-box;
-}
-/* Pour que les steppers prennent toute la largeur de leur cellule */
+/* Steppers : s'adaptent au bloc en proportion */
 .bloc2-3 .stepperA,
 .bloc2-4 .stepperB {
   width: 100%;
-   height: 100%
-}
+  height: 80%;                  /* 80% de la hauteur du bloc */
+  box-sizing: border-box;
 
-/* ============================================================
-   GRID 1 : nom_prix (1 colonne)
-============================================================ */
-.nom_prix {
-  display: grid;
-  grid-template-columns: 1fr auto;
-  align-items: center;
-  margin-bottom: 2px; /* léger espace */
-}
-
-.nom_article {
-  font-size: 14px;
-  font-weight: 600;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.prix_article {
-  font-size: 12px;
-  color: var(--text-light);
-}
-
-/* ============================================================
-   GRID 2 : qte_article (2 colonnes fixes)
-============================================================ */
-.qte_article {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  column-gap: 8px; /* légèrement réduit */
-}
-
-
-/* ============================================================
-   STEPPERS A & B (grids internes)
-============================================================ */
-.stepperA,
-.stepperB {
   display: grid;
   grid-template-columns: auto auto auto 1fr; /* - | input | + | total */
   align-items: center;
@@ -161,12 +109,10 @@
   padding: 2px 4px;
   border-radius: 8px;
   box-shadow: 0 1px 2px rgba(0,0,0,0.08);
-
-  /* Auto-shrink si ça dépasse */
-  font-size: clamp(10px, 3vw, 14px);
+  font-size: 12px;
 }
 
-/* Couleurs */
+/* Couleurs des steppers (différenciation A/B) */
 .stepperA {
   background: #EFF6FF;
   border: 1px solid #BFDBFE;
@@ -181,7 +127,7 @@
 .stepperA button,
 .stepperB button {
   width: 22px;
-  height: 20px;
+  height: 22px;
   border: none;
   background: transparent;
   font-size: 14px;
@@ -190,8 +136,8 @@
 /* Inputs */
 .qty-input-a,
 .qty-input-b {
-  width: 24px;
-  height: 20px;
+  width: 28px;
+  height: 22px;
   font-size: 12px;
   padding: 0;
   text-align: center;
