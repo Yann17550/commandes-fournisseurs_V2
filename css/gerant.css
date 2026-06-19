@@ -50,12 +50,12 @@
   width: 100%;
   padding: 6px 10px;
   border-bottom: 1px solid var(--border);
-  background: #f3f4f6; /* proche de test-grid */
+  background: #f3f4f6; 
 }
 /* ============================================================
    LIGNES INTERNES (inspiré de test-grid.css)
    - ligne1 : 2 colonnes (nom court | désignation fournisseur)
-   - ligne2 : 4 colonnes (ref | colis | stepper A | stepper B)
+   - ligne2 : 4 colonnes (ref | mnt colis | stepper A | stepper B)
 ============================================================ */
 .ligne1,
 .ligne2 {
@@ -63,16 +63,16 @@
   align-items: center;
 }
 
-/* Ligne 1 : 30% / 70% comme test-grid */
+/* Ligne 1 : 30% / 70%  */
 .ligne1 {
   grid-template-columns: 30% 70%;
   height: 40px;
   background: #e5e7eb;
 }
 
-/* Ligne 2 : 15% 15% 35% 35% comme test-grid */
+/* Ligne 2 : 12% 15% 35% 35% comme test-grid */
 .ligne2 {
-  grid-template-columns: 15% 15% 35% 35%;
+  grid-template-columns: 12% 12% 38% 38%;
   min-height: 40px;
   background: #d1d5db;
 }
@@ -81,7 +81,7 @@
 .ligne1 > div,
 .ligne2 > div {
   display: flex;
-  align-items: center;
+  align-items: left;
   justify-content: flex-start;
   padding: 0 4px;
   font-size: 12px;
@@ -113,6 +113,7 @@
 .bloc2-3 .stepperA,
 .bloc2-4 .stepperB {
   width: 100%;
+   height: 100%
 }
 
 /* ============================================================
