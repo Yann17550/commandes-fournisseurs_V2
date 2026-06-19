@@ -218,46 +218,58 @@ function renderSupplierBodyGerant(prods) {
       <div class="Article_gerant" data-key="${escHtml(key)}">
 
         <!-- ============================================================
-             GRID 1 : nom_prix
-             1 colonne : nom + prix
+             LIGNE 1 : nom court | désignation fournisseur
         ============================================================ -->
-        <div class="nom_prix">
-          <span class="nom_article">${escHtml(p.designation || p.nom || p.nom_court)}</span>
-          <span class="prix_article">${fmtPrice(prixColis)}/colis</span>
+        <div class="ligne1">
+          <div class="bloc1-1">
+            ${escHtml(p.nom_court || p.nom || '')}
+          </div>
+          <div class="bloc1-2">
+            ${escHtml(p.designation || '')}
+          </div>
         </div>
 
         <!-- ============================================================
-             GRID 2 : qte_article
-             2 colonnes fixes : stepper A | stepper B
+             LIGNE 2 : ref | colis | stepper A | stepper B
         ============================================================ -->
-        <div class="qte_article">
+        <div class="ligne2">
 
-          <!-- Stepper A -->
-          <div class="stepperA">
-            <button class="qty-btn-a" data-key="${escHtml(key)}" data-delta="-1">−</button>
-            <input
-              class="qty-input-a"
-              type="number"
-              min="0"
-              step="1"
-              value="${qa}"
-              data-key="${escHtml(key)}">
-            <button class="qty-btn-a" data-key="${escHtml(key)}" data-delta="1">+</button>
-            <span class="totalA">${fmtPriceNoEuro(totalA)}</span>
+          <div class="bloc2-1">
+            ${escHtml(p.reference || p.ref || '')}
           </div>
 
-          <!-- Stepper B -->
-          <div class="stepperB">
-            <button class="qty-btn-b" data-key="${escHtml(key)}" data-delta="-1">−</button>
-            <input
-              class="qty-input-b"
-              type="number"
-              min="0"
-              step="1"
-              value="${qb}"
-              data-key="${escHtml(key)}">
-            <button class="qty-btn-b" data-key="${escHtml(key)}" data-delta="1">+</button>
-            <span class="totalB">${fmtPriceNoEuro(totalB)}</span>
+          <div class="bloc2-2">
+            Colis : ${escHtml(String(p.colissage || p.colis || ''))}
+          </div>
+
+          <div class="bloc2-3">
+            <div class="stepperA">
+              <button class="qty-btn-a" data-key="${escHtml(key)}" data-delta="-1">−</button>
+              <input
+                class="qty-input-a"
+                type="number"
+                min="0"
+                step="1"
+                value="${qa}"
+                data-key="${escHtml(key)}">
+              <button class="qty-btn-a" data-key="${escHtml(key)}" data-delta="1">+</button>
+              <span class="totalA">${fmtPriceNoEuro(totalA)}</span>
+            </div>
+          </div>
+
+          <div class="bloc2-4">
+            <div class="stepperB">
+              <button class="qty-btn-b" data-key="${escHtml(key)}" data-delta="-1">−</button>
+              <input
+                class="qty-input-b"
+                type="number"
+                min="0"
+                step="1"
+                value="${qb}"
+                data-key="${escHtml(key)}">
+              <button class="qty-btn-b" data-key="${escHtml(key)}" data-delta="1">+</button>
+              <span class="totalB">${fmtPriceNoEuro(totalB)}</span>
+            </div>
           </div>
 
         </div>
