@@ -120,6 +120,7 @@
 .bloc2-1 {
   background: #dcfce7;
   font-size: 11px;
+   text-align: center
   color: var(--text-muted);
   line-height: 1.2;
   padding: 0 1px;
@@ -129,6 +130,7 @@
 .bloc2-2 {
   background: #e0f2fe;
   font-size: 11px;
+   text-align: center
   color: var(--text-muted);
   line-height: 1.2;
   padding: 0 1px;
@@ -172,7 +174,7 @@
 /* Boutons */
 .stepperA button,
 .stepperB button {
-  width: 22px;
+  width: 15px;
   height: 22px;
   border: none;
   background: transparent;
