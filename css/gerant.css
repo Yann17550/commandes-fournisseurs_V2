@@ -65,7 +65,7 @@
 
 .ligne2 {
   display: grid;
-  grid-template-columns: 15% 15% minmax(0, 1fr) minmax(0, 1fr);
+  grid-template-columns: 12% 18% minmax(0, 1.2fr) minmax(0, 1.2fr);
   height: 44px;
   background: #d1d5db;
 }
@@ -89,6 +89,18 @@
   white-space: normal;     /* texte peut passer à la ligne */
 }
 
+/* Typo de la ligne 1 */
+.bloc1-1 {
+  font-weight: 600;         /* plus important */
+  font-size: 13px;          /* légèrement plus grand */
+}
+
+.bloc1-2 {
+  font-weight: 400;
+  font-size: 12px;          /* un peu plus petit */
+  color: var(--text-muted); /* grisé */
+}
+
 /* Ligne 2 : on garde le comportement compact actuel */
 .ligne2 > div {
   white-space: normal;     /* pas de retour à la ligne pour ref/colis/steppers */
@@ -102,17 +114,23 @@
 .bloc2-3 { background: #ede9fe; }  /* stepper A */
 .bloc2-4 { background: #fef9c3; }  /* stepper B */
 
-/* Typo de la ligne 1 */
-.bloc1-1 {
-  font-weight: 600;         /* plus important */
-  font-size: 13px;          /* légèrement plus grand */
+/* Bloc ref (2-1) : texte plus petit et discret */
+.bloc2-1 {
+  background: #dcfce7;
+  font-size: 11px;
+  color: var(--text-muted);
+  line-height: 1.2;
 }
 
-.bloc1-2 {
-  font-weight: 400;
-  font-size: 12px;          /* un peu plus petit */
-  color: var(--text-muted); /* grisé */
+/* Bloc colis (2-2) : pareil, discret, sur 2 lignes max */
+.bloc2-2 {
+  background: #e0f2fe;
+  font-size: 11px;
+  color: var(--text-muted);
+  line-height: 1.2;
+  white-space: normal;         /* autorise 2 lignes */
 }
+
 /* Steppers : s'adaptent au bloc en proportion et ne dépassent pas */
 .bloc2-3,
 .bloc2-4 {
@@ -175,9 +193,8 @@
 .totalB {
   text-align: right;
   font-family: var(--font-mono);
-  font-size: 11px;
-
-  max-width: 60px;        /* limite la largeur du total */
+  font-size: 10px;        /* un cran plus petit */
+  max-width: 60px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
