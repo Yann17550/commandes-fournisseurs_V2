@@ -235,11 +235,13 @@ function renderSupplierBodyGerant(prods) {
         <div class="ligne2">
 
           <div class="bloc2-1">
+            Réf :<br>
             ${escHtml(p.reference || p.ref || '')}
           </div>
 
           <div class="bloc2-2">
-            ${fmtPrice(prixColis)}/u
+            Colis :<br>
+            ${fmtPrice(prixColis)}
           </div>
 
           <div class="bloc2-3">
