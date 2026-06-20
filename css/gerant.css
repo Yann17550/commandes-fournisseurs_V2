@@ -76,7 +76,7 @@
   display: flex;
   align-items: center;
   justify-content: flex-start;
-  padding: 0 4px;
+  padding: 0;
   font-size: 12px;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -93,12 +93,14 @@
 .bloc1-1 {
   font-weight: 600;         /* plus important */
   font-size: 13px;          /* légèrement plus grand */
+  padding: 0 1px;
 }
 
 .bloc1-2 {
   font-weight: 400;
   font-size: 12px;          /* un peu plus petit */
   color: var(--text-muted); /* grisé */
+  padding: 0 1px;
 }
 
 /* Ligne 2 : on garde le comportement compact actuel */
@@ -120,6 +122,7 @@
   font-size: 11px;
   color: var(--text-muted);
   line-height: 1.2;
+  padding: 0 1px;
 }
 
 /* Bloc colis (2-2) : pareil, discret, sur 2 lignes max */
@@ -128,12 +131,14 @@
   font-size: 11px;
   color: var(--text-muted);
   line-height: 1.2;
+  padding: 0 1px;
   white-space: normal;         /* autorise 2 lignes */
 }
 
 /* Steppers : s'adaptent au bloc en proportion et ne dépassent pas */
 .bloc2-3,
 .bloc2-4 {
+  padding: 0 1px;
   min-width: 0;           /* autorise la colonne à se rétrécir */
 }
 
