@@ -12,21 +12,27 @@ body.etab-gerant #product-list {
   margin-top: 20px;
 }
 
+/* ★ NEW: on réduit le padding horizontal global via main */
+main {
+  padding: 0 8px;        /* au lieu de 0 14px : bordure plus proche du bord */
+}
+
 .accordion-block.has-order .accordion-header {
   background: #f1f8e9;
   border-left: 4px solid #4CAF50;
 }
 
-main {
-  padding: 0 14px;
-}
-
+/* ★ MODIFIÉ: on sécurise largeur + box-sizing */
 .accordion-block {
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--radius);
   margin-bottom: 8px;
   overflow: hidden;
+
+  width: 100%;           /* remplit la largeur disponible */
+  max-width: 100%;       /* ne dépasse jamais le conteneur */
+  box-sizing: border-box;/* bordure + padding inclus dans les 100% */
 }
 
 .accordion-block.is-open {
@@ -266,7 +272,6 @@ main {
   border: 1px solid var(--border-mid);
   box-shadow: 0 1px 2px rgba(0,0,0,0.08);
 }
-
 
 .stepper_ab .qty-btn {
   width: 22px;
