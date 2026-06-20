@@ -78,14 +78,21 @@
   justify-content: flex-start;
   padding: 0 4px;
   font-size: 12px;
-  white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-
-  height: 100%;                 /* bloc = toute la hauteur de la ligne */
+  height: 100%;
   box-sizing: border-box;
 }
 
+/* Ligne 1 : autorise le retour à la ligne dans les blocs 1-1 et 1-2 */
+.ligne1 > div {
+  white-space: normal;     /* texte peut passer à la ligne */
+}
+
+/* Ligne 2 : on garde le comportement compact actuel */
+.ligne2 > div {
+  white-space: normal;     /* pas de retour à la ligne pour ref/colis/steppers */
+}
 /* Couleurs des blocs (visualisation de la grille) */
 .bloc1-1 { background: #fee2e2; }  /* nom court */
 .bloc1-2 { background: #ffedd5; }  /* désignation fournisseur */
@@ -95,6 +102,17 @@
 .bloc2-3 { background: #ede9fe; }  /* stepper A */
 .bloc2-4 { background: #fef9c3; }  /* stepper B */
 
+/* Typo de la ligne 1 */
+.bloc1-1 {
+  font-weight: 600;         /* plus important */
+  font-size: 13px;          /* légèrement plus grand */
+}
+
+.bloc1-2 {
+  font-weight: 400;
+  font-size: 12px;          /* un peu plus petit */
+  color: var(--text-muted); /* grisé */
+}
 /* Steppers : s'adaptent au bloc en proportion et ne dépassent pas */
 .bloc2-3,
 .bloc2-4 {
