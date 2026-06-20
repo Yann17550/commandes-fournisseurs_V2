@@ -65,9 +65,9 @@
 
 .ligne2 {
   display: grid;
-  grid-template-columns: 15% 15% 35% 35%;
-  height: 44px;                 /* même hauteur que ligne 1 */
-  background: #d1d5db;          /* référentiel de ligne */
+  grid-template-columns: 15% 15% minmax(0, 1fr) minmax(0, 1fr);
+  height: 44px;
+  background: #d1d5db;
 }
 
 /* Blocs : remplissent la hauteur de la ligne et portent la couleur */
@@ -95,11 +95,16 @@
 .bloc2-3 { background: #ede9fe; }  /* stepper A */
 .bloc2-4 { background: #fef9c3; }  /* stepper B */
 
-/* Steppers : s'adaptent au bloc en proportion */
+/* Steppers : s'adaptent au bloc en proportion et ne dépassent pas */
+.bloc2-3,
+.bloc2-4 {
+  min-width: 0;           /* autorise la colonne à se rétrécir */
+}
+
 .bloc2-3 .stepperA,
 .bloc2-4 .stepperB {
   width: 100%;
-  height: 80%;                  /* 80% de la hauteur du bloc */
+  max-width: 100%;        /* le stepper ne dépasse jamais sa cellule */
   box-sizing: border-box;
 
   display: grid;
@@ -153,4 +158,9 @@
   text-align: right;
   font-family: var(--font-mono);
   font-size: 11px;
+
+  max-width: 60px;        /* limite la largeur du total */
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
