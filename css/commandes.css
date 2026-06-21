@@ -74,6 +74,10 @@ main {
   text-overflow: ellipsis;
 }
 
+.acc-badge--empty {
+  visibility: hidden;   /* garde la place, sans afficher le badge */
+}
+
 .acc-badge {
   flex-shrink: 0;
   font-size: 12px;
