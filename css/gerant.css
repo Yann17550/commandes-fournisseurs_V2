@@ -103,10 +103,11 @@
   padding: 0 1px;
 }
 
-/* Ligne 2 : on garde le comportement compact actuel */
+/* Ligne 2 : ref/colis/steppers */
 .ligne2 > div {
-  white-space: normal;     /* pas de retour à la ligne pour ref/colis/steppers */
+  white-space: nowrap;
 }
+
 /* Couleurs des blocs (visualisation de la grille) */
 .bloc1-1 { background: #fee2e2; }  /* nom court */
 .bloc1-2 { background: #ffedd5; }  /* désignation fournisseur */
@@ -122,7 +123,6 @@
   font-size: 9px;
   color: var(--text-muted);
   justify-content: center;
-  
   line-height: 1.2;
   padding: 0 1px;
 }
@@ -133,19 +133,19 @@
   font-size: 9px;
   color: var(--text-muted);
   justify-content: center;
-       
   line-height: 1.2;
   padding: 0 1px;
   white-space: normal;         /* autorise 2 lignes */
 }
 
-/* Steppers : s'adaptent au bloc en proportion et ne dépassent pas */
+/* Steppers : blocs A/B compressibles */
 .bloc2-3,
 .bloc2-4 {
   padding: 0 1px;
   min-width: 0;           /* autorise la colonne à se rétrécir */
 }
 
+/* Stepper interne : version « classique » */
 .bloc2-3 .stepperA,
 .bloc2-4 .stepperB {
   width: 100%;
@@ -162,23 +162,6 @@
   font-size: 12px;
 }
 
-/* Steppers : 100% proportionnels, sans padding interne du conteneur */
-.bloc2-3 .stepperA,
-.bloc2-4 .stepperB {
-  width: 100%;
-  max-width: 100%;
-  box-sizing: border-box;
-
-  display: grid;
-  grid-template-columns: 10% 10% 10% 70%;  /* - | input | + | total */
-  align-items: center;
-  column-gap: 0;                           /* pas de gap supplémentaire */
-  padding: 0;                              /* pas de padding dans le stepper */
-  border-radius: 8px;
-  box-shadow: 0 1px 2px rgba(0,0,0,0.08);
-  font-size: 11px;
-}
-
 /* Couleurs des steppers (différenciation A/B) */
 .stepperA {
   background: #EFF6FF;
@@ -190,43 +173,38 @@
   border: 1px solid #FED7AA;
 }
 
-/* Boutons : occupent 100% de leur colonne, sans width fixe */
+/* Boutons */
 .stepperA button,
 .stepperB button {
-  width: 100%;            /* prend 10% de la largeur du stepper */
-  height: 100%;           /* suit la hauteur de la cellule */
+  width: 22px;
+  height: 22px;
   border: none;
   background: transparent;
   font-size: 14px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
 }
 
-/* Inputs : occupent 100% de leur colonne */
+/* Inputs */
 .qty-input-a,
 .qty-input-b {
-  width: 100%;            /* prend 10% de la largeur du stepper */
-  height: 100%;
-  font-size: 11px;
+  width: 28px;
+  height: 22px;
+  font-size: 12px;
   padding: 0;
   text-align: center;
   border: none;
   background: white;
-  border-radius: 0;        /* tu peux remettre 4px si tu veux, mais ça recoupe un peu */
+  border-radius: 4px;
   font-family: var(--font-mono);
-  box-sizing: border-box;
 }
 
-/* Totaux : occupent 70% de la largeur du stepper, sans dépasser le bloc */
+/* Totaux */
 .totalA,
 .totalB {
-  width: 100%;            /* prend toute sa colonne (70%) */
   text-align: right;
   font-family: var(--font-mono);
-  font-size: 10px;
+  font-size: 11px;
+  max-width: 60px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  box-sizing: border-box;
 }
