@@ -73,14 +73,14 @@
 .ligne1 {
   display: grid;
   grid-template-columns: 30% 70%;
-  height: 44px;                 /* hauteur de base ligne 1 */
+  height: 30px;                 /* hauteur de base ligne 1 */
   background: #f3f4f6;          /* référentiel de ligne */
 }
 
 .ligne2 {
   display: grid;
   grid-template-columns: 12% 18% minmax(0, 1.2fr) minmax(0, 1.2fr);
-  height: 44px;
+  height: 30px;
   background: #f3f4f6;
 }
 
