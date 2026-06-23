@@ -75,6 +75,36 @@ const addModal = $('addModal');
 
 
 // ============================================================
+//  GESTION DES MODIFICATIONS NON ENREGISTRÉES (UNSAVED CHANGES)
+//  Initialisation du manager global (version simple « tout ou rien »)
+// ============================================================
+initUnsavedChangesManager({
+  onSaveAll: async () => {
+    // En mode gérant, doSave() sauvegarde quantités A et B via fetchSave.
+    if (!CONFIG.APPS_SCRIPT_URL) return;
+    if (!state.etab || state.etab.id !== 'gerant') return;
+
+    // Sauvegarde immédiate sans timer
+    await doSave();
+  },
+  onRevertAll: async () => {
+    // Recharger les commandes A et B depuis le backend
+    if (!CONFIG.APPS_SCRIPT_URL) return;
+    if (!state.etab || state.etab.id !== 'gerant') return;
+
+    const savedA = await loadCommandeRemoteById('a');
+    const savedB = await loadCommandeRemoteById('b');
+
+    state.quantities_a = savedA || {};
+    state.quantities_b = savedB || {};
+
+    // Rerender complet
+    render();
+  }
+});
+
+
+// ============================================================
 //  FILTRAGE ETABLISSEMENT
 // ============================================================
 function getProduitsForEtab() {
