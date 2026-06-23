@@ -10,7 +10,7 @@ let onSaveAllCallback = null;    // fonction async ou sync
 let onRevertAllCallback = null;  // fonction async ou sync
 
 // ------------------------------------------------------------
-// Initialisation — à appeler depuis app.js (ou autre)
+// Initialisation — à appeler depuis app.js
 // en lui passant comment sauvegarder / annuler TOUT
 // ------------------------------------------------------------
 function initUnsavedChangesManager({ onSaveAll, onRevertAll }) {
@@ -54,12 +54,9 @@ function hasPending() {
 //  'discard'→ annuler tout
 //  'keep'   → garder sans enregistrer
 //
-// Ici on utilise confirm() pour rester simple :
-// - confirm() == true  → 'save'
-// - confirm() == false → on redemande pour distinguer 'discard' vs 'keep'
+// On utilise 2 confirm() successifs pour rester simple.
 // ------------------------------------------------------------
 function askUnsavedChangesAction() {
-  // 1er niveau : veux-tu enregistrer maintenant ?
   const wantsSave = window.confirm(
     "Tu as des modifications non enregistrées.\n\n" +
     "OK = Enregistrer maintenant\n" +
@@ -70,8 +67,6 @@ function askUnsavedChangesAction() {
     return 'save';
   }
 
-  // 2e niveau : tu ne veux pas enregistrer tout de suite.
-  // On te demande : annuler ou garder ?
   const wantsDiscard = window.confirm(
     "Que veux-tu faire ?\n\n" +
     "OK = Annuler les modifications (revenir au dernier état enregistré)\n" +
@@ -96,7 +91,7 @@ function askUnsavedChangesAction() {
 // ------------------------------------------------------------
 async function handleUnsavedChangesIfNeeded() {
   if (!hasPendingChanges) {
-    return true; // rien à faire, on peut continuer
+    return true;
   }
 
   const action = askUnsavedChangesAction();
@@ -117,6 +112,6 @@ async function handleUnsavedChangesIfNeeded() {
     return true;
   }
 
-  // 'keep' → on ne sauve pas, on ne revert pas, on garde le flag à true
+  // 'keep' → rien, on garde les modifs en mémoire sans sauver
   return true;
 }
