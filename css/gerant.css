@@ -35,6 +35,17 @@
   white-space: nowrap;
 }
 
+/* Badge pour l'établissement A (Pizza d'Oléron) */
+.etab-badge--a {
+  background: #EFF6FF;       /* même fond que .stepperA */
+  border-color: #BFDBFE;     /* même bordure que .stepperA */
+}
+
+/* Badge pour l'établissement B (Le Vesuvio) */
+.etab-badge--b {
+  background: #FFF7ED;       /* même fond que .stepperB */
+  border-color: #FED7AA;     /* même bordure que .stepperB */
+}
 .etab-logo {
   width: 14px;
   height: 14px;
