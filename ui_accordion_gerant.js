@@ -119,17 +119,18 @@ Valider commande
 </div>
 
 ${isOpen ? `
-<div class="acc-etabs">
-<span class="etab-badge">
-<img src="main/Logo_Pizza-oleron.png" class="etab-logo">
-Pizza d'Oléron
-</span>
+${isOpen ? `
+  <div class="acc-etabs">
+    <span class="etab-badge etab-badge--a">
+      <img src="main/Logo_Pizza-oleron.png" class="etab-logo">
+      Pizza d'Oléron
+    </span>
 
-<span class="etab-badge">
-<img src="main/Logo-Vesuvio.png" class="etab-logo">
-Le Vesuvio
-</span>
-</div>
+    <span class="etab-badge etab-badge--b">
+      <img src="main/Logo-Vesuvio.png" class="etab-logo">
+      Le Vesuvio
+    </span>
+  </div>
 ` : ''}
 
 ${isOpen ? renderSupplierBodyGerant(prods) : ''}
