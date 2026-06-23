@@ -60,14 +60,14 @@
   display: grid;
   grid-template-columns: 30% 70%;
   height: 44px;                 /* hauteur de base ligne 1 */
-  background: #e5e7eb;          /* référentiel de ligne */
+  background: #f3f4f6;          /* référentiel de ligne */
 }
 
 .ligne2 {
   display: grid;
   grid-template-columns: 12% 18% minmax(0, 1.2fr) minmax(0, 1.2fr);
   height: 44px;
-  background: #d1d5db;
+  background: #f3f4f6;
 }
 
 /* Blocs : remplissent la hauteur de la ligne et portent la couleur */
@@ -108,18 +108,8 @@
   white-space: nowrap;
 }
 
-/* Couleurs des blocs (visualisation de la grille) */
-.bloc1-1 { background: #fee2e2; }  /* nom court */
-.bloc1-2 { background: #ffedd5; }  /* désignation fournisseur */
-
-.bloc2-1 { background: #dcfce7; }  /* ref */
-.bloc2-2 { background: #e0f2fe; }  /* colis (prix colis) */
-.bloc2-3 { background: #ede9fe; }  /* stepper A */
-.bloc2-4 { background: #fef9c3; }  /* stepper B */
-
 /* Bloc ref (2-1) : texte plus petit et discret */
 .bloc2-1 {
-  background: #dcfce7;
   font-size: 9px;
   color: var(--text-muted);
   justify-content: center;
@@ -129,7 +119,6 @@
 
 /* Bloc colis (2-2) : pareil, discret, sur 2 lignes max */
 .bloc2-2 {
-  background: #e0f2fe;
   font-size: 9px;
   color: var(--text-muted);
   justify-content: center;
