@@ -164,34 +164,33 @@ async function clearCommandeRemote() {
 function showSaveStatus(msg) {
   if (!saveStatusEl) return;
 
-  // Texte + opacité du petit indicateur
+  // Texte + opacité de l'indicateur
   saveStatusEl.textContent = msg;
   saveStatusEl.style.opacity = '1';
 
-  // Gestion des classes sur le body pour le feedback visuel global
   const body = document.body;
-  if (body) {
-    body.classList.remove('save-pending', 'save-ok', 'save-error');
 
+  if (body) {
+    // On gère uniquement un état fort "pending" + (optionnel) un état "error"
     if (msg === '...') {
-      // En attente de sauvegarde
+      // En attente de sauvegarde → on marque le body en rouge/clignotant
       body.classList.add('save-pending');
+      body.classList.remove('save-error');
     } else if (msg.includes('OK')) {
-      body.classList.add('save-ok');
+      // Sauvegarde terminée → on enlève l'état pending
+      body.classList.remove('save-pending', 'save-error');
     } else if (msg.includes('Erreur')) {
+      // Erreur → fond rouge fixe (optionnel)
+      body.classList.remove('save-pending');
       body.classList.add('save-error');
     }
   }
 
+  // Gestion de la disparition du petit label
   clearTimeout(saveStatusEl._t);
-
   if (msg.includes('OK')) {
-    // Après succès, on masque le statut et on enlève la classe "ok" au bout d'un moment
     saveStatusEl._t = setTimeout(() => {
       saveStatusEl.style.opacity = '0';
-      if (body) {
-        body.classList.remove('save-ok');
-      }
     }, 2500);
   }
 }
