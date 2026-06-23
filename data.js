@@ -163,13 +163,35 @@ async function clearCommandeRemote() {
 // ---- Statut de sauvegarde ---------------------------------
 function showSaveStatus(msg) {
   if (!saveStatusEl) return;
+
+  // Texte + opacité du petit indicateur
   saveStatusEl.textContent = msg;
   saveStatusEl.style.opacity = '1';
 
+  // Gestion des classes sur le body pour le feedback visuel global
+  const body = document.body;
+  if (body) {
+    body.classList.remove('save-pending', 'save-ok', 'save-error');
+
+    if (msg === '...') {
+      // En attente de sauvegarde
+      body.classList.add('save-pending');
+    } else if (msg.includes('OK')) {
+      body.classList.add('save-ok');
+    } else if (msg.includes('Erreur')) {
+      body.classList.add('save-error');
+    }
+  }
+
   clearTimeout(saveStatusEl._t);
+
   if (msg.includes('OK')) {
+    // Après succès, on masque le statut et on enlève la classe "ok" au bout d'un moment
     saveStatusEl._t = setTimeout(() => {
       saveStatusEl.style.opacity = '0';
+      if (body) {
+        body.classList.remove('save-ok');
+      }
     }, 2500);
   }
 }
