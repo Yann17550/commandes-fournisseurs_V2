@@ -50,6 +50,26 @@ body {
   overscroll-behavior: none; /* évite les rebonds sur mobile */
 }
 
+/* État visuel pour les sauvegardes */
+body {
+  transition: background-color 0.2s ease;
+}
+
+/* En attente de sauvegarde */
+body.save-pending {
+  background-color: var(--warning-bg); /* déjà défini dans :root */
+}
+
+/* Sauvegarde OK (optionnel, léger feedback) */
+body.save-ok {
+  background-color: #EAF4EE; /* proche de --accent-light mais plus global */
+}
+
+/* Erreur de sauvegarde (optionnel) */
+body.save-error {
+  background-color: var(--danger-bg);
+}
+
 /* Conteneur principal centré */
 #app {
   max-width: 680px;
