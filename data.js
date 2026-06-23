@@ -9,7 +9,7 @@ function scheduleSave() {
   if (!CONFIG.APPS_SCRIPT_URL) return;
   clearTimeout(saveTimer);
   showSaveStatus('...');
-  saveTimer = setTimeout(doSave, 1500);
+  saveTimer = setTimeout(doSave, 4000);
 }
 
 async function doSave() {
