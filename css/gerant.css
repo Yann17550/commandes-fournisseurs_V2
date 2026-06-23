@@ -18,11 +18,12 @@
 ============================================================ */
 .acc-etabs {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: minmax(0, 1.2fr) minmax(0, 1.2fr); /* comme les colonnes 3 & 4 de .ligne2 */
   column-gap: 10px;
   padding: 4px 14px 6px;
 }
 
+/* Les badges remplissent toute la largeur de leur colonne */
 .etab-badge {
   display: flex;
   align-items: center;
@@ -33,6 +34,8 @@
   border-radius: 99px;
   font-size: 11px;
   white-space: nowrap;
+  width: 100%;           /* prend toute la largeur de la colonne */
+  box-sizing: border-box;
 }
 
 /* Badge pour l'établissement A (Pizza d'Oléron) */
