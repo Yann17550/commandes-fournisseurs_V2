@@ -77,65 +77,65 @@ function renderAccordionGerant() {
     );
     const totalGlobal = totalA + totalB;
 
-// --------------------------------------------------------
-// Badge total : on réserve toujours la place dans le header
-// - vide (invisible) si aucune ligne commandée
-// - rempli si au moins une ligne A ou B
-// --------------------------------------------------------
-const showBadge = (orderedA.length || orderedB.length);
+    // --------------------------------------------------------
+    // Badge total : on réserve toujours la place dans le header
+    // - vide (invisible) si aucune ligne commandée
+    // - rempli si au moins une ligne A ou B
+    // --------------------------------------------------------
+    const showBadge = (orderedA.length || orderedB.length);
 
-const badgeHtml = `
-  <span class="acc-badge${showBadge ? '' : ' acc-badge--empty'}">
-    ${showBadge ? `Total : ${fmtPrice(totalGlobal)}` : ''}
-  </span>
-`;
+    const badgeHtml = `
+      <span class="acc-badge${showBadge ? '' : ' acc-badge--empty'}">
+        ${showBadge ? `Total : ${fmtPrice(totalGlobal)}` : ''}
+      </span>
+    `;
 
-// --------------------------------------------------------
-// Bloc HTML du fournisseur
-//
-// Le bouton "Valider commande" n'apparaît que si :
-// - le fournisseur est ouvert
-// Cela évite de surcharger visuellement l'accordéon
-// --------------------------------------------------------
-html += `
-  <div class="accordion-block${isOpen ? ' is-open' : ''}" data-sup="${escHtml(sup)}">
+    // --------------------------------------------------------
+    // Bloc HTML du fournisseur
+    //
+    // Le bouton "Valider commande" n'apparaît que si :
+    // - le fournisseur est ouvert
+    // Cela évite de surcharger visuellement l'accordéon
+    // --------------------------------------------------------
+    html += `
+      <div class="accordion-block${isOpen ? ' is-open' : ''}" data-sup="${escHtml(sup)}">
 
-    <div class="accordion-header" data-sup="${escHtml(sup)}">
-      <div class="acc-left">
-        <span class="acc-name">${escHtml(sup)}</span>
-        ${badgeHtml}
+        <div class="accordion-header" data-sup="${escHtml(sup)}">
+          <div class="acc-left">
+            <span class="acc-name">${escHtml(sup)}</span>
+            ${badgeHtml}
+
+            ${isOpen ? `
+              <button
+                class="btn-valider-outline"
+                data-sup="${escHtml(sup)}"
+                type="button">
+                Valider commande
+              </button>
+            ` : ''}
+          </div>
+
+          <span class="acc-chevron">${isOpen ? '▾' : '▸'}</span>
+        </div>
 
         ${isOpen ? `
-          <button
-            class="btn-valider-outline"
-            data-sup="${escHtml(sup)}"
-            type="button">
-            Valider commande
-          </button>
+          <div class="acc-etabs">
+            <span class="etab-badge">
+              <img src="main/Logo_Pizza-oleron.png" class="etab-logo">
+              Pizza d'Oléron
+            </span>
+
+            <span class="etab-badge">
+              <img src="main/Logo-Vesuvio.png" class="etab-logo">
+              Le Vesuvio
+            </span>
+          </div>
         ` : ''}
+
+        ${isOpen ? renderSupplierBodyGerant(prods) : ''}
+
       </div>
-
-      <span class="acc-chevron">${isOpen ? '▾' : '▸'}</span>
-    </div>
-
-    ${isOpen ? `
-      <div class="acc-etabs">
-        <span class="etab-badge">
-          <img src="main/Logo_Pizza-oleron.png" class="etab-logo">
-          Pizza d'Oléron
-        </span>
-
-        <span class="etab-badge">
-          <img src="main/Logo-Vesuvio.png" class="etab-logo">
-          Le Vesuvio
-        </span>
-      </div>
-    ` : ''}
-
-    ${isOpen ? renderSupplierBodyGerant(prods) : ''}
-
-  </div>
-`;
+    `;
   });
 
   // ----------------------------------------------------------
@@ -151,10 +151,13 @@ html += `
   // on ne doit PAS refermer / rouvrir l'accordéon
   // ----------------------------------------------------------
   productList.querySelectorAll('.accordion-header').forEach(header => {
-    header.addEventListener('click', (e) => {
+    header.addEventListener('click', async (e) => {
       if (e.target.closest('.btn-valider-outline')) return;
 
       const sup = header.dataset.sup;
+
+      // Avant de changer de fournisseur ouvert, on gère les modifications non sauvegardées
+      await handleUnsavedChangesIfNeeded();
 
       if (state.openSupplier === sup) {
         state.openSupplier = null;
@@ -297,7 +300,7 @@ function renderSupplierBodyGerant(prods) {
 //  À chaque changement :
 //  - mise à jour du state
 //  - re-render accordéon gérant
-//  - sauvegarde distante différée
+//  - marquage des modifications non enregistrées
 // ============================================================
 
 function bindSteppersGerant() {
@@ -311,8 +314,8 @@ function bindSteppersGerant() {
 
       state.quantities_a[key] = Math.max(0, (state.quantities_a[key] || 0) + delta);
 
+      markPendingChanges();
       renderAccordionGerant();
-      scheduleSave();
     })
   );
 
@@ -326,8 +329,8 @@ function bindSteppersGerant() {
 
       state.quantities_a[key] = qty;
 
+      markPendingChanges();
       renderAccordionGerant();
-      scheduleSave();
     })
   );
 
@@ -341,8 +344,8 @@ function bindSteppersGerant() {
 
       state.quantities_b[key] = Math.max(0, (state.quantities_b[key] || 0) + delta);
 
+      markPendingChanges();
       renderAccordionGerant();
-      scheduleSave();
     })
   );
 
@@ -356,8 +359,8 @@ function bindSteppersGerant() {
 
       state.quantities_b[key] = qty;
 
+      markPendingChanges();
       renderAccordionGerant();
-      scheduleSave();
     })
   );
 }
