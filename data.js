@@ -9,7 +9,7 @@ function scheduleSave() {
   if (!CONFIG.APPS_SCRIPT_URL) return;
   clearTimeout(saveTimer);
   showSaveStatus('...');
-  saveTimer = setTimeout(doSave, 1500);
+  saveTimer = setTimeout(doSave, 4000);
 }
 
 async function doSave() {
@@ -163,9 +163,30 @@ async function clearCommandeRemote() {
 // ---- Statut de sauvegarde ---------------------------------
 function showSaveStatus(msg) {
   if (!saveStatusEl) return;
+
+  // Texte + opacité de l'indicateur
   saveStatusEl.textContent = msg;
   saveStatusEl.style.opacity = '1';
 
+  const body = document.body;
+
+  if (body) {
+    // On gère uniquement un état fort "pending" + (optionnel) un état "error"
+    if (msg === '...') {
+      // En attente de sauvegarde → on marque le body en rouge/clignotant
+      body.classList.add('save-pending');
+      body.classList.remove('save-error');
+    } else if (msg.includes('OK')) {
+      // Sauvegarde terminée → on enlève l'état pending
+      body.classList.remove('save-pending', 'save-error');
+    } else if (msg.includes('Erreur')) {
+      // Erreur → fond rouge fixe (optionnel)
+      body.classList.remove('save-pending');
+      body.classList.add('save-error');
+    }
+  }
+
+  // Gestion de la disparition du petit label
   clearTimeout(saveStatusEl._t);
   if (msg.includes('OK')) {
     saveStatusEl._t = setTimeout(() => {

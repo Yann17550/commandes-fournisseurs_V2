@@ -50,6 +50,35 @@ body {
   overscroll-behavior: none; /* évite les rebonds sur mobile */
 }
 
+/* Animation de fond pour sauvegarde en attente */
+body {
+  transition: background-color 0.15s ease;
+}
+
+/* Clignotement rouge (warning fort) */
+@keyframes savePendingBlink {
+  0% {
+    background-color: var(--danger-bg);     /* fond rouge clair */
+  }
+  50% {
+    background-color: #ffd3d3;              /* rouge un peu plus vif */
+  }
+  100% {
+    background-color: var(--danger-bg);
+  }
+}
+
+/* État : sauvegarde en attente */
+body.save-pending {
+  animation: savePendingBlink 1s infinite ease-in-out;
+}
+
+/* État : erreur de sauvegarde (rouge fixe) */
+body.save-error {
+  background-color: var(--danger-bg);
+  animation: none;
+}
+
 /* Conteneur principal centré */
 #app {
   max-width: 680px;

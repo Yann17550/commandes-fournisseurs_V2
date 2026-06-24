@@ -74,6 +74,7 @@ const editModal = $('editModal');
 const addModal = $('addModal');
 
 
+
 // ============================================================
 //  FILTRAGE ETABLISSEMENT
 // ============================================================
@@ -87,7 +88,6 @@ function getProduitsForEtab() {
     return e === 'AB' || e === '' || e === up;
   });
 }
-
 
 // ============================================================
 //  OVERRIDES ET COLISSAGE

@@ -18,11 +18,12 @@
 ============================================================ */
 .acc-etabs {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: minmax(0, 1.2fr) minmax(0, 1.2fr); /* comme les colonnes 3 & 4 de .ligne2 */
   column-gap: 10px;
   padding: 4px 14px 6px;
 }
 
+/* Les badges remplissent toute la largeur de leur colonne */
 .etab-badge {
   display: flex;
   align-items: center;
@@ -33,8 +34,21 @@
   border-radius: 99px;
   font-size: 11px;
   white-space: nowrap;
+  width: 100%;           /* prend toute la largeur de la colonne */
+  box-sizing: border-box;
 }
 
+/* Badge pour l'établissement A (Pizza d'Oléron) */
+.etab-badge--a {
+  background: #EFF6FF;       /* même fond que .stepperA */
+  border-color: #BFDBFE;     /* même bordure que .stepperA */
+}
+
+/* Badge pour l'établissement B (Le Vesuvio) */
+.etab-badge--b {
+  background: #FFF7ED;       /* même fond que .stepperB */
+  border-color: #FED7AA;     /* même bordure que .stepperB */
+}
 .etab-logo {
   width: 14px;
   height: 14px;
@@ -42,71 +56,115 @@
 }
 
 /* ============================================================
-   LAYOUT ARTICLE (TON MASQUE)
-   Article_gerant = bloc principal
-   nom_prix = grid 1 colonne
-   qte_article = grid 2 colonnes fixes
+   ARTICLE_GERANT = conteneur produit (2 lignes)
 ============================================================ */
 .Article_gerant {
-  display: grid;
-  grid-template-rows: auto auto;
-  row-gap: 4px;              /* réduit */
-  width: 99%;
-  padding: 6px 10px;         /* réduit */
+  width: 100%;
+  padding: 6px 10px;
   border-bottom: 1px solid var(--border);
+  background: #f3f4f6;
 }
 
 /* ============================================================
-   GRID 1 : nom_prix (1 colonne)
+   LIGNES INTERNES
+   - ligne1 : 2 colonnes (nom court | désignation fournisseur)
+   - ligne2 : 4 colonnes (ref | colis | stepper A | stepper B)
 ============================================================ */
-.nom_prix {
+.ligne1 {
   display: grid;
-  grid-template-columns: 1fr auto;
-  align-items: center;
-  margin-bottom: 2px; /* léger espace */
+  grid-template-columns: 30% 70%;
+  height: 30px;                 /* hauteur de base ligne 1 */
+  background: #f3f4f6;          /* référentiel de ligne */
 }
 
-.nom_article {
-  font-size: 14px;
-  font-weight: 600;
-  white-space: nowrap;
+.ligne2 {
+  display: grid;
+  grid-template-columns: 12% 18% minmax(0, 1.2fr) minmax(0, 1.2fr);
+  height: 30px;
+  background: #f3f4f6;
+}
+
+/* Blocs : remplissent la hauteur de la ligne et portent la couleur */
+.ligne1 > div,
+.ligne2 > div {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  padding: 0;
+  font-size: 12px;
   overflow: hidden;
   text-overflow: ellipsis;
+  height: 100%;
+  box-sizing: border-box;
 }
 
-.prix_article {
-  font-size: 12px;
-  color: var(--text-light);
+/* Ligne 1 : autorise le retour à la ligne dans les blocs 1-1 et 1-2 */
+.ligne1 > div {
+  white-space: normal;     /* texte peut passer à la ligne */
 }
 
-/* ============================================================
-   GRID 2 : qte_article (2 colonnes fixes)
-============================================================ */
-.qte_article {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  column-gap: 8px; /* légèrement réduit */
+/* Typo de la ligne 1 */
+.bloc1-1 {
+  font-weight: 600;         /* plus important */
+  font-size: 13px;          /* légèrement plus grand */
+  padding: 0 1px;
 }
 
+.bloc1-2 {
+  font-weight: 400;
+  font-size: 12px;          /* un peu plus petit */
+  color: var(--text-muted); /* grisé */
+  padding: 0 1px;
+}
 
-/* ============================================================
-   STEPPERS A & B (grids internes)
-============================================================ */
-.stepperA,
-.stepperB {
+/* Ligne 2 : ref/colis/steppers */
+.ligne2 > div {
+  white-space: nowrap;
+}
+
+/* Bloc ref (2-1) : texte plus petit et discret */
+.bloc2-1 {
+  font-size: 9px;
+  color: var(--text-muted);
+  justify-content: center;
+  line-height: 1.2;
+  padding: 0 1px;
+}
+
+/* Bloc colis (2-2) : pareil, discret, sur 2 lignes max */
+.bloc2-2 {
+  font-size: 9px;
+  color: var(--text-muted);
+  justify-content: center;
+  line-height: 1.2;
+  padding: 0 1px;
+  white-space: normal;         /* autorise 2 lignes */
+}
+
+/* Steppers : blocs A/B compressibles */
+.bloc2-3,
+.bloc2-4 {
+  padding: 0 1px;
+  min-width: 0;           /* autorise la colonne à se rétrécir */
+}
+
+/* Stepper interne : version « classique » */
+.bloc2-3 .stepperA,
+.bloc2-4 .stepperB {
+  width: 100%;
+  max-width: 100%;        /* le stepper ne dépasse jamais sa cellule */
+  box-sizing: border-box;
   display: grid;
   grid-template-columns: auto auto auto 1fr; /* - | input | + | total */
   align-items: center;
   column-gap: 4px;
-  padding: 2px 4px;
+  padding: 1px 1px;
   border-radius: 8px;
   box-shadow: 0 1px 2px rgba(0,0,0,0.08);
-
-  /* Auto-shrink si ça dépasse */
-  font-size: clamp(10px, 3vw, 14px);
+  font-size: 12px;
 }
 
-/* Couleurs */
+/* Couleurs des steppers (différenciation A/B) */
 .stepperA {
   background: #EFF6FF;
   border: 1px solid #BFDBFE;
@@ -121,7 +179,7 @@
 .stepperA button,
 .stepperB button {
   width: 22px;
-  height: 20px;
+  height: 22px;
   border: none;
   background: transparent;
   font-size: 14px;
@@ -130,8 +188,8 @@
 /* Inputs */
 .qty-input-a,
 .qty-input-b {
-  width: 24px;
-  height: 20px;
+  width: 28px;
+  height: 22px;
   font-size: 12px;
   padding: 0;
   text-align: center;
@@ -147,4 +205,8 @@
   text-align: right;
   font-family: var(--font-mono);
   font-size: 11px;
+  max-width: 60px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
