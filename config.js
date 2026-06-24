@@ -5,11 +5,10 @@
 const SUPABASE_URL = 'https://qpbpuadlowlxehzowqfs.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFwYnB1YWRsb3dseGVoem93cWZzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIzMDcwMzUsImV4cCI6MjA5Nzg4MzAzNX0.JTpWKk4WjhLEwHzLp7mdvSErqRB1E8HQ_AcwuSemUKo';
 
-const supabase = window.supabase.createClient(
+const supabaseClient = window.supabase.createClient(
   SUPABASE_URL,
   SUPABASE_ANON_KEY
 );
-
 const CONFIG = {
   // ---- Établissements -------------------------------------
   ETABS: [
@@ -26,7 +25,7 @@ const CONFIG = {
   },
 
   // ---- Apps Script (après déploiement) --------------------
-  // Laissez '' tant que vous n'avez pas déployé le script
+
   APPS_SCRIPT_URL: 'https://script.google.com/macros/s/AKfycbyi2xS5tB1dMwtxigloetFXQfN6INssG-8PfyrDwdin3O7gF3Q_Fo-HTtpQMl_sNi24kg/exec',
 
   // ---- Colonnes feuille produits --------------------------
