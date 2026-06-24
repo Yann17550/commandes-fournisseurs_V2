@@ -2,8 +2,13 @@
 //  CONFIG — à modifier selon vos besoins
 // ============================================================
 
-window.__FILE_VERSIONS__ = window.__FILE_VERSIONS__ || {};
-window.__FILE_VERSIONS__["config.js"] = "2026-04-06T18:31:00";
+const SUPABASE_URL = 'TON_PROJECT_URL';
+const SUPABASE_ANON_KEY = 'TA_ANON_KEY';
+
+const supabase = window.supabase.createClient(
+  SUPABASE_URL,
+  SUPABASE_ANON_KEY
+);
 
 const CONFIG = {
   // ---- Établissements -------------------------------------
