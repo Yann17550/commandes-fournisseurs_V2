@@ -3,6 +3,15 @@
 //  Multi-etablissement, colissage, historique, edition inline
 // ============================================================
 
+async function testSupabase() {
+  const { data, error } = await supabase
+    .from('fournisseurs')
+    .select('*')
+    .order('ordre');
+
+  console.log('fournisseurs:', data);
+  console.log('error:', error);
+}
 
 // ============================================================
 //  APPRENTISSAGE
