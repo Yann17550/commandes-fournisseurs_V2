@@ -3,7 +3,7 @@
 // ============================================================
 
 const SUPABASE_URL = 'TON_PROJECT_URL';
-const SUPABASE_ANON_KEY = 'TA_ANON_KEY';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFwYnB1YWRsb3dseGVoem93cWZzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIzMDcwMzUsImV4cCI6MjA5Nzg4MzAzNX0.JTpWKk4WjhLEwHzLp7mdvSErqRB1E8HQ_AcwuSemUKo';
 
 const supabase = window.supabase.createClient(
   SUPABASE_URL,
