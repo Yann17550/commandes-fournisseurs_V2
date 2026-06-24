@@ -385,7 +385,10 @@ function renderSummary() {
 // ============================================================
 console.log("[TRACE] Initialisation de l'application");
 
-document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("DOMContentLoaded", async () => {
+  console.log("[TRACE] DOMContentLoaded → test Supabase");
+  await testSupabase();
+
   console.log("[TRACE] DOMContentLoaded → lancement renderEtabScreen()");
   renderEtabScreen();
 });
