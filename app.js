@@ -83,7 +83,6 @@ const editModal = $('editModal');
 const addModal = $('addModal');
 
 
-
 // ============================================================
 //  FILTRAGE ETABLISSEMENT
 // ============================================================
@@ -97,6 +96,7 @@ function getProduitsForEtab() {
     return e === 'AB' || e === '' || e === up;
   });
 }
+
 
 // ============================================================
 //  OVERRIDES ET COLISSAGE
@@ -193,6 +193,7 @@ async function loadDataCore() {
 
         return {
           fournisseur: fournisseurNom,
+          fournisseur_id: r.fournisseurs?.id || null,
           reference: (r.reference || '').trim(),
           designation,
           label: cleanDesignation(designation || nomCourt),
@@ -231,8 +232,8 @@ async function loadDataCore() {
 
     if (state.etab && state.etab.id === 'gerant') {
       const [savedA, savedB] = await Promise.all([
-        loadCommandeRemoteById('a'),
-        loadCommandeRemoteById('b')
+        loadCommandeRemoteById('A'),
+        loadCommandeRemoteById('B')
       ]);
 
       state.quantities_a = savedA || {};
