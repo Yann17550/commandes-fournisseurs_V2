@@ -178,34 +178,33 @@ async function loadDataCore() {
 
     if (fournisseursError) throw fournisseursError;
 
-    state.produits = (produitsData || [])
-      .filter(r => (r.nom_court || '').trim())
-      .map(r => {
-        const fournisseurNom = (r.fournisseurs?.nom || '').trim();
-        const designation = (r.designation_produit || '').trim();
+state.produits = (produitsData || [])
+  .map(r => {
+    const fournisseurNom = (r.fournisseurs?.nom || '').trim();
+    const designation = (r.designation_produit || '').trim();
+    const nomCourt = (r.nom_court || '').trim() || designation || ('REF ' + ((r.reference || '').trim() || r.id));
 
-        return {
-          fournisseur: fournisseurNom,
-          reference: (r.reference || '').trim(),
-          designation,
-          label: cleanDesignation(designation),
-          tva: parseNum(r.tva),
-          prix_ht: parseNum(r.prix_unitaire_ht),
-          droit_alcool: parseNum(r.droit_alcool),
-          taxe_secu: parseNum(r.taxe_securite_sociale),
-          nom_court: (r.nom_court || '').trim(),
-          categorie: (r.categorie || 'Divers').trim(),
-          colissage: parseNum(r.colisage) || 1,
-          prix_colis: parseNum(r.prix_colis),
-          etablissement: 'AB',
-          actif: true,
-          isTemp: false,
-          ordre_fournisseur: parseNum(r.fournisseurs?.ordre) || 999,
-          ordre_categorie: parseNum(r.ordre_cat) || 999,
-        };
-      })
-      .filter(p => p.fournisseur);
-
+    return {
+      fournisseur: fournisseurNom,
+      reference: (r.reference || '').trim(),
+      designation,
+      label: cleanDesignation(designation || nomCourt),
+      tva: parseNum(r.tva),
+      prix_ht: parseNum(r.prix_unitaire_ht),
+      droit_alcool: parseNum(r.droit_alcool),
+      taxe_secu: parseNum(r.taxe_securite_sociale),
+      nom_court: nomCourt,
+      categorie: (r.categorie || 'Divers').trim(),
+      colissage: parseNum(r.colisage) || 1,
+      prix_colis: parseNum(r.prix_colis),
+      etablissement: 'AB',
+      actif: true,
+      isTemp: false,
+      ordre_fournisseur: parseNum(r.fournisseurs?.ordre) || 999,
+      ordre_categorie: parseNum(r.ordre_cat) || 999,
+    };
+  })
+  .filter(p => p.fournisseur);
     state.fournisseurs = {};
     (fournisseursData || []).forEach(r => {
       const nom = (r.nom || '').trim();
