@@ -2,15 +2,8 @@
 //  VALIDATION FOURNISSEUR
 // ============================================================
 
-window.__FILE_VERSIONS__ = window.__FILE_VERSIONS__ || {};
-window.__FILE_VERSIONS__["validation.js"] = "2026-04-23T11:15:00";
 
 async function validateSupplier(sup) {
-  if (!CONFIG.APPS_SCRIPT_URL) {
-    showToast("⚠️ URL Apps Script absente");
-    return;
-  }
-
   if (!sup) {
     showToast("⚠️ Fournisseur manquant");
     return;
@@ -18,9 +11,6 @@ async function validateSupplier(sup) {
 
   const isGerant = state.etab && state.etab.id === 'gerant';
 
-  // En mode gérant, on peut valider le fournisseur pour A, pour B, ou les deux.
-  // Ici on propose une confirmation simple, puis on traite séparément A et B
-  // s'il existe des quantités pour ce fournisseur.
   if (isGerant) {
     const hasA = state.produits.some(p =>
       p.fournisseur === sup && (state.quantities_a[productKey(p)] || 0) > 0
@@ -44,23 +34,11 @@ async function validateSupplier(sup) {
 
     try {
       if (hasA) {
-        const resA = await fetch(
-          CONFIG.APPS_SCRIPT_URL +
-          '?action=validateSupplier&etab=a&fournisseur=' + encodeURIComponent(sup),
-          { method: 'POST' }
-        );
-        const jsonA = await resA.json();
-        if (!jsonA.ok) throw new Error(jsonA.error || jsonA.message || "Erreur validation A");
+        await validateSupplierForEtab('A', sup, state.quantities_a);
       }
 
       if (hasB) {
-        const resB = await fetch(
-          CONFIG.APPS_SCRIPT_URL +
-          '?action=validateSupplier&etab=b&fournisseur=' + encodeURIComponent(sup),
-          { method: 'POST' }
-        );
-        const jsonB = await resB.json();
-        if (!jsonB.ok) throw new Error(jsonB.error || jsonB.message || "Erreur validation B");
+        await validateSupplierForEtab('B', sup, state.quantities_b);
       }
 
       await loadData();
@@ -69,13 +47,12 @@ async function validateSupplier(sup) {
 
     } catch (err) {
       console.error(err);
-      showToast("⚠️ " + err.message);
+      showToast("⚠️ " + (err.message || err));
     }
 
     return;
   }
 
-  // Mode établissement simple : validation uniquement sur l'établissement courant
   const etabId = state.etab && state.etab.id;
   if (!etabId || !['a', 'b'].includes(etabId)) {
     showToast("⚠️ Établissement invalide");
@@ -98,16 +75,7 @@ async function validateSupplier(sup) {
   if (!ok) return;
 
   try {
-    const res = await fetch(
-      CONFIG.APPS_SCRIPT_URL +
-      '?action=validateSupplier&etab=' + etabId + '&fournisseur=' + encodeURIComponent(sup),
-      { method: 'POST' }
-    );
-
-    const json = await res.json();
-    if (!json.ok) {
-      throw new Error(json.error || json.message || "Erreur de validation");
-    }
+    await validateSupplierForEtab(etabId.toUpperCase(), sup, state.quantities);
 
     await loadData();
     render();
@@ -116,6 +84,55 @@ async function validateSupplier(sup) {
 
   } catch (err) {
     console.error(err);
-    showToast("⚠️ " + err.message);
+    showToast("⚠️ " + (err.message || err));
   }
+}
+
+async function validateSupplierForEtab(etabId, sup, quantitiesMap) {
+  const E = String(etabId || '').trim().toUpperCase();
+
+  const supplierProducts = state.produits.filter(p =>
+    p.fournisseur === sup && (quantitiesMap[productKey(p)] || 0) > 0
+  );
+
+  if (!supplierProducts.length) {
+    return true;
+  }
+
+  const snapshot = supplierProducts.map(p => ({
+    etablissement: E,
+    fournisseur_id: p.fournisseur_id || null,
+    fournisseur_nom: p.fournisseur || null,
+    reference: (p.reference || '').trim(),
+    quantite: Number(quantitiesMap[productKey(p)] || 0),
+    semaine: getWeekId(),
+    note: null,
+    archive_at: new Date().toISOString()
+  }));
+
+  const { error: insertError } = await supabaseClient
+    .from('commandes_historique')
+    .insert(snapshot);
+
+  if (insertError) {
+    throw new Error(insertError.message || "Erreur archivage Supabase");
+  }
+
+  const references = supplierProducts.map(p => (p.reference || '').trim()).filter(Boolean);
+  const fournisseurId = supplierProducts[0]?.fournisseur_id || null;
+
+  let deleteQuery = supabaseClient
+    .from('commandes')
+    .delete()
+    .eq('etablissement', E)
+    .eq('fournisseur_id', fournisseurId)
+    .in('reference', references);
+
+  const { error: deleteError } = await deleteQuery;
+
+  if (deleteError) {
+    throw new Error(deleteError.message || "Erreur suppression Supabase");
+  }
+
+  return true;
 }
