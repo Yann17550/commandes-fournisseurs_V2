@@ -5,13 +5,22 @@
 // ---- Sauvegarde distante ----------------------------------
 let saveTimer = null;
 
+/**
+ * Programme une sauvegarde différée pour éviter
+ * trop d'écritures rapprochées.
+ */
 function scheduleSave() {
   if (!state.etab) return;
+
   clearTimeout(saveTimer);
   showSaveStatus('...');
   saveTimer = setTimeout(doSave, 4000);
 }
 
+/**
+ * Sauvegarde la commande de l'établissement courant.
+ * En mode gérant, sauvegarde A et B.
+ */
 async function doSave() {
   if (!state.etab) return;
 
@@ -19,7 +28,7 @@ async function doSave() {
     if (state.etab.id === 'gerant') {
       await Promise.all([
         fetchSave('A', state.quantities_a),
-        fetchSave('B', state.quantities_b),
+        fetchSave('B', state.quantities_b)
       ]);
     } else {
       const etabId = state.etab.id === 'a' ? 'A' : 'B';
@@ -27,29 +36,31 @@ async function doSave() {
     }
 
     showSaveStatus('💾 OK');
-  } catch (e) {
-    console.error('[TRACE] ERREUR doSave()', e);
+  } catch (error) {
+    console.error('Erreur sauvegarde commande', error);
     showSaveStatus('⚠️ Erreur');
   }
 }
 
+/**
+ * Sauvegarde toutes les quantités d'un établissement :
+ * - quantités > 0 : insertion / mise à jour
+ * - quantités = 0 : remise à zéro côté base
+ */
 async function fetchSave(etabId, quantities) {
   const etab = String(etabId || '').trim().toUpperCase();
   const source = quantities || {};
 
-  const positiveEntries = Object.entries(source).filter(([, v]) => Number(v) > 0);
-  const zeroEntries = Object.entries(source).filter(([, v]) => !Number(v));
+  const positiveEntries = Object.entries(source).filter(([, value]) => Number(value) > 0);
+  const zeroEntries = Object.entries(source).filter(([, value]) => !Number(value));
 
   for (const [key, qty] of positiveEntries) {
     const produit = state.produits.find(p => productKey(p) === key);
-    if (!produit) {
-      console.warn('[TRACE] Produit introuvable pour sauvegarde :', key);
-      continue;
-    }
+    if (!produit) continue;
 
     const ok = await sbSaveCommandeRemote(produit, Number(qty) || 0, etab);
     if (!ok) {
-      throw new Error('Erreur sbSaveCommandeRemote sur ' + key);
+      throw new Error('Erreur de sauvegarde sur ' + key);
     }
   }
 
@@ -59,80 +70,91 @@ async function fetchSave(etabId, quantities) {
 
     const ok = await sbSaveCommandeRemote(produit, 0, etab);
     if (!ok) {
-      throw new Error('Erreur sbSaveCommandeRemote(0) sur ' + key);
+      throw new Error('Erreur de remise à zéro sur ' + key);
     }
   }
 }
 
 // ---- Chargement distant -----------------------------------
+
+/**
+ * Charge la commande de l'établissement courant.
+ */
 async function loadCommandeRemote() {
   if (!state.etab || state.etab.id === 'gerant') return {};
 
   const etabId = state.etab.id === 'a' ? 'A' : 'B';
-  console.log('[TRACE] loadCommandeRemote() via Supabase avec', etabId);
 
   try {
     return await sbLoadCommandeRemoteById(etabId);
-  } catch (e) {
-    console.error('[TRACE] ERREUR loadCommandeRemote()', e);
+  } catch (error) {
+    console.error('Erreur chargement commande', error);
     return {};
   }
 }
 
+/**
+ * Charge la commande d'un établissement donné.
+ */
 async function loadCommandeRemoteById(etabId) {
-  console.log('[TRACE] loadCommandeRemoteById() appelé avec etabId =', etabId);
-
   try {
     return await sbLoadCommandeRemoteById(etabId);
-  } catch (e) {
-    console.error('[TRACE] ERREUR loadCommandeRemoteById', e);
+  } catch (error) {
+    console.error('Erreur chargement commande établissement', error);
     return {};
   }
 }
 
+/**
+ * Charge le dernier historique utile pour l'établissement courant.
+ */
 async function loadHistoRemote() {
-  console.log('[TRACE] loadHistoRemote() appelé');
-
   if (!state.etab) return {};
   if (state.etab.id === 'gerant') return {};
 
   try {
-    const json = await sbLoadHistoRemote();
-    console.log('[TRACE] JSON reçu loadHistoRemote :', json);
-    return json || {};
-  } catch (e) {
-    console.error('[TRACE] ERREUR loadHistoRemote', e);
+    return await sbLoadHistoRemote() || {};
+  } catch (error) {
+    console.error('Erreur chargement historique', error);
     return {};
   }
 }
 
 // ---- Archive ----------------------------------------------
-async function archiveCommande() {
-  console.log('[TRACE] archiveCommande() appelé');
 
+/**
+ * Archive la commande courante.
+ */
+async function archiveCommande() {
   if (!state.etab || state.etab.id === 'gerant') return;
 
   try {
     return await sbArchiveCommande();
-  } catch (e) {
-    console.error('[TRACE] ERREUR archiveCommande()', e);
+  } catch (error) {
+    console.error('Erreur archivage commande', error);
   }
 }
 
-// ---- Nettoyage distant -------------------------------------
-async function clearCommandeRemote() {
-  console.log('[TRACE] clearCommandeRemote() appelé');
+// ---- Nettoyage distant ------------------------------------
 
+/**
+ * Supprime la commande courante en base.
+ */
+async function clearCommandeRemote() {
   if (!state.etab || state.etab.id === 'gerant') return;
 
   try {
     return await sbClearCommandeRemote();
-  } catch (e) {
-    console.error('[TRACE] ERREUR clearCommandeRemote()', e);
+  } catch (error) {
+    console.error('Erreur suppression commande', error);
   }
 }
 
 // ---- Statut de sauvegarde ---------------------------------
+
+/**
+ * Affiche l'état visuel de la sauvegarde.
+ */
 function showSaveStatus(msg) {
   if (!saveStatusEl) return;
 
@@ -154,6 +176,7 @@ function showSaveStatus(msg) {
   }
 
   clearTimeout(saveStatusEl._t);
+
   if (msg.includes('OK')) {
     saveStatusEl._t = setTimeout(() => {
       saveStatusEl.style.opacity = '0';
