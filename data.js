@@ -6,187 +6,156 @@
 let saveTimer = null;
 
 function scheduleSave() {
-  if (!CONFIG.APPS_SCRIPT_URL) return;
+  if (!state.etab) return;
   clearTimeout(saveTimer);
   showSaveStatus('...');
   saveTimer = setTimeout(doSave, 4000);
 }
 
 async function doSave() {
-  if (!CONFIG.APPS_SCRIPT_URL || !state.etab) return;
+  if (!state.etab) return;
 
   try {
     if (state.etab.id === 'gerant') {
       await Promise.all([
-        fetchSave('a', state.quantities_a),
-        fetchSave('b', state.quantities_b),
+        fetchSave('A', state.quantities_a),
+        fetchSave('B', state.quantities_b),
       ]);
     } else {
-      await fetchSave(state.etab.id, state.quantities);
+      const etabId = state.etab.id === 'a' ? 'A' : 'B';
+      await fetchSave(etabId, state.quantities);
     }
     showSaveStatus('💾 OK');
-  } catch {
+  } catch (e) {
+    console.error('[TRACE] ERREUR doSave()', e);
     showSaveStatus('⚠️ Erreur');
   }
 }
 
-function fetchSave(etabId, quantities) {
-  const body = JSON.stringify(
-    Object.fromEntries(
-      Object.entries(quantities).filter(([, v]) => v > 0)
-    )
-  );
+async function fetchSave(etabId, quantities) {
+  const etab = String(etabId || '').toUpperCase();
+  const source = quantities || {};
+  const entries = Object.entries(source).filter(([, v]) => Number(v) > 0);
 
-  return fetch(CONFIG.APPS_SCRIPT_URL + '?action=write&etab=' + etabId, {
-    method: 'POST',
-    mode: 'no-cors',
-    headers: { 'Content-Type': 'text/plain' },
-    body,
-  });
+  for (const [key, qty] of entries) {
+    const produit = state.produits.find(p => productKey(p) === key);
+    if (!produit) {
+      console.warn('[TRACE] Produit introuvable pour sauvegarde :', key);
+      continue;
+    }
+
+    await saveCommandeRemote(produit, Number(qty) || 0, etab);
+  }
+
+  const zeroEntries = Object.entries(source).filter(([, v]) => !Number(v));
+  for (const [key] of zeroEntries) {
+    const produit = state.produits.find(p => productKey(p) === key);
+    if (!produit) continue;
+    await saveCommandeRemote(produit, 0, etab);
+  }
 }
 
 // ---- Chargement distant -----------------------------------
 async function loadCommandeRemote() {
-  if (!CONFIG.APPS_SCRIPT_URL || !state.etab || state.etab.id === 'gerant') return {};
-  return loadCommandeRemoteById(state.etab.id);
+  if (!state.etab || state.etab.id === 'gerant') return {};
+  const etabId = state.etab.id === 'a' ? 'A' : 'B';
+  return loadCommandeRemoteById(etabId);
 }
 
 async function loadCommandeRemoteById(etabId) {
-  console.log("[TRACE] loadCommandeRemoteById() appelé avec etabId =", etabId);
-
-  if (!CONFIG.APPS_SCRIPT_URL) {
-    console.warn("[TRACE] PAS D’URL APPS SCRIPT dans CONFIG");
-    return {};
-  }
-
-  const url = CONFIG.APPS_SCRIPT_URL + '?action=read&etab=' + etabId;
-  console.log("[TRACE] FETCH →", url);
+  console.log('[TRACE] loadCommandeRemoteById() appelé avec etabId =', etabId);
 
   try {
-    const r = await fetch(url);
-    console.log("[TRACE] Réponse brute loadCommandeRemoteById :", r);
+    if (typeof window.loadCommandeRemoteByIdSupabase === 'function') {
+      const json = await window.loadCommandeRemoteByIdSupabase(etabId);
+      console.log('[TRACE] JSON reçu loadCommandeRemoteById :', json);
+      return json || {};
+    }
 
-    const json = await r.json().catch(e => {
-      console.error("[TRACE] JSON ERROR loadCommandeRemoteById", e);
-      return null;
-    });
-
-    console.log("[TRACE] JSON reçu loadCommandeRemoteById :", json);
-    return json || {};
-
+    console.error('[TRACE] Fonction Supabase absente : loadCommandeRemoteByIdSupabase');
+    return {};
   } catch (e) {
-    console.error("[TRACE] ERREUR loadCommandeRemoteById", e);
+    console.error('[TRACE] ERREUR loadCommandeRemoteById', e);
     return {};
   }
 }
 
 async function loadHistoRemote() {
-  console.log("[TRACE] loadHistoRemote() appelé");
+  console.log('[TRACE] loadHistoRemote() appelé');
 
-  if (!CONFIG.APPS_SCRIPT_URL) return {};
   if (!state.etab) return {};
   if (state.etab.id === 'gerant') return {};
 
-  const url = CONFIG.APPS_SCRIPT_URL + '?action=histo&etab=' + state.etab.id;
-  console.log("[TRACE] FETCH →", url);
-
   try {
-    const r = await fetch(url);
-    console.log("[TRACE] Réponse brute loadHistoRemote :", r);
+    if (typeof window.loadHistoRemoteSupabase === 'function') {
+      const json = await window.loadHistoRemoteSupabase();
+      console.log('[TRACE] JSON reçu loadHistoRemote :', json);
+      return json || {};
+    }
 
-    const json = await r.json().catch(e => {
-      console.error("[TRACE] JSON ERROR loadHistoRemote", e);
-      return null;
-    });
-
-    console.log("[TRACE] JSON reçu loadHistoRemote :", json);
-    return json || {};
-
+    console.error('[TRACE] Fonction Supabase absente : loadHistoRemoteSupabase');
+    return {};
   } catch (e) {
-    console.error("[TRACE] ERREUR loadHistoRemote", e);
+    console.error('[TRACE] ERREUR loadHistoRemote', e);
     return {};
   }
 }
 
 // ---- Archive ----------------------------------------------
 async function archiveCommande() {
-  console.log("[TRACE] archiveCommande() appelé");
+  console.log('[TRACE] archiveCommande() appelé');
 
-  if (!CONFIG.APPS_SCRIPT_URL || !state.etab || state.etab.id === 'gerant') return;
+  if (!state.etab || state.etab.id === 'gerant') return;
 
-  const items = [];
-  state.produits.forEach(p => {
-    const qty = state.quantities[productKey(p)] || 0;
-    if (!qty) return;
+  try {
+    if (typeof window.archiveCommandeSupabase === 'function') {
+      return await window.archiveCommandeSupabase();
+    }
 
-    const d = getProductData(p);
-    items.push({
-      key: productKey(p),
-      nomCourt: p.nom_court,
-      ref: d.reference,
-      qty,
-      prixHt: d.prix_ht,
-      total: qty * getPrixColis(p)
-    });
-  });
-
-  if (!items.length) return;
-
-  const url = CONFIG.APPS_SCRIPT_URL + '?action=archive&etab=' + state.etab.id;
-  console.log("[TRACE] FETCH POST →", url);
-
-  fetch(url, {
-    method: 'POST',
-    mode: 'no-cors',
-    headers: { 'Content-Type': 'text/plain' },
-    body: JSON.stringify({
-      semaine: getWeekId(),
-      etabLabel: state.etab.label,
-      items
-    }),
-  }).catch(e => console.error("[TRACE] ERREUR archiveCommande()", e));
+    console.error('[TRACE] Fonction Supabase absente : archiveCommandeSupabase');
+  } catch (e) {
+    console.error('[TRACE] ERREUR archiveCommande()', e);
+  }
 }
 
 // ---- Nettoyage distant -------------------------------------
 async function clearCommandeRemote() {
-  console.log("[TRACE] clearCommandeRemote() appelé");
+  console.log('[TRACE] clearCommandeRemote() appelé');
 
-  if (!CONFIG.APPS_SCRIPT_URL || !state.etab || state.etab.id === 'gerant') return;
+  if (!state.etab || state.etab.id === 'gerant') return;
 
-  const url = CONFIG.APPS_SCRIPT_URL + '?action=clear&etab=' + state.etab.id;
-  console.log("[TRACE] FETCH POST →", url);
+  try {
+    if (typeof window.clearCommandeRemoteSupabase === 'function') {
+      return await window.clearCommandeRemoteSupabase();
+    }
 
-  fetch(url, { method: 'POST', mode: 'no-cors' })
-    .catch(e => console.error("[TRACE] ERREUR clearCommandeRemote()", e));
+    console.error('[TRACE] Fonction Supabase absente : clearCommandeRemoteSupabase');
+  } catch (e) {
+    console.error('[TRACE] ERREUR clearCommandeRemote()', e);
+  }
 }
 
 // ---- Statut de sauvegarde ---------------------------------
 function showSaveStatus(msg) {
   if (!saveStatusEl) return;
 
-  // Texte + opacité de l'indicateur
   saveStatusEl.textContent = msg;
   saveStatusEl.style.opacity = '1';
 
   const body = document.body;
 
   if (body) {
-    // On gère uniquement un état fort "pending" + (optionnel) un état "error"
     if (msg === '...') {
-      // En attente de sauvegarde → on marque le body en rouge/clignotant
       body.classList.add('save-pending');
       body.classList.remove('save-error');
     } else if (msg.includes('OK')) {
-      // Sauvegarde terminée → on enlève l'état pending
       body.classList.remove('save-pending', 'save-error');
     } else if (msg.includes('Erreur')) {
-      // Erreur → fond rouge fixe (optionnel)
       body.classList.remove('save-pending');
       body.classList.add('save-error');
     }
   }
 
-  // Gestion de la disparition du petit label
   clearTimeout(saveStatusEl._t);
   if (msg.includes('OK')) {
     saveStatusEl._t = setTimeout(() => {
