@@ -88,10 +88,8 @@ async function validateSupplier(sup) {
 }
 
 /**
- * Valide un fournisseur pour un établissement donné :
- * - lit les lignes en cours concernées,
- * - les archive dans commandes_historique,
- * - puis les supprime de commandes.
+ * Valide un fournisseur pour un établissement donné.
+ * On archive puis on supprime uniquement les lignes du fournisseur concerné.
  */
 async function validateSupplierForEtab(etabId, sup, quantitiesMap) {
   const E = String(etabId || '').trim().toUpperCase();
@@ -109,63 +107,18 @@ async function validateSupplierForEtab(etabId, sup, quantitiesMap) {
     .filter(Boolean);
 
   const fournisseurId = supplierProducts[0]?.fournisseur_id || null;
-  const semaine = sbGetISOWeek();
-  const archive_at = new Date().toISOString();
-  const note = '';
 
-  const { data: lignes, error: errLecture } = await supabaseClient
-    .from('commandes')
-    .select(`
-      etablissement,
-      produit_id,
-      fournisseur_id,
-      fournisseur_nom,
-      reference,
-      quantite
-    `)
-    .eq('etablissement', E)
-    .eq('fournisseur_id', fournisseurId)
-    .in('reference', references)
-    .gt('quantite', 0);
-
-  if (errLecture) {
-    throw new Error(errLecture.message || "Erreur lecture Supabase");
-  }
-
-  if (!Array.isArray(lignes) || lignes.length === 0) {
-    return true;
-  }
-
-  const snapshot = lignes.map(row => ({
-    etablissement: E,
-    produit_id: row.produit_id || null,
-    fournisseur_id: row.fournisseur_id || null,
-    fournisseur_nom: row.fournisseur_nom || null,
-    reference: (row.reference || '').trim(),
-    quantite: Number(row.quantite) || 0,
-    semaine,
-    note,
-    archive_at
-  }));
-
-  const { error: archiveError } = await supabaseClient
-    .from('commandes_historique')
-    .insert(snapshot);
-
-  if (archiveError) {
-    throw new Error(archiveError.message || "Erreur archivage Supabase");
-  }
-
-  const { error: deleteError } = await supabaseClient
-    .from('commandes')
-    .delete()
-    .eq('etablissement', E)
-    .eq('fournisseur_id', fournisseurId)
-    .in('reference', references);
-
-  if (deleteError) {
-    throw new Error(deleteError.message || "Erreur suppression Supabase");
-  }
+  await sbArchiveCommandeRows(
+    E,
+    {
+      fournisseur_id: fournisseurId,
+      references
+    },
+    {
+      note: '',
+      deleteSource: true
+    }
+  );
 
   return true;
 }
