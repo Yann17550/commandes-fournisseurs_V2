@@ -94,7 +94,7 @@ function getProductData(p) {
     ...p,
     reference: ov.reference !== undefined ? ov.reference : p.reference,
     prix_ht: ov.prix_ht !== undefined ? ov.prix_ht : p.prix_ht,
-    colissage: ov.colissage !== undefined ? ov.colissage : p.colissage
+    colissage: ov.colissage !== undefined ? ov.colissage : p.colissage,
   };
 }
 
@@ -197,7 +197,7 @@ async function loadDataCore() {
           actif: true,
           isTemp: false,
           ordre_fournisseur: parseNum(r.fournisseurs?.ordre) || 999,
-          ordre_categorie: parseNum(r.ordre_cat) || 999
+          ordre_categorie: parseNum(r.ordre_cat) || 999,
         };
       })
       .filter(p => p.fournisseur);
@@ -212,7 +212,7 @@ async function loadDataCore() {
         contact: (r.contact || '').trim(),
         jour_saison: (r.jour_appel_saison || '').trim(),
         jour_hors_saison: (r.jour_appel_hors_saison || '').trim(),
-        notes: (r.notes || '').trim()
+        notes: (r.notes || '').trim(),
       };
     });
 
