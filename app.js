@@ -191,26 +191,29 @@ async function loadDataCore() {
           designation ||
           ('REF ' + ((r.reference || '').trim() || r.id));
 
-        return {
-          fournisseur: fournisseurNom,
-          fournisseur_id: r.fournisseurs?.id || null,
-          reference: (r.reference || '').trim(),
-          designation,
-          label: cleanDesignation(designation || nomCourt),
-          tva: parseNum(r.tva),
-          prix_ht: parseNum(r.prix_unitaire_ht),
-          droit_alcool: parseNum(r.droit_alcool),
-          taxe_secu: parseNum(r.taxe_securite_sociale),
-          nom_court: nomCourt,
-          categorie: (r.categorie || 'Divers').trim(),
-          colissage: parseNum(r.colisage) || 1,
-          prix_colis: parseNum(r.prix_colis),
-          etablissement: 'AB',
-          actif: true,
-          isTemp: false,
-          ordre_fournisseur: parseNum(r.fournisseurs?.ordre) || 999,
-          ordre_categorie: parseNum(r.ordre_cat) || 999,
-        };
+      return {
+        id: r.id,
+        fournisseur: fournisseurNom,
+        fournisseur_id: r.fournisseurs?.id || null,
+        reference: (r.reference || '').trim(),
+        designation: (r.designation_fournisseur || r.designation_produit || '').trim(),
+        designation_produit: (r.designation_produit || '').trim(),
+        designation_fournisseur: (r.designation_fournisseur || '').trim(),
+        label: cleanDesignation(designation || nomCourt),
+        tva: parseNum(r.tva),
+        prix_ht: parseNum(r.prix_unitaire_ht),
+        droit_alcool: parseNum(r.droit_alcool),
+        taxe_secu: parseNum(r.taxe_securite_sociale),
+        nom_court: nomCourt,
+        categorie: (r.categorie || 'Divers').trim(),
+        colissage: parseNum(r.colisage) || 1,
+        prix_colis: parseNum(r.prix_colis),
+        etablissement: 'AB',
+        actif: true,
+        isTemp: false,
+        ordre_fournisseur: parseNum(r.fournisseurs?.ordre) || 999,
+        ordre_categorie: parseNum(r.ordre_cat) || 999,
+      };
       })
       .filter(p => p.fournisseur);
 
