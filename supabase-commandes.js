@@ -251,6 +251,7 @@ async function sbArchiveCommande(etabId = null, note = '') {
     .from('commandes')
     .select(`
       etablissement,
+      produit_id,
       fournisseur_id,
       fournisseur_nom,
       reference,
@@ -278,6 +279,7 @@ async function sbArchiveCommande(etabId = null, note = '') {
 
   const snapshot = lignes.map(l => ({
     etablissement: E,
+    produit_id: l.produit_id || null,
     fournisseur_id: l.fournisseur_id || null,
     fournisseur_nom: l.fournisseur_nom || null,
     reference: (l.reference || '').trim(),
