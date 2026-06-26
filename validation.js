@@ -99,17 +99,14 @@ async function validateSupplierForEtab(etabId, sup, quantitiesMap) {
     return true;
   }
 
-  const snapshot = lignes.map(l => ({
-    etablissement: E,
-    produit_id: l.produit_id || null,
-    fournisseur_id: l.fournisseur_id || null,
-    fournisseur_nom: l.fournisseur_nom || null,
-    reference: (l.reference || '').trim(),
-    quantite: Number(l.quantite) || 0,
-    semaine,
-    note,
-    archive_at
-  }));
+  const references = supplierProducts
+    .map(p => (p.reference || '').trim())
+    .filter(Boolean);
+
+  const fournisseurId = supplierProducts[0]?.fournisseur_id || null;
+  const semaine = sbGetISOWeek();
+  const archive_at = new Date().toISOString();
+  const note = '';
 
   const { data: lignes, error: errLecture } = await supabaseClient
     .from('commandes')
@@ -121,18 +118,45 @@ async function validateSupplierForEtab(etabId, sup, quantitiesMap) {
       reference,
       quantite
     `)
+    .eq('etablissement', E)
+    .eq('fournisseur_id', fournisseurId)
+    .in('reference', references)
+    .gt('quantite', 0);
 
-  const references = supplierProducts.map(p => (p.reference || '').trim()).filter(Boolean);
-  const fournisseurId = supplierProducts[0]?.fournisseur_id || null;
+  if (errLecture) {
+    throw new Error(errLecture.message || "Erreur lecture Supabase");
+  }
 
-  let deleteQuery = supabaseClient
+  if (!Array.isArray(lignes) || lignes.length === 0) {
+    return true;
+  }
+
+  const snapshot = lignes.map(row => ({
+    etablissement: E,
+    produit_id: row.produit_id || null,
+    fournisseur_id: row.fournisseur_id || null,
+    fournisseur_nom: row.fournisseur_nom || null,
+    reference: (row.reference || '').trim(),
+    quantite: Number(row.quantite) || 0,
+    semaine,
+    note,
+    archive_at
+  }));
+
+  const { error: archiveError } = await supabaseClient
+    .from('commandes_historique')
+    .insert(snapshot);
+
+  if (archiveError) {
+    throw new Error(archiveError.message || "Erreur archivage Supabase");
+  }
+
+  const { error: deleteError } = await supabaseClient
     .from('commandes')
     .delete()
     .eq('etablissement', E)
     .eq('fournisseur_id', fournisseurId)
     .in('reference', references);
-
-  const { error: deleteError } = await deleteQuery;
 
   if (deleteError) {
     throw new Error(deleteError.message || "Erreur suppression Supabase");
