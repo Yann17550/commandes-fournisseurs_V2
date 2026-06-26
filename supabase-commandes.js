@@ -200,6 +200,7 @@ async function sbSaveCommandeRemote(produit, quantite, etabId = null) {
 
   const payload = {
     etablissement: E,
+    produit_id: produit.id || null,
     fournisseur_id: produit.fournisseur_id || null,
     fournisseur_nom: produit.fournisseur || null,
     reference: (produit.reference || '').trim(),
