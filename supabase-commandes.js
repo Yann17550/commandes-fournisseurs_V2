@@ -44,6 +44,120 @@ function sbGetISOWeek() {
 }
 
 /**
+ * Construit un objet snapshot prêt à être inséré dans commandes_historique.
+ */
+function sbBuildHistorySnapshot(rows, etablissement, note = '') {
+  const semaine = sbGetISOWeek();
+  const archive_at = new Date().toISOString();
+
+  return (rows || []).map(row => ({
+    etablissement,
+    produit_id: row.produit_id || null,
+    fournisseur_id: row.fournisseur_id || null,
+    fournisseur_nom: row.fournisseur_nom || null,
+    reference: (row.reference || '').trim(),
+    quantite: Number(row.quantite) || 0,
+    semaine,
+    note,
+    archive_at
+  }));
+}
+
+/**
+ * Lit les lignes commandes à archiver selon les filtres passés.
+ * Les filtres supportés sont : fournisseur_id et references.
+ */
+async function sbGetCommandeRowsForArchive(etabId, filters = {}) {
+  const E = sbNormalizeEtabId(etabId);
+
+  let query = supabaseClient
+    .from('commandes')
+    .select(`
+      etablissement,
+      produit_id,
+      fournisseur_id,
+      fournisseur_nom,
+      reference,
+      quantite
+    `)
+    .eq('etablissement', E)
+    .gt('quantite', 0);
+
+  if (filters.fournisseur_id != null) {
+    query = query.eq('fournisseur_id', filters.fournisseur_id);
+  }
+
+  if (Array.isArray(filters.references) && filters.references.length > 0) {
+    query = query.in('reference', filters.references);
+  }
+
+  const { data, error } = await query;
+
+  if (error) {
+    throw new Error(error.message || "Erreur lecture commandes");
+  }
+
+  return data || [];
+}
+
+/**
+ * Archive des lignes de commandes dans l'historique.
+ * Si deleteSource = true, les lignes source sont supprimées après archivage.
+ */
+async function sbArchiveCommandeRows(etabId, filters = {}, options = {}) {
+  const E = sbNormalizeEtabId(etabId);
+  const note = options.note || '';
+  const deleteSource = options.deleteSource === true;
+
+  const rows = await sbGetCommandeRowsForArchive(E, filters);
+
+  if (!rows.length) {
+    return { archived: 0, deleted: 0, rows: [] };
+  }
+
+  const snapshot = sbBuildHistorySnapshot(rows, E, note);
+
+  const { error: archiveError } = await supabaseClient
+    .from('commandes_historique')
+    .insert(snapshot);
+
+  if (archiveError) {
+    throw new Error(archiveError.message || "Erreur archivage Supabase");
+  }
+
+  let deleted = 0;
+
+  if (deleteSource) {
+    let deleteQuery = supabaseClient
+      .from('commandes')
+      .delete()
+      .eq('etablissement', E);
+
+    if (filters.fournisseur_id != null) {
+      deleteQuery = deleteQuery.eq('fournisseur_id', filters.fournisseur_id);
+    }
+
+    if (Array.isArray(filters.references) && filters.references.length > 0) {
+      deleteQuery = deleteQuery.in('reference', filters.references);
+    }
+
+    const { error: deleteError } = await deleteQuery;
+
+    if (deleteError) {
+      throw new Error(deleteError.message || "Erreur suppression Supabase");
+    }
+
+    deleted = rows.length;
+  }
+
+  return {
+    archived: rows.length,
+    deleted,
+    rows
+  };
+}
+
+/**
  * Charge la commande de l'établissement courant.
  */
 async function sbLoadCommandeRemote() {
@@ -89,7 +203,6 @@ async function sbLoadCommandeRemoteById(etabId) {
 
 /**
  * Charge la dernière commande archivée de l'établissement courant.
- * On ne conserve que la dernière semaine trouvée.
  */
 async function sbLoadHistoRemote() {
   const etabId = state?.etab?.id === 'a' ? 'A' : 'B';
@@ -143,7 +256,6 @@ async function sbLoadHistoRemote() {
 
 /**
  * Sauvegarde une ligne de commande dans la table "commandes".
- * La ligne est mise à jour si elle existe déjà pour le même produit.
  */
 async function sbSaveCommandeRemote(produit, quantite, etabId = null) {
   const E = sbNormalizeEtabId(
@@ -174,60 +286,19 @@ async function sbSaveCommandeRemote(produit, quantite, etabId = null) {
 
 /**
  * Archive toute la commande active d'un établissement.
- * Cette fonction reste utile pour une archive globale éventuelle.
  */
 async function sbArchiveCommande(etabId = null, note = '') {
-  const E = sbNormalizeEtabId(
-    etabId || (state?.etab?.id === 'a' ? 'A' : 'B')
-  );
-
-  const { data: lignes, error: errLecture } = await supabaseClient
-    .from('commandes')
-    .select(`
-      etablissement,
-      produit_id,
-      fournisseur_id,
-      fournisseur_nom,
-      reference,
-      quantite
-    `)
-    .eq('etablissement', E)
-    .gt('quantite', 0);
-
-  if (errLecture) {
-    console.error('[CMD] Erreur lecture archive commande', errLecture);
-    return false;
-  }
-
-  if (!Array.isArray(lignes) || lignes.length === 0) {
+  try {
+    await sbArchiveCommandeRows(
+      etabId || (state?.etab?.id === 'a' ? 'A' : 'B'),
+      {},
+      { note, deleteSource: false }
+    );
     return true;
-  }
-
-  const semaine = sbGetISOWeek();
-  const archive_at = new Date().toISOString();
-
-  const snapshot = lignes.map(row => ({
-    etablissement: E,
-    produit_id: row.produit_id || null,
-    fournisseur_id: row.fournisseur_id || null,
-    fournisseur_nom: row.fournisseur_nom || null,
-    reference: (row.reference || '').trim(),
-    quantite: Number(row.quantite) || 0,
-    semaine,
-    note,
-    archive_at
-  }));
-
-  const { error: errArchive } = await supabaseClient
-    .from('commandes_historique')
-    .insert(snapshot);
-
-  if (errArchive) {
-    console.error('[CMD] Erreur insertion historique', errArchive);
+  } catch (error) {
+    console.error('[CMD] Erreur archive commande', error);
     return false;
   }
-
-  return true;
 }
 
 /**
