@@ -88,6 +88,7 @@ async function sbLoadCommandeRemoteById(etabId) {
     .from('commandes')
     .select(`
       etablissement,
+      produit_id,
       reference,
       quantite,
       fournisseur_id,
@@ -137,13 +138,13 @@ async function sbLoadHistoRemote() {
     .select(`
       id,
       etablissement,
+      produit_id,
       fournisseur_id,
       reference,
       quantite,
       semaine,
       note,
       archive_at,
-      produit_id,
       fournisseur_nom
     `)
     .eq('etablissement', E)
@@ -190,7 +191,6 @@ async function sbLoadHistoRemote() {
 
 // ------------------------------------------------------------
 // Sauvegarde UNE ligne de commande dans la table "commandes"
-// Utilise upsert sur : etablissement, reference, fournisseur_id
 // ------------------------------------------------------------
 async function sbSaveCommandeRemote(produit, quantite, etabId = null) {
   const E = sbNormalizeEtabId(
@@ -201,10 +201,10 @@ async function sbSaveCommandeRemote(produit, quantite, etabId = null) {
 
   const payload = {
     etablissement: E,
-    produit_id: produit.id || null,
-    fournisseur_id: produit.fournisseur_id || null,
-    fournisseur_nom: produit.fournisseur || null,
-    reference: (produit.reference || '').trim(),
+    produit_id: produit?.id || null,
+    fournisseur_id: produit?.fournisseur_id || null,
+    fournisseur_nom: produit?.fournisseur || null,
+    reference: (produit?.reference || '').trim(),
     quantite: q,
     updated_at: new Date().toISOString()
   };
@@ -270,7 +270,7 @@ async function sbArchiveCommande(etabId = null, note = '') {
     return false;
   }
 
-  if (!lignes || lignes.length === 0) {
+  if (!Array.isArray(lignes) || lignes.length === 0) {
     console.log('[CMD] sbArchiveCommande() aucune ligne à archiver');
     return true;
   }
@@ -278,13 +278,13 @@ async function sbArchiveCommande(etabId = null, note = '') {
   const semaine = sbGetISOWeek();
   const archive_at = new Date().toISOString();
 
-  const snapshot = lignes.map(l => ({
+  const snapshot = lignes.map(row => ({
     etablissement: E,
-    produit_id: l.produit_id || null,
-    fournisseur_id: l.fournisseur_id || null,
-    fournisseur_nom: l.fournisseur_nom || null,
-    reference: (l.reference || '').trim(),
-    quantite: Number(l.quantite) || 0,
+    produit_id: row.produit_id || null,
+    fournisseur_id: row.fournisseur_id || null,
+    fournisseur_nom: row.fournisseur_nom || null,
+    reference: (row.reference || '').trim(),
+    quantite: Number(row.quantite) || 0,
     semaine,
     note,
     archive_at
