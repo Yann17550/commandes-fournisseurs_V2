@@ -274,7 +274,7 @@ async function sbSaveCommandeRemote(produit, quantite, etabId = null) {
 
   const { error } = await supabaseClient
     .from('commandes')
-    .upsert(payload, { onConflict: 'etablissement,reference,fournisseur_id' });
+    .upsert(payload, { onConflict: 'etablissement,produit_id' });
 
   if (error) {
     console.error('[CMD] Erreur sauvegarde commande', error);
