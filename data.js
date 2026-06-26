@@ -9,31 +9,31 @@ function scheduleSave() {
   if (!state.etab) return;
   clearTimeout(saveTimer);
   showSaveStatus('...');
-  saveTimer = setTimeout(doSaveDataModule, 4000);
+  saveTimer = setTimeout(doSave, 4000);
 }
 
-async function doSaveDataModule() {
+async function doSave() {
   if (!state.etab) return;
 
   try {
     if (state.etab.id === 'gerant') {
       await Promise.all([
-        fetchSaveDataModule('A', state.quantities_a),
-        fetchSaveDataModule('B', state.quantities_b),
+        fetchSave('A', state.quantities_a),
+        fetchSave('B', state.quantities_b),
       ]);
     } else {
       const etabId = state.etab.id === 'a' ? 'A' : 'B';
-      await fetchSaveDataModule(etabId, state.quantities);
+      await fetchSave(etabId, state.quantities);
     }
 
     showSaveStatus('💾 OK');
   } catch (e) {
-    console.error('[TRACE] ERREUR doSaveDataModule()', e);
+    console.error('[TRACE] ERREUR doSave()', e);
     showSaveStatus('⚠️ Erreur');
   }
 }
 
-async function fetchSaveDataModule(etabId, quantities) {
+async function fetchSave(etabId, quantities) {
   const etab = String(etabId || '').trim().toUpperCase();
   const source = quantities || {};
 
@@ -47,9 +47,9 @@ async function fetchSaveDataModule(etabId, quantities) {
       continue;
     }
 
-    const ok = await saveCommandeRemote(produit, Number(qty) || 0, etab);
+    const ok = await sbSaveCommandeRemote(produit, Number(qty) || 0, etab);
     if (!ok) {
-      throw new Error('Erreur saveCommandeRemote sur ' + key);
+      throw new Error('Erreur sbSaveCommandeRemote sur ' + key);
     }
   }
 
@@ -57,9 +57,9 @@ async function fetchSaveDataModule(etabId, quantities) {
     const produit = state.produits.find(p => productKey(p) === key);
     if (!produit) continue;
 
-    const ok = await saveCommandeRemote(produit, 0, etab);
+    const ok = await sbSaveCommandeRemote(produit, 0, etab);
     if (!ok) {
-      throw new Error('Erreur saveCommandeRemote(0) sur ' + key);
+      throw new Error('Erreur sbSaveCommandeRemote(0) sur ' + key);
     }
   }
 }
@@ -72,7 +72,7 @@ async function loadCommandeRemote() {
   console.log('[TRACE] loadCommandeRemote() via Supabase avec', etabId);
 
   try {
-    return await loadCommandeRemoteByIdSupabaseProxy(etabId);
+    return await sbLoadCommandeRemoteById(etabId);
   } catch (e) {
     console.error('[TRACE] ERREUR loadCommandeRemote()', e);
     return {};
@@ -83,20 +83,11 @@ async function loadCommandeRemoteById(etabId) {
   console.log('[TRACE] loadCommandeRemoteById() appelé avec etabId =', etabId);
 
   try {
-    return await loadCommandeRemoteByIdSupabaseProxy(etabId);
+    return await sbLoadCommandeRemoteById(etabId);
   } catch (e) {
     console.error('[TRACE] ERREUR loadCommandeRemoteById', e);
     return {};
   }
-}
-
-async function loadCommandeRemoteByIdSupabaseProxy(etabId) {
-  if (typeof window.loadCommandeRemoteById !== 'function') {
-    console.error('[TRACE] Fonction Supabase loadCommandeRemoteById introuvable');
-    return {};
-  }
-
-  return await window.loadCommandeRemoteById(etabId);
 }
 
 async function loadHistoRemote() {
@@ -106,12 +97,7 @@ async function loadHistoRemote() {
   if (state.etab.id === 'gerant') return {};
 
   try {
-    if (typeof window.loadHistoRemote !== 'function') {
-      console.error('[TRACE] Fonction Supabase loadHistoRemote introuvable');
-      return {};
-    }
-
-    const json = await window.loadHistoRemote();
+    const json = await sbLoadHistoRemote();
     console.log('[TRACE] JSON reçu loadHistoRemote :', json);
     return json || {};
   } catch (e) {
@@ -121,56 +107,29 @@ async function loadHistoRemote() {
 }
 
 // ---- Archive ----------------------------------------------
-async function archiveCommandeDataModule() {
+async function archiveCommande() {
   console.log('[TRACE] archiveCommande() appelé');
 
   if (!state.etab || state.etab.id === 'gerant') return;
 
   try {
-    if (typeof window.archiveCommande !== 'function') {
-      console.error('[TRACE] Fonction Supabase archiveCommande introuvable');
-      return;
-    }
-
-    return await window.archiveCommande();
+    return await sbArchiveCommande();
   } catch (e) {
     console.error('[TRACE] ERREUR archiveCommande()', e);
   }
 }
 
 // ---- Nettoyage distant -------------------------------------
-async function clearCommandeRemoteDataModule() {
+async function clearCommandeRemote() {
   console.log('[TRACE] clearCommandeRemote() appelé');
 
   if (!state.etab || state.etab.id === 'gerant') return;
 
   try {
-    if (typeof window.clearCommandeRemote !== 'function') {
-      console.error('[TRACE] Fonction Supabase clearCommandeRemote introuvable');
-      return;
-    }
-
-    return await window.clearCommandeRemote();
+    return await sbClearCommandeRemote();
   } catch (e) {
     console.error('[TRACE] ERREUR clearCommandeRemote()', e);
   }
-}
-
-// ---- Compatibilité avec le reste de l'app ------------------
-async function doSave() {
-  return doSaveDataModule();
-}
-
-async function fetchSave(etabId, quantities) {
-  return fetchSaveDataModule(etabId, quantities);
-}
-
-async function archiveCommande() {
-  return archiveCommandeDataModule();
-}
-
-async function clearCommandeRemote() {
-  return clearCommandeRemoteDataModule();
 }
 
 // ---- Statut de sauvegarde ---------------------------------
