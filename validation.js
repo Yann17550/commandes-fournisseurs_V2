@@ -1,8 +1,13 @@
 // ============================================================
-//  VALIDATION FOURNISSEUR
+// validation.js
+// Validation fournisseur et archivage partiel par établissement
 // ============================================================
 
-
+/**
+ * Lance la validation d'un fournisseur.
+ * En mode gérant, la validation peut concerner A, B ou les deux.
+ * En mode établissement, elle ne concerne que l'établissement courant.
+ */
 async function validateSupplier(sup) {
   if (!sup) {
     showToast("⚠️ Fournisseur manquant");
@@ -15,6 +20,7 @@ async function validateSupplier(sup) {
     const hasA = state.produits.some(p =>
       p.fournisseur === sup && (state.quantities_a[productKey(p)] || 0) > 0
     );
+
     const hasB = state.produits.some(p =>
       p.fournisseur === sup && (state.quantities_b[productKey(p)] || 0) > 0
     );
@@ -33,18 +39,12 @@ async function validateSupplier(sup) {
     if (!ok) return;
 
     try {
-      if (hasA) {
-        await validateSupplierForEtab('A', sup, state.quantities_a);
-      }
-
-      if (hasB) {
-        await validateSupplierForEtab('B', sup, state.quantities_b);
-      }
+      if (hasA) await validateSupplierForEtab('A', sup, state.quantities_a);
+      if (hasB) await validateSupplierForEtab('B', sup, state.quantities_b);
 
       await loadData();
       render();
       showToast("✅ Fournisseur validé : " + sup);
-
     } catch (err) {
       console.error(err);
       showToast("⚠️ " + (err.message || err));
@@ -81,13 +81,18 @@ async function validateSupplier(sup) {
     render();
     closeSummary();
     showToast("✅ Fournisseur validé : " + sup);
-
   } catch (err) {
     console.error(err);
     showToast("⚠️ " + (err.message || err));
   }
 }
 
+/**
+ * Valide un fournisseur pour un établissement donné :
+ * - lit les lignes en cours concernées,
+ * - les archive dans commandes_historique,
+ * - puis les supprime de commandes.
+ */
 async function validateSupplierForEtab(etabId, sup, quantitiesMap) {
   const E = String(etabId || '').trim().toUpperCase();
 
