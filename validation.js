@@ -99,24 +99,28 @@ async function validateSupplierForEtab(etabId, sup, quantitiesMap) {
     return true;
   }
 
-  const snapshot = supplierProducts.map(p => ({
+  const snapshot = lignes.map(l => ({
     etablissement: E,
-    fournisseur_id: p.fournisseur_id || null,
-    fournisseur_nom: p.fournisseur || null,
-    reference: (p.reference || '').trim(),
-    quantite: Number(quantitiesMap[productKey(p)] || 0),
-    semaine: getWeekId(),
-    note: null,
-    archive_at: new Date().toISOString()
+    produit_id: l.produit_id || null,
+    fournisseur_id: l.fournisseur_id || null,
+    fournisseur_nom: l.fournisseur_nom || null,
+    reference: (l.reference || '').trim(),
+    quantite: Number(l.quantite) || 0,
+    semaine,
+    note,
+    archive_at
   }));
 
-  const { error: insertError } = await supabaseClient
-    .from('commandes_historique')
-    .insert(snapshot);
-
-  if (insertError) {
-    throw new Error(insertError.message || "Erreur archivage Supabase");
-  }
+  const { data: lignes, error: errLecture } = await supabaseClient
+    .from('commandes')
+    .select(`
+      etablissement,
+      produit_id,
+      fournisseur_id,
+      fournisseur_nom,
+      reference,
+      quantite
+    `)
 
   const references = supplierProducts.map(p => (p.reference || '').trim()).filter(Boolean);
   const fournisseurId = supplierProducts[0]?.fournisseur_id || null;
