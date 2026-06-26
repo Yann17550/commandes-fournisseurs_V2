@@ -47,6 +47,6 @@ const CONFIG = {
     notes: 'notes'
   },
 
-  // ---- Saison (mois 1=jan … 12=dec) ----------------------
+  // ---- Saison (mois 1=jan … 12=dec) -----------------------
   MOIS_SAISON: [4, 5, 6, 7, 8, 9, 10]
 };
