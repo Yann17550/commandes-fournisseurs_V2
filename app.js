@@ -3,16 +3,6 @@
 //  Multi-etablissement, colissage, historique, edition inline
 // ============================================================
 
-async function testSupabase() {
-  const { data, error } = await supabaseClient
-    .from('fournisseurs')
-    .select('*')
-    .order('ordre');
-
-  console.log('fournisseurs:', data);
-  console.log('error:', error);
-}
-
 // ============================================================
 //  APPRENTISSAGE
 // ============================================================
@@ -40,7 +30,6 @@ function recordOrder(quantities) {
   saveScores(scores);
 }
 
-
 // ============================================================
 //  ETABLISSEMENT
 // ============================================================
@@ -53,7 +42,6 @@ function getSavedEtab() {
 function saveEtabLocal(id) {
   localStorage.setItem(ETAB_KEY, id);
 }
-
 
 // ============================================================
 //  DOM
@@ -82,7 +70,6 @@ const saveStatusEl = $('saveStatus');
 const editModal = $('editModal');
 const addModal = $('addModal');
 
-
 // ============================================================
 //  FILTRAGE ETABLISSEMENT
 // ============================================================
@@ -97,7 +84,6 @@ function getProduitsForEtab() {
   });
 }
 
-
 // ============================================================
 //  OVERRIDES ET COLISSAGE
 // ============================================================
@@ -108,7 +94,7 @@ function getProductData(p) {
     ...p,
     reference: ov.reference !== undefined ? ov.reference : p.reference,
     prix_ht: ov.prix_ht !== undefined ? ov.prix_ht : p.prix_ht,
-    colissage: ov.colissage !== undefined ? ov.colissage : p.colissage,
+    colissage: ov.colissage !== undefined ? ov.colissage : p.colissage
   };
 }
 
@@ -120,7 +106,6 @@ function getPrixColis(p) {
 function getNbUnites(p, qtyColis) {
   return qtyColis * getProductData(p).colissage;
 }
-
 
 // ============================================================
 //  CHARGEMENT
@@ -191,29 +176,29 @@ async function loadDataCore() {
           designation ||
           ('REF ' + ((r.reference || '').trim() || r.id));
 
-      return {
-        id: r.id,
-        fournisseur: fournisseurNom,
-        fournisseur_id: r.fournisseurs?.id || null,
-        reference: (r.reference || '').trim(),
-        designation: (r.designation_fournisseur || r.designation_produit || '').trim(),
-        designation_produit: (r.designation_produit || '').trim(),
-        designation_fournisseur: (r.designation_fournisseur || '').trim(),
-        label: cleanDesignation(designation || nomCourt),
-        tva: parseNum(r.tva),
-        prix_ht: parseNum(r.prix_unitaire_ht),
-        droit_alcool: parseNum(r.droit_alcool),
-        taxe_secu: parseNum(r.taxe_securite_sociale),
-        nom_court: nomCourt,
-        categorie: (r.categorie || 'Divers').trim(),
-        colissage: parseNum(r.colisage) || 1,
-        prix_colis: parseNum(r.prix_colis),
-        etablissement: 'AB',
-        actif: true,
-        isTemp: false,
-        ordre_fournisseur: parseNum(r.fournisseurs?.ordre) || 999,
-        ordre_categorie: parseNum(r.ordre_cat) || 999,
-      };
+        return {
+          id: r.id,
+          fournisseur: fournisseurNom,
+          fournisseur_id: r.fournisseurs?.id || null,
+          reference: (r.reference || '').trim(),
+          designation: (r.designation_fournisseur || r.designation_produit || '').trim(),
+          designation_produit: (r.designation_produit || '').trim(),
+          designation_fournisseur: (r.designation_fournisseur || '').trim(),
+          label: cleanDesignation(designation || nomCourt),
+          tva: parseNum(r.tva),
+          prix_ht: parseNum(r.prix_unitaire_ht),
+          droit_alcool: parseNum(r.droit_alcool),
+          taxe_secu: parseNum(r.taxe_securite_sociale),
+          nom_court: nomCourt,
+          categorie: (r.categorie || 'Divers').trim(),
+          colissage: parseNum(r.colisage) || 1,
+          prix_colis: parseNum(r.prix_colis),
+          etablissement: 'AB',
+          actif: true,
+          isTemp: false,
+          ordre_fournisseur: parseNum(r.fournisseurs?.ordre) || 999,
+          ordre_categorie: parseNum(r.ordre_cat) || 999
+        };
       })
       .filter(p => p.fournisseur);
 
@@ -227,7 +212,7 @@ async function loadDataCore() {
         contact: (r.contact || '').trim(),
         jour_saison: (r.jour_appel_saison || '').trim(),
         jour_hors_saison: (r.jour_appel_hors_saison || '').trim(),
-        notes: (r.notes || '').trim(),
+        notes: (r.notes || '').trim()
       };
     });
 
@@ -279,7 +264,6 @@ async function loadDataCore() {
   }
 }
 
-
 // ============================================================
 //  FOURNISSEURS
 // ============================================================
@@ -325,7 +309,6 @@ function sortProducts(prods) {
     return a.nom_court.localeCompare(b.nom_court, 'fr');
   });
 }
-
 
 // ============================================================
 //  RECAPITULATIF
@@ -427,7 +410,6 @@ function renderSummary() {
 
     $('copyBtnA').style.display = 'block';
     $('copyBtnB').style.display = 'block';
-
   } else {
     const suppliers = getSuppliers();
 
@@ -476,16 +458,9 @@ function renderSummary() {
   summaryContent.innerHTML = html;
 }
 
-
 // ============================================================
 //  DEMARRAGE APPLICATION
 // ============================================================
-console.log("[TRACE] Initialisation de l'application");
-
-document.addEventListener("DOMContentLoaded", async () => {
-  console.log("[TRACE] DOMContentLoaded → test Supabase");
-  await testSupabase();
-
-  console.log("[TRACE] DOMContentLoaded → lancement renderEtabScreen()");
+document.addEventListener('DOMContentLoaded', () => {
   renderEtabScreen();
 });
