@@ -9,7 +9,7 @@
 // Normalise l'identifiant établissement
 // Exemple : "a" -> "A", " b " -> "B"
 // ------------------------------------------------------------
-function normalizeEtabId(etabId) {
+function sbNormalizeEtabId(etabId) {
   return String(etabId || '').trim().toUpperCase();
 }
 
@@ -19,7 +19,7 @@ function normalizeEtabId(etabId) {
 // Format attendu : "Nom fournisseur|Reference"
 // Cette clé doit correspondre à productKey(p)
 // ------------------------------------------------------------
-function buildCommandeKey(row) {
+function sbBuildCommandeKey(row) {
   const fournisseurNom = (
     row.fournisseurs?.nom ||
     row.fournisseur_nom ||
@@ -30,7 +30,7 @@ function buildCommandeKey(row) {
   const reference = (row.reference || '').trim();
 
   if (!fournisseurNom || !reference) {
-    console.warn('[CMD] buildCommandeKey impossible', {
+    console.warn('[CMD] sbBuildCommandeKey impossible', {
       row,
       fournisseurNom,
       reference
@@ -47,7 +47,7 @@ function buildCommandeKey(row) {
 // Exemple : 2026-W26
 // Utilisé pour l'historique
 // ------------------------------------------------------------
-function getISOWeek() {
+function sbGetISOWeek() {
   const d = new Date();
   const day = d.getDay() || 7;
   d.setDate(d.getDate() + 4 - day);
@@ -61,14 +61,14 @@ function getISOWeek() {
 // Charge la commande de l'établissement courant
 // Vue simple A/B uniquement
 // ------------------------------------------------------------
-async function loadCommandeRemote() {
+async function sbLoadCommandeRemote() {
   const etabId = state?.etab?.id === 'a' ? 'A' : 'B';
 
-  console.log('[CMD] loadCommandeRemote()');
+  console.log('[CMD] sbLoadCommandeRemote()');
   console.log('[CMD] etab courant =', state?.etab);
   console.log('[CMD] etab resolu =', etabId);
 
-  return loadCommandeRemoteById(etabId);
+  return sbLoadCommandeRemoteById(etabId);
 }
 
 
@@ -77,10 +77,10 @@ async function loadCommandeRemote() {
 // Lit la table "commandes"
 // Retourne un objet quantities : { "Fournisseur|Reference": quantite }
 // ------------------------------------------------------------
-async function loadCommandeRemoteById(etabId) {
-  const E = normalizeEtabId(etabId);
+async function sbLoadCommandeRemoteById(etabId) {
+  const E = sbNormalizeEtabId(etabId);
 
-  console.log('[CMD] loadCommandeRemoteById() START');
+  console.log('[CMD] sbLoadCommandeRemoteById() START');
   console.log('[CMD] etabId brut =', etabId);
   console.log('[CMD] etabId normalisé =', E);
 
@@ -91,32 +91,29 @@ async function loadCommandeRemoteById(etabId) {
       reference,
       quantite,
       fournisseur_id,
-      fournisseur_nom,
-      fournisseurs (
-        nom
-      )
+      fournisseur_nom
     `)
     .eq('etablissement', E)
     .gt('quantite', 0);
 
-  console.log('[CMD] loadCommandeRemoteById() RESULT');
+  console.log('[CMD] sbLoadCommandeRemoteById() RESULT');
   console.log('[CMD] error =', error);
   console.log('[CMD] data =', data);
 
   if (error) {
-    console.error('[CMD] loadCommandeRemoteById ERROR', error);
+    console.error('[CMD] sbLoadCommandeRemoteById ERROR', error);
     return {};
   }
 
   const quantities = {};
 
   for (const row of data || []) {
-    const key = buildCommandeKey(row);
+    const key = sbBuildCommandeKey(row);
     if (!key) continue;
     quantities[key] = Number(row.quantite) || 0;
   }
 
-  console.log('[CMD] loadCommandeRemoteById() quantities =', quantities);
+  console.log('[CMD] sbLoadCommandeRemoteById() quantities =', quantities);
 
   return quantities;
 }
@@ -127,11 +124,11 @@ async function loadCommandeRemoteById(etabId) {
 // Lit la table "commandes_historique"
 // Retourne uniquement la dernière semaine trouvée
 // ------------------------------------------------------------
-async function loadHistoRemote() {
+async function sbLoadHistoRemote() {
   const etabId = state?.etab?.id === 'a' ? 'A' : 'B';
-  const E = normalizeEtabId(etabId);
+  const E = sbNormalizeEtabId(etabId);
 
-  console.log('[CMD] loadHistoRemote() START');
+  console.log('[CMD] sbLoadHistoRemote() START');
   console.log('[CMD] etab courant =', state?.etab);
   console.log('[CMD] etabId normalisé =', E);
 
@@ -146,26 +143,23 @@ async function loadHistoRemote() {
       semaine,
       note,
       archive_at,
-      fournisseur_nom,
-      fournisseurs (
-        nom
-      )
+      fournisseur_nom
     `)
     .eq('etablissement', E)
     .order('archive_at', { ascending: false })
     .order('id', { ascending: false });
 
-  console.log('[CMD] loadHistoRemote() RESULT');
+  console.log('[CMD] sbLoadHistoRemote() RESULT');
   console.log('[CMD] error =', error);
   console.log('[CMD] data =', data);
 
   if (error) {
-    console.error('[CMD] loadHistoRemote ERROR', error);
+    console.error('[CMD] sbLoadHistoRemote ERROR', error);
     return null;
   }
 
   if (!data || data.length === 0) {
-    console.log('[CMD] loadHistoRemote() aucune ligne');
+    console.log('[CMD] sbLoadHistoRemote() aucune ligne');
     return null;
   }
 
@@ -175,7 +169,7 @@ async function loadHistoRemote() {
   for (const row of data) {
     if ((row.semaine || '') !== semaine) break;
 
-    const key = buildCommandeKey(row);
+    const key = sbBuildCommandeKey(row);
     if (!key) continue;
 
     quantities[key] = Number(row.quantite) || 0;
@@ -187,7 +181,7 @@ async function loadHistoRemote() {
     rows: data
   };
 
-  console.log('[CMD] loadHistoRemote() result =', result);
+  console.log('[CMD] sbLoadHistoRemote() result =', result);
 
   return result;
 }
@@ -197,8 +191,8 @@ async function loadHistoRemote() {
 // Sauvegarde UNE ligne de commande dans la table "commandes"
 // Utilise upsert sur : etablissement, reference, fournisseur_id
 // ------------------------------------------------------------
-async function saveCommandeRemote(produit, quantite, etabId = null) {
-  const E = normalizeEtabId(
+async function sbSaveCommandeRemote(produit, quantite, etabId = null) {
+  const E = sbNormalizeEtabId(
     etabId || (state?.etab?.id === 'a' ? 'A' : 'B')
   );
 
@@ -213,7 +207,7 @@ async function saveCommandeRemote(produit, quantite, etabId = null) {
     updated_at: new Date().toISOString()
   };
 
-  console.log('[CMD] saveCommandeRemote() START');
+  console.log('[CMD] sbSaveCommandeRemote() START');
   console.log('[CMD] produit =', produit);
   console.log('[CMD] quantite demandée =', quantite);
   console.log('[CMD] etabId brut =', etabId);
@@ -225,37 +219,17 @@ async function saveCommandeRemote(produit, quantite, etabId = null) {
     .upsert(payload, { onConflict: 'etablissement,reference,fournisseur_id' })
     .select();
 
-  console.log('[CMD] saveCommandeRemote() RESULT');
+  console.log('[CMD] sbSaveCommandeRemote() RESULT');
   console.log('[CMD] error =', error);
   console.log('[CMD] data =', data);
 
   if (error) {
-    console.error('[CMD] saveCommandeRemote ERROR', error);
+    console.error('[CMD] sbSaveCommandeRemote ERROR', error);
     return false;
   }
 
-  console.log('[CMD] saveCommandeRemote() SUCCESS');
+  console.log('[CMD] sbSaveCommandeRemote() SUCCESS');
   return true;
-}
-
-
-// ------------------------------------------------------------
-// Alias de compatibilité
-// Ancien nom gardé pour éviter de casser le reste du code
-// ------------------------------------------------------------
-async function fetchSave(produit, quantite, etabId = null) {
-  console.log('[CMD] fetchSave()');
-  return saveCommandeRemote(produit, quantite, etabId);
-}
-
-
-// ------------------------------------------------------------
-// Alias de compatibilité
-// Ancien nom gardé pour éviter de casser le reste du code
-// ------------------------------------------------------------
-async function doSave(produit, quantite, etabId = null) {
-  console.log('[CMD] doSave()');
-  return saveCommandeRemote(produit, quantite, etabId);
 }
 
 
@@ -263,12 +237,12 @@ async function doSave(produit, quantite, etabId = null) {
 // Archive la commande courante dans "commandes_historique"
 // Lit les lignes actives de "commandes", puis insère un snapshot
 // ------------------------------------------------------------
-async function archiveCommande(etabId = null, note = '') {
-  const E = normalizeEtabId(
+async function sbArchiveCommande(etabId = null, note = '') {
+  const E = sbNormalizeEtabId(
     etabId || (state?.etab?.id === 'a' ? 'A' : 'B')
   );
 
-  console.log('[CMD] archiveCommande() START');
+  console.log('[CMD] sbArchiveCommande() START');
   console.log('[CMD] etab =', E);
   console.log('[CMD] note =', note);
 
@@ -279,35 +253,32 @@ async function archiveCommande(etabId = null, note = '') {
       fournisseur_id,
       fournisseur_nom,
       reference,
-      quantite,
-      fournisseurs (
-        nom
-      )
+      quantite
     `)
     .eq('etablissement', E)
     .gt('quantite', 0);
 
-  console.log('[CMD] archiveCommande() LECTURE');
+  console.log('[CMD] sbArchiveCommande() LECTURE');
   console.log('[CMD] errLecture =', errLecture);
   console.log('[CMD] lignes =', lignes);
 
   if (errLecture) {
-    console.error('[CMD] archiveCommande lecture ERROR', errLecture);
+    console.error('[CMD] sbArchiveCommande lecture ERROR', errLecture);
     return false;
   }
 
   if (!lignes || lignes.length === 0) {
-    console.log('[CMD] archiveCommande() aucune ligne à archiver');
+    console.log('[CMD] sbArchiveCommande() aucune ligne à archiver');
     return true;
   }
 
-  const semaine = getISOWeek();
+  const semaine = sbGetISOWeek();
   const archive_at = new Date().toISOString();
 
   const snapshot = lignes.map(l => ({
     etablissement: E,
     fournisseur_id: l.fournisseur_id || null,
-    fournisseur_nom: l.fournisseur_nom || l.fournisseurs?.nom || null,
+    fournisseur_nom: l.fournisseur_nom || null,
     reference: (l.reference || '').trim(),
     quantite: Number(l.quantite) || 0,
     semaine,
@@ -315,23 +286,23 @@ async function archiveCommande(etabId = null, note = '') {
     archive_at
   }));
 
-  console.log('[CMD] archiveCommande() snapshot =', snapshot);
+  console.log('[CMD] sbArchiveCommande() snapshot =', snapshot);
 
   const { data: archiveData, error: errArchive } = await supabaseClient
     .from('commandes_historique')
     .insert(snapshot)
     .select();
 
-  console.log('[CMD] archiveCommande() INSERT RESULT');
+  console.log('[CMD] sbArchiveCommande() INSERT RESULT');
   console.log('[CMD] errArchive =', errArchive);
   console.log('[CMD] archiveData =', archiveData);
 
   if (errArchive) {
-    console.error('[CMD] archiveCommande insert ERROR', errArchive);
+    console.error('[CMD] sbArchiveCommande insert ERROR', errArchive);
     return false;
   }
 
-  console.log('[CMD] archiveCommande() SUCCESS');
+  console.log('[CMD] sbArchiveCommande() SUCCESS');
   return true;
 }
 
@@ -340,12 +311,12 @@ async function archiveCommande(etabId = null, note = '') {
 // Supprime toutes les lignes de commande en cours
 // pour un établissement donné
 // ------------------------------------------------------------
-async function clearCommandeRemote(etabId = null) {
-  const E = normalizeEtabId(
+async function sbClearCommandeRemote(etabId = null) {
+  const E = sbNormalizeEtabId(
     etabId || (state?.etab?.id === 'a' ? 'A' : 'B')
   );
 
-  console.log('[CMD] clearCommandeRemote() START');
+  console.log('[CMD] sbClearCommandeRemote() START');
   console.log('[CMD] etab =', E);
 
   const { data, error } = await supabaseClient
@@ -354,15 +325,15 @@ async function clearCommandeRemote(etabId = null) {
     .eq('etablissement', E)
     .select();
 
-  console.log('[CMD] clearCommandeRemote() RESULT');
+  console.log('[CMD] sbClearCommandeRemote() RESULT');
   console.log('[CMD] error =', error);
   console.log('[CMD] data =', data);
 
   if (error) {
-    console.error('[CMD] clearCommandeRemote ERROR', error);
+    console.error('[CMD] sbClearCommandeRemote ERROR', error);
     return false;
   }
 
-  console.log('[CMD] clearCommandeRemote() SUCCESS');
+  console.log('[CMD] sbClearCommandeRemote() SUCCESS');
   return true;
 }
