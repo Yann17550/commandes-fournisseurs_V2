@@ -44,8 +44,8 @@ async function doSave() {
 
 /**
  * Sauvegarde toutes les quantités d'un établissement :
- * - quantités > 0 : insertion / mise à jour
- * - quantités = 0 : remise à zéro côté base
+ * - quantités > 0 : insertion ou mise à jour
+ * - quantités = 0 : mise à zéro en base
  */
 async function fetchSave(etabId, quantities) {
   const etab = String(etabId || '').trim().toUpperCase();
@@ -109,8 +109,7 @@ async function loadCommandeRemoteById(etabId) {
  * Charge le dernier historique utile pour l'établissement courant.
  */
 async function loadHistoRemote() {
-  if (!state.etab) return {};
-  if (state.etab.id === 'gerant') return {};
+  if (!state.etab || state.etab.id === 'gerant') return {};
 
   try {
     return await sbLoadHistoRemote() || {};
