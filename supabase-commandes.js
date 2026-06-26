@@ -143,6 +143,7 @@ async function sbLoadHistoRemote() {
       semaine,
       note,
       archive_at,
+      produit_id,
       fournisseur_nom
     `)
     .eq('etablissement', E)
