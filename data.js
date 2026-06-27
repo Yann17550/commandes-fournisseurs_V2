@@ -5,189 +5,177 @@
 // ---- Sauvegarde distante ----------------------------------
 let saveTimer = null;
 
+/**
+ * Programme une sauvegarde différée pour éviter
+ * trop d'écritures rapprochées.
+ */
 function scheduleSave() {
-  if (!CONFIG.APPS_SCRIPT_URL) return;
+  if (!state.etab) return;
+
   clearTimeout(saveTimer);
   showSaveStatus('...');
   saveTimer = setTimeout(doSave, 4000);
 }
 
+/**
+ * Sauvegarde la commande de l'établissement courant.
+ * En mode gérant, sauvegarde A et B.
+ */
 async function doSave() {
-  if (!CONFIG.APPS_SCRIPT_URL || !state.etab) return;
+  if (!state.etab) return;
 
   try {
     if (state.etab.id === 'gerant') {
       await Promise.all([
-        fetchSave('a', state.quantities_a),
-        fetchSave('b', state.quantities_b),
+        fetchSave('A', state.quantities_a),
+        fetchSave('B', state.quantities_b)
       ]);
     } else {
-      await fetchSave(state.etab.id, state.quantities);
+      const etabId = state.etab.id === 'a' ? 'A' : 'B';
+      await fetchSave(etabId, state.quantities);
     }
+
     showSaveStatus('💾 OK');
-  } catch {
+  } catch (error) {
+    console.error('Erreur sauvegarde commande', error);
     showSaveStatus('⚠️ Erreur');
   }
 }
 
-function fetchSave(etabId, quantities) {
-  const body = JSON.stringify(
-    Object.fromEntries(
-      Object.entries(quantities).filter(([, v]) => v > 0)
-    )
-  );
+/**
+ * Sauvegarde toutes les quantités d'un établissement :
+ * - quantités > 0 : insertion ou mise à jour
+ * - quantités = 0 : mise à zéro en base
+ */
+async function fetchSave(etabId, quantities) {
+  const etab = String(etabId || '').trim().toUpperCase();
+  const source = quantities || {};
 
-  return fetch(CONFIG.APPS_SCRIPT_URL + '?action=write&etab=' + etabId, {
-    method: 'POST',
-    mode: 'no-cors',
-    headers: { 'Content-Type': 'text/plain' },
-    body,
-  });
+  const positiveEntries = Object.entries(source).filter(([, value]) => Number(value) > 0);
+  const zeroEntries = Object.entries(source).filter(([, value]) => !Number(value));
+
+  for (const [key, qty] of positiveEntries) {
+    const produit = state.produits.find(p => productKey(p) === key);
+    if (!produit) continue;
+
+    const ok = await sbSaveCommandeRemote(produit, Number(qty) || 0, etab);
+    if (!ok) {
+      throw new Error('Erreur de sauvegarde sur ' + key);
+    }
+  }
+
+  for (const [key] of zeroEntries) {
+    const produit = state.produits.find(p => productKey(p) === key);
+    if (!produit) continue;
+
+    const ok = await sbSaveCommandeRemote(produit, 0, etab);
+    if (!ok) {
+      throw new Error('Erreur de remise à zéro sur ' + key);
+    }
+  }
 }
 
 // ---- Chargement distant -----------------------------------
+
+/**
+ * Charge la commande de l'établissement courant.
+ */
 async function loadCommandeRemote() {
-  if (!CONFIG.APPS_SCRIPT_URL || !state.etab || state.etab.id === 'gerant') return {};
-  return loadCommandeRemoteById(state.etab.id);
+  if (!state.etab || state.etab.id === 'gerant') return {};
+
+  const etabId = state.etab.id === 'a' ? 'A' : 'B';
+
+  try {
+    return await sbLoadCommandeRemoteById(etabId);
+  } catch (error) {
+    console.error('Erreur chargement commande', error);
+    return {};
+  }
 }
 
+/**
+ * Charge la commande d'un établissement donné.
+ */
 async function loadCommandeRemoteById(etabId) {
-  console.log("[TRACE] loadCommandeRemoteById() appelé avec etabId =", etabId);
-
-  if (!CONFIG.APPS_SCRIPT_URL) {
-    console.warn("[TRACE] PAS D’URL APPS SCRIPT dans CONFIG");
-    return {};
-  }
-
-  const url = CONFIG.APPS_SCRIPT_URL + '?action=read&etab=' + etabId;
-  console.log("[TRACE] FETCH →", url);
-
   try {
-    const r = await fetch(url);
-    console.log("[TRACE] Réponse brute loadCommandeRemoteById :", r);
-
-    const json = await r.json().catch(e => {
-      console.error("[TRACE] JSON ERROR loadCommandeRemoteById", e);
-      return null;
-    });
-
-    console.log("[TRACE] JSON reçu loadCommandeRemoteById :", json);
-    return json || {};
-
-  } catch (e) {
-    console.error("[TRACE] ERREUR loadCommandeRemoteById", e);
+    return await sbLoadCommandeRemoteById(etabId);
+  } catch (error) {
+    console.error('Erreur chargement commande établissement', error);
     return {};
   }
 }
 
+/**
+ * Charge le dernier historique utile pour l'établissement courant.
+ */
 async function loadHistoRemote() {
-  console.log("[TRACE] loadHistoRemote() appelé");
-
-  if (!CONFIG.APPS_SCRIPT_URL) return {};
-  if (!state.etab) return {};
-  if (state.etab.id === 'gerant') return {};
-
-  const url = CONFIG.APPS_SCRIPT_URL + '?action=histo&etab=' + state.etab.id;
-  console.log("[TRACE] FETCH →", url);
+  if (!state.etab || state.etab.id === 'gerant') return {};
 
   try {
-    const r = await fetch(url);
-    console.log("[TRACE] Réponse brute loadHistoRemote :", r);
-
-    const json = await r.json().catch(e => {
-      console.error("[TRACE] JSON ERROR loadHistoRemote", e);
-      return null;
-    });
-
-    console.log("[TRACE] JSON reçu loadHistoRemote :", json);
-    return json || {};
-
-  } catch (e) {
-    console.error("[TRACE] ERREUR loadHistoRemote", e);
+    return await sbLoadHistoRemote() || {};
+  } catch (error) {
+    console.error('Erreur chargement historique', error);
     return {};
   }
 }
 
 // ---- Archive ----------------------------------------------
+
+/**
+ * Archive la commande courante.
+ */
 async function archiveCommande() {
-  console.log("[TRACE] archiveCommande() appelé");
+  if (!state.etab || state.etab.id === 'gerant') return;
 
-  if (!CONFIG.APPS_SCRIPT_URL || !state.etab || state.etab.id === 'gerant') return;
-
-  const items = [];
-  state.produits.forEach(p => {
-    const qty = state.quantities[productKey(p)] || 0;
-    if (!qty) return;
-
-    const d = getProductData(p);
-    items.push({
-      key: productKey(p),
-      nomCourt: p.nom_court,
-      ref: d.reference,
-      qty,
-      prixHt: d.prix_ht,
-      total: qty * getPrixColis(p)
-    });
-  });
-
-  if (!items.length) return;
-
-  const url = CONFIG.APPS_SCRIPT_URL + '?action=archive&etab=' + state.etab.id;
-  console.log("[TRACE] FETCH POST →", url);
-
-  fetch(url, {
-    method: 'POST',
-    mode: 'no-cors',
-    headers: { 'Content-Type': 'text/plain' },
-    body: JSON.stringify({
-      semaine: getWeekId(),
-      etabLabel: state.etab.label,
-      items
-    }),
-  }).catch(e => console.error("[TRACE] ERREUR archiveCommande()", e));
+  try {
+    return await sbArchiveCommande();
+  } catch (error) {
+    console.error('Erreur archivage commande', error);
+  }
 }
 
-// ---- Nettoyage distant -------------------------------------
+// ---- Nettoyage distant ------------------------------------
+
+/**
+ * Supprime la commande courante en base.
+ */
 async function clearCommandeRemote() {
-  console.log("[TRACE] clearCommandeRemote() appelé");
+  if (!state.etab || state.etab.id === 'gerant') return;
 
-  if (!CONFIG.APPS_SCRIPT_URL || !state.etab || state.etab.id === 'gerant') return;
-
-  const url = CONFIG.APPS_SCRIPT_URL + '?action=clear&etab=' + state.etab.id;
-  console.log("[TRACE] FETCH POST →", url);
-
-  fetch(url, { method: 'POST', mode: 'no-cors' })
-    .catch(e => console.error("[TRACE] ERREUR clearCommandeRemote()", e));
+  try {
+    return await sbClearCommandeRemote();
+  } catch (error) {
+    console.error('Erreur suppression commande', error);
+  }
 }
 
 // ---- Statut de sauvegarde ---------------------------------
+
+/**
+ * Affiche l'état visuel de la sauvegarde.
+ */
 function showSaveStatus(msg) {
   if (!saveStatusEl) return;
 
-  // Texte + opacité de l'indicateur
   saveStatusEl.textContent = msg;
   saveStatusEl.style.opacity = '1';
 
   const body = document.body;
 
   if (body) {
-    // On gère uniquement un état fort "pending" + (optionnel) un état "error"
     if (msg === '...') {
-      // En attente de sauvegarde → on marque le body en rouge/clignotant
       body.classList.add('save-pending');
       body.classList.remove('save-error');
     } else if (msg.includes('OK')) {
-      // Sauvegarde terminée → on enlève l'état pending
       body.classList.remove('save-pending', 'save-error');
     } else if (msg.includes('Erreur')) {
-      // Erreur → fond rouge fixe (optionnel)
       body.classList.remove('save-pending');
       body.classList.add('save-error');
     }
   }
 
-  // Gestion de la disparition du petit label
   clearTimeout(saveStatusEl._t);
+
   if (msg.includes('OK')) {
     saveStatusEl._t = setTimeout(() => {
       saveStatusEl.style.opacity = '0';

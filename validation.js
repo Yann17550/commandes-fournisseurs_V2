@@ -1,16 +1,14 @@
 // ============================================================
-//  VALIDATION FOURNISSEUR
+// validation.js
+// Validation fournisseur et archivage partiel par établissement
 // ============================================================
 
-window.__FILE_VERSIONS__ = window.__FILE_VERSIONS__ || {};
-window.__FILE_VERSIONS__["validation.js"] = "2026-04-23T11:15:00";
-
+/**
+ * Lance la validation d'un fournisseur.
+ * En mode gérant, la validation peut concerner A, B ou les deux.
+ * En mode établissement, elle ne concerne que l'établissement courant.
+ */
 async function validateSupplier(sup) {
-  if (!CONFIG.APPS_SCRIPT_URL) {
-    showToast("⚠️ URL Apps Script absente");
-    return;
-  }
-
   if (!sup) {
     showToast("⚠️ Fournisseur manquant");
     return;
@@ -18,13 +16,11 @@ async function validateSupplier(sup) {
 
   const isGerant = state.etab && state.etab.id === 'gerant';
 
-  // En mode gérant, on peut valider le fournisseur pour A, pour B, ou les deux.
-  // Ici on propose une confirmation simple, puis on traite séparément A et B
-  // s'il existe des quantités pour ce fournisseur.
   if (isGerant) {
     const hasA = state.produits.some(p =>
       p.fournisseur === sup && (state.quantities_a[productKey(p)] || 0) > 0
     );
+
     const hasB = state.produits.some(p =>
       p.fournisseur === sup && (state.quantities_b[productKey(p)] || 0) > 0
     );
@@ -43,39 +39,20 @@ async function validateSupplier(sup) {
     if (!ok) return;
 
     try {
-      if (hasA) {
-        const resA = await fetch(
-          CONFIG.APPS_SCRIPT_URL +
-          '?action=validateSupplier&etab=a&fournisseur=' + encodeURIComponent(sup),
-          { method: 'POST' }
-        );
-        const jsonA = await resA.json();
-        if (!jsonA.ok) throw new Error(jsonA.error || jsonA.message || "Erreur validation A");
-      }
-
-      if (hasB) {
-        const resB = await fetch(
-          CONFIG.APPS_SCRIPT_URL +
-          '?action=validateSupplier&etab=b&fournisseur=' + encodeURIComponent(sup),
-          { method: 'POST' }
-        );
-        const jsonB = await resB.json();
-        if (!jsonB.ok) throw new Error(jsonB.error || jsonB.message || "Erreur validation B");
-      }
+      if (hasA) await validateSupplierForEtab('A', sup, state.quantities_a);
+      if (hasB) await validateSupplierForEtab('B', sup, state.quantities_b);
 
       await loadData();
       render();
       showToast("✅ Fournisseur validé : " + sup);
-
     } catch (err) {
       console.error(err);
-      showToast("⚠️ " + err.message);
+      showToast("⚠️ " + (err.message || err));
     }
 
     return;
   }
 
-  // Mode établissement simple : validation uniquement sur l'établissement courant
   const etabId = state.etab && state.etab.id;
   if (!etabId || !['a', 'b'].includes(etabId)) {
     showToast("⚠️ Établissement invalide");
@@ -98,24 +75,50 @@ async function validateSupplier(sup) {
   if (!ok) return;
 
   try {
-    const res = await fetch(
-      CONFIG.APPS_SCRIPT_URL +
-      '?action=validateSupplier&etab=' + etabId + '&fournisseur=' + encodeURIComponent(sup),
-      { method: 'POST' }
-    );
-
-    const json = await res.json();
-    if (!json.ok) {
-      throw new Error(json.error || json.message || "Erreur de validation");
-    }
+    await validateSupplierForEtab(etabId.toUpperCase(), sup, state.quantities);
 
     await loadData();
     render();
     closeSummary();
     showToast("✅ Fournisseur validé : " + sup);
-
   } catch (err) {
     console.error(err);
-    showToast("⚠️ " + err.message);
+    showToast("⚠️ " + (err.message || err));
   }
+}
+
+/**
+ * Valide un fournisseur pour un établissement donné.
+ * On archive puis on supprime uniquement les lignes du fournisseur concerné.
+ */
+async function validateSupplierForEtab(etabId, sup, quantitiesMap) {
+  const E = String(etabId || '').trim().toUpperCase();
+
+  const supplierProducts = state.produits.filter(p =>
+    p.fournisseur === sup && (quantitiesMap[productKey(p)] || 0) > 0
+  );
+
+  if (!supplierProducts.length) {
+    return true;
+  }
+
+  const references = supplierProducts
+    .map(p => (p.reference || '').trim())
+    .filter(Boolean);
+
+  const fournisseurId = supplierProducts[0]?.fournisseur_id || null;
+
+  await sbArchiveCommandeRows(
+    E,
+    {
+      fournisseur_id: fournisseurId,
+      references
+    },
+    {
+      note: '',
+      deleteSource: true
+    }
+  );
+
+  return true;
 }

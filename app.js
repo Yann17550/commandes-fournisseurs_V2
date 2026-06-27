@@ -3,7 +3,6 @@
 //  Multi-etablissement, colissage, historique, edition inline
 // ============================================================
 
-
 // ============================================================
 //  APPRENTISSAGE
 // ============================================================
@@ -31,7 +30,6 @@ function recordOrder(quantities) {
   saveScores(scores);
 }
 
-
 // ============================================================
 //  ETABLISSEMENT
 // ============================================================
@@ -44,7 +42,6 @@ function getSavedEtab() {
 function saveEtabLocal(id) {
   localStorage.setItem(ETAB_KEY, id);
 }
-
 
 // ============================================================
 //  DOM
@@ -72,8 +69,6 @@ const saveStatusEl = $('saveStatus');
 
 const editModal = $('editModal');
 const addModal = $('addModal');
-
-
 
 // ============================================================
 //  FILTRAGE ETABLISSEMENT
@@ -112,7 +107,6 @@ function getNbUnites(p, qtyColis) {
   return qtyColis * getProductData(p).colissage;
 }
 
-
 // ============================================================
 //  CHARGEMENT
 // ============================================================
@@ -122,23 +116,113 @@ async function loadDataCore() {
   state.error = null;
 
   try {
-    const tsvP = await fetch(CONFIG.SHEETS.produits, { cache: 'no-store' })
-      .then(r => {
-        if (!r.ok) throw new Error('HTTP ' + r.status);
-        return r.text();
-      });
+    const [
+      { data: produitsData, error: produitsError },
+      { data: fournisseursData, error: fournisseursError }
+    ] = await Promise.all([
+      supabaseClient
+        .from('produits')
+        .select(`
+          id,
+          reference,
+          designation_produit,
+          designation_fournisseur,
+          nom_court,
+          categorie,
+          ordre_cat,
+          tva,
+          prix_unitaire_ht,
+          colisage,
+          prix_colis,
+          droit_alcool,
+          taxe_securite_sociale,
+          actif,
+          fournisseurs (
+            id,
+            nom,
+            ordre,
+            actif
+          )
+        `)
+        .eq('actif', true),
 
-    const tsvF = await fetch(CONFIG.SHEETS.fournisseurs, { cache: 'no-store' })
-      .then(r => r.text())
-      .catch(() => '');
+      supabaseClient
+        .from('fournisseurs')
+        .select(`
+          id,
+          nom,
+          telephone,
+          contact,
+          jour_appel_saison,
+          jour_appel_hors_saison,
+          notes,
+          ordre,
+          actif
+        `)
+        .eq('actif', true)
+        .order('ordre', { ascending: true })
+        .order('nom', { ascending: true })
+    ]);
 
-    state.produits = parseProduits(tsvP);
-    state.fournisseurs = parseFournisseurs(tsvF);
+    if (produitsError) throw produitsError;
+    if (fournisseursError) throw fournisseursError;
+
+    state.produits = (produitsData || [])
+      .map(r => {
+        const fournisseurNom = (r.fournisseurs?.nom || '').trim();
+        const designation = (r.designation_produit || '').trim();
+        const nomCourt =
+          (r.nom_court || '').trim() ||
+          designation ||
+          ('REF ' + ((r.reference || '').trim() || r.id));
+
+        return {
+          id: r.id,
+          fournisseur: fournisseurNom,
+          fournisseur_id: r.fournisseurs?.id || null,
+          reference: (r.reference || '').trim(),
+          designation: (r.designation_fournisseur || r.designation_produit || '').trim(),
+          designation_produit: (r.designation_produit || '').trim(),
+          designation_fournisseur: (r.designation_fournisseur || '').trim(),
+          label: cleanDesignation(designation || nomCourt),
+          tva: parseNum(r.tva),
+          prix_ht: parseNum(r.prix_unitaire_ht),
+          droit_alcool: parseNum(r.droit_alcool),
+          taxe_secu: parseNum(r.taxe_securite_sociale),
+          nom_court: nomCourt,
+          categorie: (r.categorie || 'Divers').trim(),
+          colissage: parseNum(r.colisage) || 1,
+          prix_colis: parseNum(r.prix_colis),
+          etablissement: 'AB',
+          actif: true,
+          isTemp: false,
+          ordre_fournisseur: parseNum(r.fournisseurs?.ordre) || 999,
+          ordre_categorie: parseNum(r.ordre_cat) || 999,
+        };
+      })
+      .filter(p => p.fournisseur);
+
+    state.fournisseurs = {};
+    (fournisseursData || []).forEach(r => {
+      const nom = (r.nom || '').trim();
+      if (!nom) return;
+
+      state.fournisseurs[nom] = {
+        telephone: (r.telephone || '').trim(),
+        contact: (r.contact || '').trim(),
+        jour_saison: (r.jour_appel_saison || '').trim(),
+        jour_hors_saison: (r.jour_appel_hors_saison || '').trim(),
+        notes: (r.notes || '').trim(),
+      };
+    });
+
     state.loaded = true;
 
     if (state.etab && state.etab.id === 'gerant') {
-      const savedA = await loadCommandeRemoteById('a');
-      const savedB = await loadCommandeRemoteById('b');
+      const [savedA, savedB] = await Promise.all([
+        loadCommandeRemoteById('A'),
+        loadCommandeRemoteById('B')
+      ]);
 
       state.quantities_a = savedA || {};
       state.quantities_b = savedB || {};
@@ -150,17 +234,24 @@ async function loadDataCore() {
         showToast('📂 Commandes restaurées');
       }
     } else {
-      const saved = await loadCommandeRemote();
-      const histo = await loadHistoRemote();
+      const [saved, histo] = await Promise.all([
+        loadCommandeRemote(),
+        loadHistoRemote()
+      ]);
 
-      if (Object.keys(saved).length > 0) {
+      if (Object.keys(saved || {}).length > 0) {
         state.quantities = saved;
         showToast('📂 Commande restaurée');
+      } else {
+        state.quantities = {};
       }
 
       if (histo && histo.quantities) {
         state.lastOrder = histo.quantities;
         state.lastSemaine = histo.semaine || '';
+      } else {
+        state.lastOrder = {};
+        state.lastSemaine = '';
       }
     }
 
@@ -172,7 +263,6 @@ async function loadDataCore() {
     renderError();
   }
 }
-
 
 // ============================================================
 //  FOURNISSEURS
@@ -219,7 +309,6 @@ function sortProducts(prods) {
     return a.nom_court.localeCompare(b.nom_court, 'fr');
   });
 }
-
 
 // ============================================================
 //  RECAPITULATIF
@@ -321,7 +410,6 @@ function renderSummary() {
 
     $('copyBtnA').style.display = 'block';
     $('copyBtnB').style.display = 'block';
-
   } else {
     const suppliers = getSuppliers();
 
@@ -370,13 +458,9 @@ function renderSummary() {
   summaryContent.innerHTML = html;
 }
 
-
 // ============================================================
 //  DEMARRAGE APPLICATION
 // ============================================================
-console.log("[TRACE] Initialisation de l'application");
-
-document.addEventListener("DOMContentLoaded", () => {
-  console.log("[TRACE] DOMContentLoaded → lancement renderEtabScreen()");
+document.addEventListener('DOMContentLoaded', () => {
   renderEtabScreen();
 });
