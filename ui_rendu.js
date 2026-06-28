@@ -1,17 +1,17 @@
 // ============================================================
-//  Fichier:ui_rendu.js
-//  UI — RENDU GLOBAL (render, erreurs, total, interactions)
+//  Fichier : ui_rendu.js
+//  UI — rendu global, erreurs, interactions globales
 // ============================================================
 
 /**
  * Ce fichier gère :
  * - le rendu global de l'écran principal ;
  * - l'affichage des erreurs ;
- * - les interactions globales liées à la zone produit,
- *   notamment l'ouverture de la modale d'édition.
+ * - les interactions globales liées à la zone produit ;
+ * - notamment l'ouverture de la modale d'édition via le bouton edit.
  *
- * Le rendu HTML détaillé des produits reste dans rendu_produit.js.
- * Ici, on se contente de brancher les comportements UI transverses.
+ * Le HTML détaillé des produits est généré dans rendu_produit.js.
+ * Ici, on ne fait que brancher les comportements transverses.
  */
 
 // ============================================================
@@ -29,6 +29,54 @@ let productListUiBound = false;
 // ============================================================
 
 /**
+ * Retourne le bouton edit si le clic provient bien d'un bouton
+ * d'édition ou d'un de ses descendants.
+ */
+function getEditButtonFromEvent(event) {
+  if (!event || !event.target) {
+    return null;
+  }
+
+  return event.target.closest('.edit-btn');
+}
+
+/**
+ * Retourne le bloc produit parent lié au bouton edit.
+ * On s'appuie sur le conteneur .Article_ab qui porte aussi data-key.
+ */
+function getProductCardFromEditButton(editBtn) {
+  if (!editBtn) {
+    return null;
+  }
+
+  return editBtn.closest('.Article_ab');
+}
+
+/**
+ * Retourne la clé produit la plus fiable possible.
+ *
+ * Priorité :
+ * 1. data-key du conteneur produit ;
+ * 2. data-key du bouton edit ;
+ * 3. null si rien n'est disponible.
+ */
+function getProductKeyFromEditButton(editBtn) {
+  const card = getProductCardFromEditButton(editBtn);
+
+  const cardKey = card?.dataset?.key || '';
+  if (cardKey) {
+    return cardKey;
+  }
+
+  const buttonKey = editBtn?.dataset?.key || '';
+  if (buttonKey) {
+    return buttonKey;
+  }
+
+  return null;
+}
+
+/**
  * Recherche un produit à partir de sa clé d'interface.
  * La clé attendue est celle produite par productKey(p).
  */
@@ -41,15 +89,63 @@ function findProduitByKey(key) {
 }
 
 /**
- * Retourne le bouton edit cliqué si le clic provient bien
- * d'un bouton d'édition ou d'un de ses descendants.
+ * Variante de secours :
+ * si jamais la clé n'est pas exploitable, on tente une recherche
+ * à partir de quelques informations visibles dans la carte produit.
+ *
+ * Cette fonction est volontairement secondaire.
+ * Elle sert uniquement à éviter une panne totale si la clé échoue.
  */
-function getEditButtonFromEvent(event) {
-  if (!event || !event.target) {
+function findProduitFromCardFallback(card) {
+  if (!card) {
     return null;
   }
 
-  return event.target.closest('.edit-btn');
+  const refText = card.querySelector('.product-ref')?.textContent?.trim() || '';
+  if (!refText) {
+    return null;
+  }
+
+  return (
+    (state.produits || []).find((p) => {
+      const ref = (getProductData(p).reference || '').trim();
+      return ref && ref === refText;
+    }) || null
+  );
+}
+
+/**
+ * Résout le produit à éditer à partir de l'événement click.
+ * On utilise d'abord la clé, puis un fallback par référence si besoin.
+ */
+function resolveProduitFromEditClick(event) {
+  const editBtn = getEditButtonFromEvent(event);
+
+  if (!editBtn) {
+    return null;
+  }
+
+  const key = getProductKeyFromEditButton(editBtn);
+  let produit = findProduitByKey(key);
+
+  if (produit) {
+    return produit;
+  }
+
+  const card = getProductCardFromEditButton(editBtn);
+  produit = findProduitFromCardFallback(card);
+
+  if (produit) {
+    return produit;
+  }
+
+  console.error('Produit introuvable pour ouverture de la modale d’édition.', {
+    key,
+    buttonDataset: editBtn.dataset,
+    cardDataset: card ? card.dataset : null
+  });
+
+  return null;
 }
 
 // ============================================================
@@ -58,7 +154,7 @@ function getEditButtonFromEvent(event) {
 
 /**
  * Gère les clics dans la liste produits.
- * Ici, on intercepte le bouton "edit" via délégation d'événements.
+ * Ici, on intercepte le bouton edit via délégation d'événements.
  */
 function handleProductListClick(event) {
   const editBtn = getEditButtonFromEvent(event);
@@ -67,11 +163,10 @@ function handleProductListClick(event) {
     return;
   }
 
-  const key = editBtn.dataset.key;
-  const produit = findProduitByKey(key);
+  const produit = resolveProduitFromEditClick(event);
 
   if (!produit) {
-    console.error('Produit introuvable pour ouverture de la modale d’édition.', key);
+    showToast('❌ Impossible de retrouver ce produit pour édition');
     return;
   }
 
@@ -107,8 +202,8 @@ function bindProductListUi() {
  * - cache l'état de chargement ;
  * - affiche la liste ;
  * - met à jour le libellé de semaine ;
- * - lance le rendu accordion ;
- * - s'assure que les interactions globales sont bien branchées.
+ * - branche les interactions globales ;
+ * - lance le rendu accordion.
  */
 function render() {
   loadingState.style.display = 'none';
