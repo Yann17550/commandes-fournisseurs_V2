@@ -1,4 +1,5 @@
 /* ============================================================
+   Fichier : commandes.css
    PAGE COMMANDES — FOURNISSEURS & PRODUITS
    ============================================================ */
 
@@ -30,9 +31,9 @@ main {
   margin-bottom: 8px;
   overflow: hidden;
 
-  width: 100%;           /* remplit la largeur disponible */
-  max-width: 100%;       /* ne dépasse jamais le conteneur */
-  box-sizing: border-box;/* bordure + padding inclus dans les 100% */
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
 }
 
 .accordion-block.is-open {
@@ -75,7 +76,7 @@ main {
 }
 
 .acc-badge--empty {
-  visibility: hidden;   /* garde la place, sans afficher le badge */
+  visibility: hidden;
 }
 
 /* Badge total : plus sobre */
@@ -85,8 +86,8 @@ main {
   font-weight: 500;
   padding: 3px 8px;
   border-radius: 999px;
-  background: var(--surface);  /* fond clair */
-  color: var(--accent);        /* texte accent */
+  background: var(--surface);
+  color: var(--accent);
   border: 1px solid var(--accent);
   white-space: nowrap;
 }
@@ -183,18 +184,21 @@ main {
 
 /* ============================================================
    PRODUITS A/B — LAYOUT COMPACT
-   Ligne 1 : nom | colissage
-   Ligne 2 : référence + bouton modif | stepper
+   Structure validée :
+   Ligne 1 : nom produit | designation | colissage
+   Ligne 2 : référence | prix colis | edit | stepper
+   Référentiel mobile inspiré de gerant.css :
+   - pas de scroll horizontal
+   - stepper toujours visible
+   - hiérarchie visuelle : nom + stepper
    ============================================================ */
 
 .Article_ab {
-  display: grid;
-  grid-template-rows: auto auto;
-  row-gap: 4px;
   width: 100%;
-  padding: 8px 10px;
+  padding: 6px 10px;
   border-bottom: 1px solid var(--border);
   background: var(--surface);
+  box-sizing: border-box;
 }
 
 .Article_ab.has-qty {
@@ -205,48 +209,102 @@ main {
   padding-left: 18px;
 }
 
+/* ============================================================
+   LIGNES INTERNES
+   ============================================================ */
+
 .line1_ab {
   display: grid;
-  grid-template-columns: 2fr 1fr;
-  align-items: center;
-  column-gap: 8px;
+  grid-template-columns: 34% 46% 20%;
+  height: 30px;
+  background: transparent;
   min-width: 0;
-}
-
-.nom_article_ab {
-  min-width: 0;
-  font-size: 14px;
-  font-weight: 600;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.colissage_ab {
-  font-size: 11px;
-  color: var(--text-muted);
-  white-space: nowrap;
-  justify-self: end;
 }
 
 .line2_ab {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  align-items: center;
-  gap: 8px;
+  grid-template-columns: 14% 16% 10% minmax(0, 1fr);
+  height: 30px;
+  background: transparent;
   min-width: 0;
 }
 
-.ref-edit_ab {
+/* Tous les blocs remplissent la hauteur de leur ligne */
+.line1_ab > div,
+.line2_ab > div {
   display: flex;
   align-items: center;
-  gap: 6px;
+  justify-content: flex-start;
+  padding: 0 1px;
+  font-size: 12px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  height: 100%;
+  box-sizing: border-box;
+  min-width: 0;
+}
+
+/* Ligne 1 : on autorise le texte à se tasser proprement */
+.line1_ab > div {
+  white-space: nowrap;
+}
+
+/* Ligne 2 : tenue compacte sans débordement */
+.line2_ab > div {
+  white-space: nowrap;
+}
+
+
+/* ============================================================
+   LIGNE 1
+   nom produit | designation | colissage
+   ============================================================ */
+
+.bloc1-1_ab {
+  font-weight: 600;
+  font-size: 13px;
+  color: var(--text);
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.bloc1-2_ab {
+  font-weight: 400;
+  font-size: 12px;
+  color: var(--text-muted);
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.bloc1-3_ab {
+  justify-content: flex-end !important;
+  font-size: 11px;
+  color: var(--text-muted);
+  text-align: right;
+  white-space: nowrap;
+}
+
+
+/* ============================================================
+   LIGNE 2
+   référence | prix colis | edit | stepper
+   ============================================================ */
+
+.bloc2-1_ab {
+  font-size: 10px;
+  color: var(--text-light);
+  font-family: var(--font-mono);
+  justify-content: center;
   min-width: 0;
 }
 
 .reference_ab {
   min-width: 0;
-  font-size: 11px;
+  font-size: 10px;
   color: var(--text-light);
   font-family: var(--font-mono);
   white-space: nowrap;
@@ -254,14 +312,40 @@ main {
   text-overflow: ellipsis;
 }
 
+.bloc2-2_ab {
+  font-size: 10px;
+  color: var(--text-muted);
+  justify-content: center;
+  text-align: center;
+  line-height: 1.2;
+}
+
+.prix-colis_ab {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.bloc2-3_ab {
+  justify-content: center;
+  padding: 0 2px;
+}
+
 .edit-btn-ab {
   flex: 0 0 auto;
   border: none;
   background: transparent;
   cursor: pointer;
-  font-size: 14px;
+  font-size: 11px;
   line-height: 1;
-  padding: 2px 4px;
+  padding: 2px 3px;
+  color: var(--text-light);
+  opacity: 0.65;
+  text-transform: lowercase;
+}
+
+.edit-btn-ab:active {
+  opacity: 1;
 }
 
 .ref-override {
@@ -269,18 +353,30 @@ main {
   font-weight: 600;
 }
 
+
+/* ============================================================
+   STEPPER
+   ============================================================ */
+
+.bloc2-4_ab {
+  padding: 0 1px;
+  min-width: 0;
+}
+
 .stepper_ab {
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
   display: grid;
-  grid-template-columns: 22px 28px 22px max-content;
+  grid-template-columns: auto auto auto 1fr;
   align-items: center;
   column-gap: 4px;
-  flex: 0 0 auto;
-  width: max-content;
-  padding: 2px 4px;
+  padding: 1px 1px;
   border-radius: 8px;
   background: var(--bg);
   border: 1px solid var(--border-mid);
   box-shadow: 0 1px 2px rgba(0,0,0,0.08);
+  font-size: 12px;
 }
 
 .stepper_ab .qty-btn {
@@ -318,48 +414,54 @@ main {
 }
 
 .total_ab {
-  min-width: max-content;
   text-align: right;
   font-family: var(--font-mono);
   font-size: 11px;
+  max-width: 60px;
+  overflow: hidden;
+  text-overflow: ellipsis;
   white-space: nowrap;
   color: var(--accent-text);
 }
 
+
+/* ============================================================
+   RESPONSIVE TÉLÉPHONE
+   ============================================================ */
+
 @media (max-width: 420px) {
   .Article_ab {
-    padding: 8px 9px;
+    padding: 6px 9px;
   }
 
   .line1_ab {
-    column-gap: 6px;
+    grid-template-columns: 33% 45% 22%;
+    height: 30px;
   }
 
   .line2_ab {
-    gap: 6px;
+    grid-template-columns: 14% 16% 10% minmax(0, 1fr);
+    height: 30px;
   }
 
-  .ref-edit_ab {
-    gap: 4px;
-  }
-
-  .nom_article_ab {
+  .bloc1-1_ab {
     font-size: 13px;
   }
 
-  .colissage_ab,
+  .bloc1-2_ab,
+  .bloc1-3_ab,
   .reference_ab,
+  .prix-colis_ab,
   .total_ab {
-    font-size: 11px;
+    font-size: 10px;
   }
 
   .edit-btn-ab {
-    font-size: 13px;
-    padding: 2px 3px;
+    font-size: 10px;
+    padding: 2px 2px;
   }
 
   .stepper_ab {
-    grid-template-columns: 20px 26px 20px auto;
     column-gap: 3px;
   }
 
@@ -376,6 +478,6 @@ main {
   }
 
   .total_ab {
-    min-width: 38px;
+    max-width: 52px;
   }
 }
