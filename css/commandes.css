@@ -278,6 +278,8 @@ main {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  justify-content: flex-start;
+  text-align: left;
 }
 
 .bloc1-3_ab {
