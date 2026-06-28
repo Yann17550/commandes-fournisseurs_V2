@@ -24,8 +24,7 @@
 // ============================================================
 
 /**
- * Indique si les écouteurs de la modale ont déjà été branchés.
- * Cela évite les doubles addEventListener en cas de réinitialisation.
+ * Empêche de brancher deux fois les écouteurs de la modale.
  */
 let addModalEventsBound = false;
 
@@ -35,7 +34,7 @@ let addModalEventsBound = false;
 
 /**
  * Retourne toutes les références utiles de la modale d'ajout.
- * On récupère les éléments à la demande car ils sont injectés dynamiquement.
+ * Les éléments sont récupérés à la demande car la modale est injectée dynamiquement.
  */
 function getAddModalElements() {
   return {
@@ -54,7 +53,7 @@ function getAddModalElements() {
 }
 
 /**
- * Vérifie que tous les éléments essentiels de la modale existent.
+ * Vérifie la présence de tous les éléments critiques de la modale.
  */
 function hasAddModalRequiredElements(elements) {
   return Boolean(
@@ -77,7 +76,7 @@ function hasAddModalRequiredElements(elements) {
 // ============================================================
 
 /**
- * Réinitialise tous les champs de la modale d'ajout.
+ * Réinitialise le formulaire d'ajout.
  */
 function resetAddModalForm() {
   const elements = getAddModalElements();
@@ -96,8 +95,8 @@ function resetAddModalForm() {
 }
 
 /**
- * Ouvre la modale d'ajout.
- * Avant affichage, on recharge la liste des fournisseurs et on remet le formulaire à zéro.
+ * Ouvre la modale d'ajout après avoir rempli la liste fournisseurs
+ * et remis le formulaire à zéro.
  */
 function openAddModal() {
   const elements = getAddModalElements();
@@ -166,19 +165,30 @@ function handleAddModalEscape(event) {
 // ============================================================
 
 /**
- * Retourne la liste des fournisseurs actifs,
- * triés par ordre alphabétique à partir de state.fournisseurs.
+ * Retourne la liste des noms fournisseurs disponibles,
+ * triés d'abord par ordre, puis par nom.
  *
- * Note :
- * state.fournisseurs est ici un objet indexé par nom,
- * donc on reconstruit une liste à partir de ses clés.
+ * Comme app.js enrichit désormais state.fournisseurs avec id, ordre et actif,
+ * on peut s'appuyer directement dessus sans reconstituer l'information ailleurs.
  */
 function getAvailableSupplierNamesForAdd() {
-  return Object.keys(state.fournisseurs || {}).sort((a, b) => a.localeCompare(b, 'fr'));
+  return Object.values(state.fournisseurs || {})
+    .filter((f) => f && f.actif !== false && f.nom)
+    .sort((a, b) => {
+      const ordreA = Number.isFinite(a.ordre) ? a.ordre : 999;
+      const ordreB = Number.isFinite(b.ordre) ? b.ordre : 999;
+
+      if (ordreA !== ordreB) {
+        return ordreA - ordreB;
+      }
+
+      return a.nom.localeCompare(b.nom, 'fr');
+    })
+    .map((f) => f.nom);
 }
 
 /**
- * Remplit la liste déroulante des fournisseurs dans la modale d'ajout.
+ * Remplit la liste déroulante des fournisseurs.
  */
 function populateAddFournisseurOptions() {
   const elements = getAddModalElements();
@@ -197,20 +207,29 @@ function populateAddFournisseurOptions() {
   `;
 }
 
+/**
+ * Retourne directement l'id fournisseur à partir de state.fournisseurs.
+ * C'est précisément l'amélioration anticipée dans le nouveau app.js.
+ */
+function findFournisseurIdByName(fournisseurNom) {
+  const fournisseur = state.fournisseurs?.[fournisseurNom];
+  return fournisseur?.id || null;
+}
+
 // ============================================================
 //  NORMALISATION / VALIDATION
 // ============================================================
 
 /**
- * Nettoie une chaîne texte simple.
+ * Nettoie une chaîne saisie dans le formulaire.
  */
 function sanitizeAddText(value) {
   return String(value || '').trim();
 }
 
 /**
- * Parse un prix saisi dans l'interface.
- * Accepte la virgule ou le point comme séparateur décimal.
+ * Convertit un prix saisi en nombre.
+ * Accepte virgule ou point comme séparateur décimal.
  */
 function parseAddPrixInput(value) {
   const n = parseFloat(String(value).replace(',', '.'));
@@ -218,8 +237,7 @@ function parseAddPrixInput(value) {
 }
 
 /**
- * Parse un colisage saisi dans l'interface.
- * Doit être un entier >= 1.
+ * Convertit un colisage saisi en entier >= 1.
  */
 function parseAddColissageInput(value) {
   const n = parseInt(String(value), 10);
@@ -227,23 +245,16 @@ function parseAddColissageInput(value) {
 }
 
 /**
- * Tente de retrouver l'identifiant fournisseur à partir de son nom.
- * La source disponible dans app.js ne stocke pas encore l'id fournisseur
- * dans state.fournisseurs, donc on recherche dans state.produits.
- *
- * Cette stratégie suppose qu'au moins un produit existe déjà pour ce fournisseur.
- * Si plus tard tu stockes directement l'id dans state.fournisseurs,
- * cette fonction pourra être simplifiée.
+ * Arrondit à 2 décimales.
  */
-function findFournisseurIdByName(fournisseurNom) {
-  const found = (state.produits || []).find((p) => p.fournisseur === fournisseurNom);
-  return found ? found.fournisseur_id : null;
+function roundAddTo2(value) {
+  return Math.round((Number(value) + Number.EPSILON) * 100) / 100;
 }
 
 /**
- * Lit et valide les champs du formulaire d'ajout.
- * Retourne un objet prêt pour insertion si tout est correct.
- * Retourne null en cas d'erreur.
+ * Lit et valide les champs de la modale d'ajout.
+ * Retourne un objet prêt pour insertion si tout est correct,
+ * sinon retourne null.
  */
 function getValidatedAddPayload() {
   const elements = getAddModalElements();
@@ -308,33 +319,29 @@ function getValidatedAddPayload() {
   };
 }
 
-/**
- * Arrondit un nombre à 2 décimales.
- */
-function roundAddTo2(value) {
-  return Math.round((Number(value) + Number.EPSILON) * 100) / 100;
-}
-
 // ============================================================
 //  SYNCHRONISATION ETAT LOCAL
 // ============================================================
 
 /**
- * Ajoute localement le produit créé dans state.produits
- * afin d'éviter un rechargement complet immédiat.
+ * Injecte localement le nouveau produit dans state.produits
+ * pour éviter un rechargement complet immédiat après insertion.
  */
 function appendProductToState(createdRow, fournisseurNom) {
   const designationProduit = (createdRow.designation_produit || '').trim();
   const designationFournisseur = (createdRow.designation_fournisseur || '').trim();
+
   const nomCourt =
     (createdRow.nom_court || '').trim() ||
     designationProduit ||
     ('REF ' + ((createdRow.reference || '').trim() || createdRow.id));
 
+  const fournisseurMeta = state.fournisseurs?.[fournisseurNom] || {};
+
   state.produits.push({
     id: createdRow.id,
     fournisseur: fournisseurNom,
-    fournisseur_id: createdRow.fournisseur_id || null,
+    fournisseur_id: createdRow.fournisseur_id || fournisseurMeta.id || null,
     reference: (createdRow.reference || '').trim(),
     designation: (designationFournisseur || designationProduit).trim(),
     designation_produit: designationProduit,
@@ -351,7 +358,7 @@ function appendProductToState(createdRow, fournisseurNom) {
     etablissement: 'AB',
     actif: true,
     isTemp: false,
-    ordre_fournisseur: 999,
+    ordre_fournisseur: Number.isFinite(fournisseurMeta.ordre) ? fournisseurMeta.ordre : 999,
     ordre_categorie: parseNum(createdRow.ordre_cat) || 999,
   });
 }
@@ -361,7 +368,8 @@ function appendProductToState(createdRow, fournisseurNom) {
 // ============================================================
 
 /**
- * Sauvegarde le nouveau produit dans Supabase.
+ * Sauvegarde le produit créé dans Supabase,
+ * puis met à jour l'état local et relance le rendu.
  */
 async function saveAddModal() {
   const elements = getAddModalElements();
@@ -437,7 +445,7 @@ async function saveAddModal() {
 // ============================================================
 
 /**
- * Branche tous les écouteurs de la modale d'ajout.
+ * Branche les écouteurs de la modale d'ajout.
  * Cette fonction ne doit être exécutée qu'une seule fois.
  */
 function bindAddModalEvents() {
@@ -475,9 +483,6 @@ function initAddModal() {
 
 /**
  * Exposition globale minimale pour l'architecture actuelle en scripts classiques.
- * - initAddModal() : branche les événements
- * - openAddModal() : ouvre la modale d'ajout
- * - closeAddModal() : ferme la modale d'ajout
  */
 window.initAddModal = initAddModal;
 window.openAddModal = openAddModal;
