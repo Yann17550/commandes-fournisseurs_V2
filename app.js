@@ -9,14 +9,13 @@
 
 /**
  * Clé localStorage utilisée pour mémoriser les habitudes de commande.
- * Le but est d'aider certains tris ou affichages à partir des commandes passées.
+ * Ces scores servent ensuite à favoriser certains produits dans le tri.
  */
 const LEARN_KEY = 'cmd_scores';
 
 /**
  * Lit les scores d'apprentissage depuis le localStorage.
- * En cas d'absence, de JSON invalide ou d'erreur d'accès,
- * on renvoie simplement un objet vide.
+ * Si la donnée n'existe pas ou est invalide, on renvoie un objet vide.
  */
 function getScores() {
   try {
@@ -28,24 +27,24 @@ function getScores() {
 
 /**
  * Sauvegarde les scores d'apprentissage dans le localStorage.
- * Les erreurs sont volontairement silencieuses pour ne pas bloquer l'application.
+ * Les erreurs sont silencieuses pour ne pas bloquer l'application.
  */
-function saveScores(s) {
+function saveScores(scores) {
   try {
-    localStorage.setItem(LEARN_KEY, JSON.stringify(s));
+    localStorage.setItem(LEARN_KEY, JSON.stringify(scores));
   } catch {}
 }
 
 /**
- * Enregistre une commande dans les scores d'apprentissage.
+ * Enregistre une commande terminée dans les scores d'apprentissage.
  * Chaque produit commandé au moins une fois voit son score augmenter.
  */
 function recordOrder(quantities) {
   const scores = getScores();
 
-  Object.entries(quantities).forEach(([k, q]) => {
-    if (q > 0) {
-      scores[k] = (scores[k] || 0) + 1;
+  Object.entries(quantities).forEach(([key, qty]) => {
+    if (qty > 0) {
+      scores[key] = (scores[key] || 0) + 1;
     }
   });
 
@@ -62,14 +61,14 @@ function recordOrder(quantities) {
 const ETAB_KEY = 'cmd_etab';
 
 /**
- * Récupère l'établissement sauvegardé localement.
+ * Retourne l'établissement sauvegardé localement.
  */
 function getSavedEtab() {
   return localStorage.getItem(ETAB_KEY) || null;
 }
 
 /**
- * Sauvegarde l'identifiant d'établissement courant.
+ * Sauvegarde l'établissement courant localement.
  */
 function saveEtabLocal(id) {
   localStorage.setItem(ETAB_KEY, id);
@@ -80,8 +79,8 @@ function saveEtabLocal(id) {
 // ============================================================
 
 /**
- * Références DOM statiques.
- * Ces éléments existent directement dans index.html.
+ * Références DOM présentes directement dans index.html.
+ * Ces éléments existent dès le chargement initial de la page.
  */
 const screenEtab = $('screenEtab');
 const screenApp = $('screenApp');
@@ -105,17 +104,17 @@ const searchInput = $('searchInput');
 const saveStatusEl = $('saveStatus');
 
 /**
- * Références DOM dynamiques.
- * Ces modales ne sont plus présentes en dur dans index.html :
- * elles sont injectées par ui_modals_view.js au démarrage.
+ * Références DOM injectées dynamiquement.
+ * Ces modales ne sont plus écrites en dur dans index.html :
+ * elles sont créées par ui_modals_view.js au démarrage.
  *
- * On les déclare donc en let, puis on les initialise après appel à initModalsView().
+ * On les déclare en let, puis on les relie après injection.
  */
 let editModal = null;
 let addModal = null;
 
 /**
- * Met à jour les références DOM dynamiques une fois les modales injectées.
+ * Relie les références DOM des modales injectées.
  * Cette fonction doit être appelée après initModalsView().
  */
 function bindDynamicModalElements() {
@@ -128,10 +127,10 @@ function bindDynamicModalElements() {
 // ============================================================
 
 /**
- * Retourne la liste des produits visibles pour l'établissement courant.
+ * Retourne les produits visibles selon l'établissement courant.
  * - gérant : tous les produits
- * - établissement A : produits A et AB
- * - établissement B : produits B et AB
+ * - A : produits A et AB
+ * - B : produits B et AB
  */
 function getProduitsForEtab() {
   if (!state.etab || state.etab.id === 'gerant') {
@@ -151,9 +150,8 @@ function getProduitsForEtab() {
 // ============================================================
 
 /**
- * Retourne les données produit en tenant compte des éventuels overrides locaux.
- * Cela permet de travailler avec une vue cohérente du produit
- * même si certaines valeurs ont été ajustées côté interface.
+ * Retourne les données d'un produit en tenant compte
+ * des overrides éventuels présents dans state.overrides.
  */
 function getProductData(p) {
   const ov = state.overrides[productKey(p)] || {};
@@ -163,13 +161,14 @@ function getProductData(p) {
     reference: ov.reference !== undefined ? ov.reference : p.reference,
     prix_ht: ov.prix_ht !== undefined ? ov.prix_ht : p.prix_ht,
     colissage: ov.colissage !== undefined ? ov.colissage : p.colissage,
+    prix_colis: ov.prix_colis !== undefined ? ov.prix_colis : p.prix_colis,
   };
 }
 
 /**
- * Calcule le prix colis d'un produit.
- * Si un prix colis explicite existe et est valide, il est utilisé ;
- * sinon on le recalcule à partir du prix unitaire HT et du colisage.
+ * Retourne le prix colis d'un produit.
+ * Si un prix colis explicite existe, il est prioritaire ;
+ * sinon on le calcule à partir du prix HT unitaire et du colisage.
  */
 function getPrixColis(p) {
   const d = getProductData(p);
@@ -177,7 +176,7 @@ function getPrixColis(p) {
 }
 
 /**
- * Convertit une quantité de colis en nombre d'unités.
+ * Convertit un nombre de colis en nombre d'unités.
  */
 function getNbUnites(p, qtyColis) {
   return qtyColis * getProductData(p).colissage;
@@ -188,8 +187,11 @@ function getNbUnites(p, qtyColis) {
 // ============================================================
 
 /**
- * Charge les données produits et fournisseurs depuis Supabase,
- * puis recharge les commandes sauvegardées et l'historique éventuel.
+ * Charge les produits et les fournisseurs depuis Supabase,
+ * puis recharge les commandes sauvegardées et l'historique.
+ *
+ * Cette fonction prépare aussi state.fournisseurs avec une structure
+ * plus riche afin d'alimenter proprement les futurs modules UI.
  */
 async function loadDataCore() {
   loadingState.style.display = 'flex';
@@ -251,10 +253,12 @@ async function loadDataCore() {
     state.produits = (produitsData || [])
       .map((r) => {
         const fournisseurNom = (r.fournisseurs?.nom || '').trim();
-        const designation = (r.designation_produit || '').trim();
+        const designationProduit = (r.designation_produit || '').trim();
+        const designationFournisseur = (r.designation_fournisseur || '').trim();
+
         const nomCourt =
           (r.nom_court || '').trim() ||
-          designation ||
+          designationProduit ||
           ('REF ' + ((r.reference || '').trim() || r.id));
 
         return {
@@ -262,10 +266,10 @@ async function loadDataCore() {
           fournisseur: fournisseurNom,
           fournisseur_id: r.fournisseurs?.id || null,
           reference: (r.reference || '').trim(),
-          designation: (r.designation_fournisseur || r.designation_produit || '').trim(),
-          designation_produit: (r.designation_produit || '').trim(),
-          designation_fournisseur: (r.designation_fournisseur || '').trim(),
-          label: cleanDesignation(designation || nomCourt),
+          designation: (designationFournisseur || designationProduit).trim(),
+          designation_produit: designationProduit,
+          designation_fournisseur: designationFournisseur,
+          label: cleanDesignation(designationProduit || nomCourt),
           tva: parseNum(r.tva),
           prix_ht: parseNum(r.prix_unitaire_ht),
           droit_alcool: parseNum(r.droit_alcool),
@@ -283,17 +287,26 @@ async function loadDataCore() {
       })
       .filter((p) => p.fournisseur);
 
+    /**
+     * Structure enrichie des fournisseurs.
+     * On garde maintenant aussi l'id, l'ordre et l'état actif,
+     * ce qui évite aux autres modules de reconstituer ces infos ailleurs.
+     */
     state.fournisseurs = {};
     (fournisseursData || []).forEach((r) => {
       const nom = (r.nom || '').trim();
       if (!nom) return;
 
       state.fournisseurs[nom] = {
+        id: r.id || null,
+        nom,
         telephone: (r.telephone || '').trim(),
         contact: (r.contact || '').trim(),
         jour_saison: (r.jour_appel_saison || '').trim(),
         jour_hors_saison: (r.jour_appel_hors_saison || '').trim(),
         notes: (r.notes || '').trim(),
+        ordre: parseNum(r.ordre) || 999,
+        actif: Boolean(r.actif),
       };
     });
 
@@ -353,13 +366,15 @@ async function loadDataCore() {
  * Retourne la liste des fournisseurs visibles pour l'établissement courant.
  */
 function getSuppliers() {
-  const p = getProduitsForEtab();
-  return [...new Set(p.map((x) => x.fournisseur))].sort((a, b) => a.localeCompare(b, 'fr'));
+  const produits = getProduitsForEtab();
+
+  return [...new Set(produits.map((x) => x.fournisseur))]
+    .sort((a, b) => a.localeCompare(b, 'fr'));
 }
 
 /**
- * Retourne les jours d'appel du fournisseur courant,
- * avec indication sur le fait que ce soit aujourd'hui ou non.
+ * Retourne les informations de jour d'appel d'un fournisseur.
+ * Le retour précise aussi si aujourd'hui correspond à un jour d'appel.
  */
 function getJourAppel(nom) {
   const f = state.fournisseurs[nom];
@@ -384,10 +399,10 @@ function getJourAppel(nom) {
 
 /**
  * Trie les produits d'un fournisseur.
- * La logique privilégie :
- * - les produits déjà commandés ;
- * - puis les habitudes enregistrées ;
- * - puis l'ordre alphabétique du nom court.
+ * Priorités :
+ * 1. produits déjà commandés ;
+ * 2. produits les plus souvent commandés historiquement ;
+ * 3. ordre alphabétique sur le nom court.
  */
 function sortProducts(prods) {
   const scores = getScores();
@@ -413,8 +428,8 @@ function sortProducts(prods) {
 // ============================================================
 
 /**
- * Branche les événements de la modale de récapitulatif.
- * Cette modale reste encore définie dans index.html.
+ * Branchement des actions de la modale récapitulative.
+ * Cette modale reste pour l'instant dans index.html.
  */
 summaryBtn.addEventListener('click', openSummary);
 $('closeModal').addEventListener('click', closeSummary);
@@ -424,7 +439,7 @@ $('copyBtnA').addEventListener('click', () => copySummary('a'));
 $('copyBtnB').addEventListener('click', () => copySummary('b'));
 
 /**
- * Ouvre la modale de récapitulatif après avoir recalculé son contenu.
+ * Ouvre la modale de récapitulatif.
  */
 function openSummary() {
   renderSummary();
@@ -439,10 +454,10 @@ function closeSummary() {
 }
 
 /**
- * Rend le contenu HTML du récapitulatif.
- * Il existe deux modes :
- * - mode gérant avec colonnes A/B ;
- * - mode établissement simple avec total unique.
+ * Génère le contenu HTML du récapitulatif.
+ * Deux cas :
+ * - mode gérant avec double colonne A/B ;
+ * - mode simple avec total unique.
  */
 function renderSummary() {
   const isGerant = state.etab && state.etab.id === 'gerant';
@@ -452,9 +467,8 @@ function renderSummary() {
   const produits = triPipeline(state.produits, 'SUMMARY', state);
 
   if (isGerant) {
-    const suppliers = [...new Set(produits.map((p) => p.fournisseur))].sort((a, b) =>
-      a.localeCompare(b, 'fr')
-    );
+    const suppliers = [...new Set(produits.map((p) => p.fournisseur))]
+      .sort((a, b) => a.localeCompare(b, 'fr'));
 
     suppliers.forEach((sup) => {
       const items = produits.filter((p) => p.fournisseur === sup);
@@ -507,16 +521,16 @@ function renderSummary() {
     html += `
       <div class="summary-grand-total summary-grand-total--gerant">
         <div><span>Total A</span><span>${fmtPrice(
-          Object.entries(state.quantities_a).reduce((s, [key, q]) => {
-            const p = produits.find((p) => productKey(p) === key);
-            return s + (q || 0) * getPrixColis(p);
+          Object.entries(state.quantities_a).reduce((sum, [key, qty]) => {
+            const p = produits.find((prod) => productKey(prod) === key);
+            return sum + (qty || 0) * getPrixColis(p);
           }, 0)
         )}</span></div>
 
         <div><span>Total B</span><span>${fmtPrice(
-          Object.entries(state.quantities_b).reduce((s, [key, q]) => {
-            const p = produits.find((p) => productKey(p) === key);
-            return s + (q || 0) * getPrixColis(p);
+          Object.entries(state.quantities_b).reduce((sum, [key, qty]) => {
+            const p = produits.find((prod) => productKey(prod) === key);
+            return sum + (qty || 0) * getPrixColis(p);
           }, 0)
         )}</span></div>
 
@@ -574,23 +588,39 @@ function renderSummary() {
 }
 
 // ============================================================
-//  DEMARRAGE APPLICATION
+//  INITIALISATION
 // ============================================================
 
 /**
- * Point d'entrée principal de l'application.
- *
- * Ordre important :
- * 1. le DOM HTML principal doit être prêt ;
- * 2. les modales dynamiques doivent être injectées ;
- * 3. les références DOM dynamiques doivent être reliées ;
- * 4. ensuite seulement, le reste de l'application peut démarrer.
+ * Initialise toute la couche UI dépendante des modales injectées.
+ * L'ordre est important :
+ * 1. injection du HTML des modales ;
+ * 2. reliure des références DOM dynamiques ;
+ * 3. branchement des comportements edit/add.
  */
-document.addEventListener('DOMContentLoaded', () => {
+function initDynamicUi() {
   if (typeof initModalsView === 'function') {
     initModalsView();
   }
 
   bindDynamicModalElements();
+
+  if (typeof initEditModal === 'function') {
+    initEditModal();
+  }
+
+  if (typeof initAddModal === 'function') {
+    initAddModal();
+  }
+}
+
+/**
+ * Point d'entrée principal de l'application.
+ * Comme les scripts sont chargés en bas du body, l'initialisation
+ * peut être faite lorsque le DOM est prêt, ce qui garantit que
+ * les éléments manipulés existent bien. [web:51][web:24]
+ */
+document.addEventListener('DOMContentLoaded', () => {
+  initDynamicUi();
   renderEtabScreen();
 });
