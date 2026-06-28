@@ -1,4 +1,5 @@
 // ============================================================
+//  Fichier : ui_qty.js
 //  UI — GESTION DES QUANTITÉS (ÉTAB A / B)
 // ============================================================
 
@@ -17,6 +18,15 @@ function onQtyInput(e) {
   setQty(key, qty);
 }
 
+// Recherche produit par clé interface
+function findProduitByKey(key) {
+  if (!key) {
+    return null;
+  }
+
+  return (state.produits || []).find((p) => productKey(p) === key) || null;
+}
+
 // Mise à jour d’une quantité
 function setQty(key, qty) {
   state.quantities[key] = qty;
@@ -24,26 +34,41 @@ function setQty(key, qty) {
   // Mise à jour de la ligne
   const card = productList.querySelector(`.Article_ab[data-key="${CSS.escape(key)}"]`);
   if (card) {
-    const p = state.produits.find(p => productKey(p) === key);
+    const p = findProduitByKey(key);
+
     if (p) {
       const isVariant = card.classList.contains('is-variant');
       const tmp = document.createElement('div');
       tmp.innerHTML = renderProduitAB(p, isVariant, state);
+
       const newCard = tmp.firstElementChild;
       card.replaceWith(newCard);
 
       // Rebind steppers
-      newCard.querySelectorAll('.qty-btn').forEach(b =>
-        b.addEventListener('click', onQtyBtn)
+      newCard.querySelectorAll('.qty-btn').forEach((btn) =>
+        btn.addEventListener('click', onQtyBtn)
       );
-      newCard.querySelectorAll('.qty-input').forEach(i => {
-        i.addEventListener('change', onQtyInput);
-        i.addEventListener('focus', e => e.target.select());
+
+      newCard.querySelectorAll('.qty-input').forEach((input) => {
+        input.addEventListener('change', onQtyInput);
+        input.addEventListener('focus', (e) => e.target.select());
       });
-      newCard.querySelectorAll('.edit-btn').forEach(b =>
-        b.addEventListener('click', ev => {
+
+      newCard.querySelectorAll('.edit-btn').forEach((btn) =>
+        btn.addEventListener('click', (ev) => {
           ev.stopPropagation();
-          openEditModal(b.dataset.key);
+
+          const produit = findProduitByKey(btn.dataset.key);
+          if (!produit) {
+            console.error('Produit introuvable pour édition après rerender quantité.', {
+              key: btn.dataset.key,
+              dataset: btn.dataset
+            });
+            showToast('❌ Impossible de retrouver ce produit pour édition');
+            return;
+          }
+
+          openEditModal(produit);
         })
       );
     }
