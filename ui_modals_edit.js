@@ -325,11 +325,11 @@ async function saveEditModal() {
         colisage,
         prix_colis
       `)
-      .single();
+      .maybesingle();
 
-    if (error) {
-      throw error;
-    }
+    if (!data || !data.id) {
+    throw new Error('Aucune ligne mise à jour dans Supabase');
+    }    
 
     if (!data || !data.id) {
       throw new Error('Aucune ligne mise à jour dans Supabase');
