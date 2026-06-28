@@ -290,8 +290,7 @@ function patchProductInState(productId, updates) {
 /**
  * Sauvegarde les modifications de la modale d'édition dans Supabase.
  * Le produit édité est identifié par son id.
- */
-async function saveEditModal() {
+ */async function saveEditModal() {
   if (!currentEditProduct || !currentEditProduct.id) {
     showToast('❌ Aucun produit sélectionné');
     return;
@@ -325,11 +324,11 @@ async function saveEditModal() {
         colisage,
         prix_colis
       `)
-      .maybesingle();
+      .maybeSingle();
 
-    if (!data || !data.id) {
-    throw new Error('Aucune ligne mise à jour dans Supabase');
-    }    
+    if (error) {
+      throw error;
+    }
 
     if (!data || !data.id) {
       throw new Error('Aucune ligne mise à jour dans Supabase');
