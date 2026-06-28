@@ -309,7 +309,7 @@ async function saveEditModal() {
   elements.saveBtn.textContent = 'Sauvegarde...';
 
   try {
-    const { error } = await supabaseClient
+    const { data, error } = await supabaseClient
       .from('produits')
       .update({
         designation_fournisseur: payload.designation_fournisseur,
@@ -317,13 +317,30 @@ async function saveEditModal() {
         colisage: payload.colisage,
         prix_colis: payload.prix_colis,
       })
-      .eq('id', currentEditProduct.id);
+      .eq('id', currentEditProduct.id)
+      .select(`
+        id,
+        designation_fournisseur,
+        prix_unitaire_ht,
+        colisage,
+        prix_colis
+      `)
+      .single();
 
     if (error) {
       throw error;
     }
 
-    patchProductInState(currentEditProduct.id, payload);
+    if (!data || !data.id) {
+      throw new Error('Aucune ligne mise à jour dans Supabase');
+    }
+
+    patchProductInState(data.id, {
+      designation_fournisseur: data.designation_fournisseur,
+      prix_unitaire_ht: data.prix_unitaire_ht,
+      colisage: data.colisage,
+      prix_colis: data.prix_colis,
+    });
 
     showToast('✅ Produit mis à jour');
     closeEditModal();
@@ -332,7 +349,7 @@ async function saveEditModal() {
       render();
     }
   } catch (err) {
-    console.error(err);
+    console.error('saveEditModal error:', err);
     showToast(`❌ ${err.message || 'Erreur de sauvegarde'}`);
   } finally {
     elements.saveBtn.disabled = false;
