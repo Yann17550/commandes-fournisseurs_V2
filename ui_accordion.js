@@ -1,6 +1,20 @@
 // ============================================================
-//  UI — ACCORDÉON (ÉTAB A / B) 
+//  Fichier : ui_accordion.js
+//  UI — ACCORDÉON (ÉTAB A / B)
 // ============================================================
+
+/**
+ * Ce fichier gère :
+ * - le rendu de l'accordéon fournisseur pour les établissements A/B ;
+ * - l'ouverture / fermeture des blocs fournisseur ;
+ * - le binding des steppers quantité ;
+ * - le binding du bouton edit produit ;
+ * - le bouton d'ajout de produit.
+ *
+ * Point important :
+ * le bouton edit doit transmettre un objet produit complet
+ * à openEditModal(...), et non une simple clé texte.
+ */
 
 // ---- Accordéon principal -----------------------------------
 function renderAccordion() {
@@ -9,10 +23,10 @@ function renderAccordion() {
     return;
   }
 
-  // 🟩 Tri des fournisseurs
+  // Tri des fournisseurs selon leur ordre
   const suppliers = getSuppliers().sort((a, b) => {
-    const fa = state.produits.find(p => p.fournisseur === a)?.ordre_fournisseur || 999;
-    const fb = state.produits.find(p => p.fournisseur === b)?.ordre_fournisseur || 999;
+    const fa = state.produits.find((p) => p.fournisseur === a)?.ordre_fournisseur || 999;
+    const fb = state.produits.find((p) => p.fournisseur === b)?.ordre_fournisseur || 999;
     return fa - fb;
   });
 
@@ -30,17 +44,17 @@ function renderAccordion() {
     </div>
   `;
 
-  suppliers.forEach(sup => {
-    let prods = allProds.filter(p => p.fournisseur === sup);
+  suppliers.forEach((sup) => {
+    let prods = allProds.filter((p) => p.fournisseur === sup);
 
-    // 🟩 Tri global + tri dynamique (LE SEUL TRI)
+    // Tri global pipeline
     prods = triPipeline(prods, state.etab.id, state);
 
     const isOpen = state.openSupplier === sup;
 
-    const ordered = prods.filter(p => (state.quantities[productKey(p)] || 0) > 0);
+    const ordered = prods.filter((p) => (state.quantities[productKey(p)] || 0) > 0);
     const supTotal = ordered.reduce(
-      (s, p) => s + (state.quantities[productKey(p)] || 0) * getPrixColis(p),
+      (sum, p) => sum + (state.quantities[productKey(p)] || 0) * getPrixColis(p),
       0
     );
 
@@ -51,24 +65,27 @@ function renderAccordion() {
          </span>`
       : '';
 
-  html += renderFournisseurBlock(sup, prods, isOpen, state);
-
+    html += renderFournisseurBlock(sup, prods, isOpen, state);
   });
 
   productList.innerHTML = html;
 
   const fab = $('fabAddBtn');
-  if (fab) fab.addEventListener('click', openAddModal);
+  if (fab) {
+    fab.addEventListener('click', openAddModal);
+  }
 
-  productList.querySelectorAll('.accordion-header').forEach(btn => {
+  productList.querySelectorAll('.accordion-header').forEach((btn) => {
     btn.addEventListener('click', () => {
       const sup = btn.dataset.sup;
       state.openSupplier = state.openSupplier === sup ? null : sup;
       renderAccordion();
 
       setTimeout(() => {
-        const o = productList.querySelector('.accordion-block.is-open');
-        if (o) o.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        const opened = productList.querySelector('.accordion-block.is-open');
+        if (opened) {
+          opened.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
       }, 40);
     });
   });
@@ -76,14 +93,14 @@ function renderAccordion() {
   bindSteppers();
 }
 
-
 // ---- Corps du fournisseur ----------------------------------
 function renderSupplierBody(prods) {
-  if (!prods.length)
+  if (!prods.length) {
     return '<div class="acc-body"><div class="empty-state"><p>Aucun produit</p></div></div>';
+  }
 
   const scores = getScores();
-  const sorted = prods; // 🟩 NE PAS RE-TRIER ICI
+  const sorted = prods; // Ne pas retraiter ici
 
   const sup = prods[0].fournisseur;
   const fInfo = state.fournisseurs[sup] || {};
@@ -95,18 +112,21 @@ function renderSupplierBody(prods) {
   if (fInfo.telephone) infos.push('📱 ' + escHtml(fInfo.telephone));
   if (fInfo.notes) infos.push('⚠️ ' + escHtml(fInfo.notes));
 
-  if (infos.length)
+  if (infos.length) {
     html += `<div class="acc-info-bar">${infos.join(' · ')}</div>`;
+  }
 
-  const habituels = sorted.filter(p => scores[productKey(p)] > 0);
-  const autres    = sorted.filter(p => !scores[productKey(p)]);
+  const habituels = sorted.filter((p) => scores[productKey(p)] > 0);
+  const autres = sorted.filter((p) => !scores[productKey(p)]);
 
   if (habituels.length) {
     html += '<div class="section-label">⭐ Habituels</div>' + renderGrouped(habituels);
 
-    if (autres.length)
-      html += '<div class="section-label section-label--secondary">Catalogue complet</div>' +
-              renderGrouped(autres);
+    if (autres.length) {
+      html +=
+        '<div class="section-label section-label--secondary">Catalogue complet</div>' +
+        renderGrouped(autres);
+    }
   } else {
     html += renderGrouped(sorted);
   }
@@ -115,13 +135,11 @@ function renderSupplierBody(prods) {
   return html;
 }
 
-
 // ---- Groupement par nom court ------------------------------
 function getNomCourtsMultiples(fournisseur) {
-  const prods = state.produits.filter(p => p.fournisseur === fournisseur);
+  const prods = state.produits.filter((p) => p.fournisseur === fournisseur);
   return nomsCourtsMultiples(prods);
 }
-
 
 function renderGrouped(prods) {
   if (!prods.length) return '';
@@ -136,12 +154,12 @@ function renderGrouped(prods) {
       const isMulti = multiNoms.has(nc);
 
       if (items.length === 1 && !isMulti) return renderRow(items[0], false);
-      if (items.length === 1 && isMulti)  return renderRow(items[0], true);
+      if (items.length === 1 && isMulti) return renderRow(items[0], true);
 
       return `
         <div class="nc-group">
           <div class="nc-header">${escHtml(nc)}</div>
-          ${items.map(p => renderRow(p, true)).join('')}
+          ${items.map((p) => renderRow(p, true)).join('')}
         </div>
       `;
     })
@@ -153,28 +171,51 @@ function renderRow(p, isVariant) {
   return renderProduitAB(p, isVariant, state);
 }
 
-// ---- Steppers ----------------------------------------------
+// ---- Recherche produit pour édition ------------------------
+/**
+ * Retrouve le produit correspondant à une clé d'interface.
+ * La clé attendue est celle produite par productKey(p).
+ */
+function findProduitByKey(key) {
+  if (!key) {
+    return null;
+  }
+
+  return (state.produits || []).find((p) => productKey(p) === key) || null;
+}
+
+// ---- Steppers + bouton edit -------------------------------
 function bindSteppers() {
-  productList.querySelectorAll('.qty-btn').forEach(b =>
-    b.addEventListener('click', onQtyBtn)
+  productList.querySelectorAll('.qty-btn').forEach((btn) =>
+    btn.addEventListener('click', onQtyBtn)
   );
 
-  productList.querySelectorAll('.qty-input').forEach(i => {
-    i.addEventListener('change', onQtyInput);
-    i.addEventListener('focus', e => e.target.select());
+  productList.querySelectorAll('.qty-input').forEach((input) => {
+    input.addEventListener('change', onQtyInput);
+    input.addEventListener('focus', (e) => e.target.select());
   });
 
-  productList.querySelectorAll('.edit-btn').forEach(b =>
-    b.addEventListener('click', e => {
+  productList.querySelectorAll('.edit-btn').forEach((btn) =>
+    btn.addEventListener('click', (e) => {
       e.stopPropagation();
-      openEditModal(b.dataset.key);
+
+      const key = btn.dataset.key;
+      const produit = findProduitByKey(key);
+
+      if (!produit) {
+        console.error('Produit introuvable pour édition.', { key, dataset: btn.dataset });
+        showToast('❌ Impossible de retrouver ce produit pour édition');
+        return;
+      }
+
+      openEditModal(produit);
     })
   );
 }
 
 // ---- Mise à jour badge fournisseur -------------------------
 function updateAccordionBadge(changedKey) {
-  const p = state.produits.find(p => productKey(p) === changedKey);
+  const p = state.produits.find((prod) => productKey(prod) === changedKey);
   if (!p) return;
 
   const block = productList.querySelector(
@@ -182,11 +223,11 @@ function updateAccordionBadge(changedKey) {
   );
   if (!block) return;
 
-  const allP = getProduitsForEtab().filter(pr => pr.fournisseur === p.fournisseur);
-  const ordered = allP.filter(pr => (state.quantities[productKey(pr)] || 0) > 0);
+  const allP = getProduitsForEtab().filter((pr) => pr.fournisseur === p.fournisseur);
+  const ordered = allP.filter((pr) => (state.quantities[productKey(pr)] || 0) > 0);
 
   const total = ordered.reduce(
-    (s, pr) => s + (state.quantities[productKey(pr)] || 0) * getPrixColis(pr),
+    (sum, pr) => sum + (state.quantities[productKey(pr)] || 0) * getPrixColis(pr),
     0
   );
 
@@ -194,9 +235,12 @@ function updateAccordionBadge(changedKey) {
   const badge = left.querySelector('.acc-badge');
 
   if (ordered.length) {
-    const h = `<span class="acc-badge">${ordered.length} art. · ${fmtPrice(total)}</span>`;
-    if (badge) badge.outerHTML = h;
-    else left.insertAdjacentHTML('beforeend', h);
+    const html = `<span class="acc-badge">${ordered.length} art. · ${fmtPrice(total)}</span>`;
+    if (badge) {
+      badge.outerHTML = html;
+    } else {
+      left.insertAdjacentHTML('beforeend', html);
+    }
   } else if (badge) {
     badge.remove();
   }
