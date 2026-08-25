@@ -9,9 +9,53 @@
 //   "Metro": ["key1", "key2", "key3"]
 // }
 function ensureAccordionDisplayOrderState() {
+  console.log('[accordion-order] ensure state', {
+    exists: !!state.accordionDisplayOrder,
+    current: state.accordionDisplayOrder
+  });
+
   if (!state.accordionDisplayOrder) {
     state.accordionDisplayOrder = {};
   }
+}
+
+function getSupplierDisplayProducts(supplier, prods) {
+  console.log('[accordion-order] get display products', {
+    supplier,
+    keysBefore: prods.map(p => productKey(p)),
+    stored: state.accordionDisplayOrder?.[supplier]
+  });
+
+  const result = ensureSupplierDisplayOrder(supplier, prods);
+
+  console.log('[accordion-order] result', {
+    supplier,
+    keysAfter: result.map(p => productKey(p))
+  });
+
+  return result;
+}
+
+function refreshSupplierDisplayOrder(supplier, prods) {
+  console.log('[accordion-order] REFRESH', {
+    supplier,
+    keysBefore: prods.map(p => productKey(p)),
+    quantitiesA: state.quantities_a,
+    quantitiesB: state.quantities_b,
+    quantities: state.quantities
+  });
+
+  ensureAccordionDisplayOrderState();
+
+  const refreshed = sortForDisplay([...prods], state);
+  state.accordionDisplayOrder[supplier] = getProductKeysInOrder(refreshed);
+
+  console.log('[accordion-order] refreshed result', {
+    supplier,
+    keysAfter: state.accordionDisplayOrder[supplier]
+  });
+
+  return refreshed;
 }
 
 // Retourne les clés produit dans l'ordre actuel d'un tableau.
