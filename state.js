@@ -13,6 +13,7 @@ let state = {
   lastOrder: {},
   lastSemaine: '',
   overrides: {},
+  accordionDisplayOrder: {},
   openSupplier: null,
   loaded: false,
   error: null,
