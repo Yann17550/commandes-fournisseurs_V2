@@ -127,6 +127,11 @@ function renderAccordionGerant() {
 
       const supplierProds = state.produits.filter(p => p.fournisseur === sup);
       const stableProds = triStableAccordion(supplierProds, 'GERANT', state);
+      console.log('[accordion-gerant] header click', {
+  sup,
+  wasOpen,
+  currentOpenSupplier: state.openSupplier
+});
       refreshSupplierDisplayOrder(sup, stableProds);
 
       renderAccordionGerant();
