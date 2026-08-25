@@ -1,5 +1,5 @@
 // ============================================================
-//  UI — ACCORDÉON (ÉTAB A / B) 
+//  UI — ACCORDÉON (ÉTAB A / B)
 // ============================================================
 
 // ---- Accordéon principal -----------------------------------
@@ -9,7 +9,6 @@ function renderAccordion() {
     return;
   }
 
-  // 🟩 Tri des fournisseurs
   const suppliers = getSuppliers().sort((a, b) => {
     const fa = state.produits.find(p => p.fournisseur === a)?.ordre_fournisseur || 999;
     const fb = state.produits.find(p => p.fournisseur === b)?.ordre_fournisseur || 999;
@@ -33,26 +32,15 @@ function renderAccordion() {
   suppliers.forEach(sup => {
     let prods = allProds.filter(p => p.fournisseur === sup);
 
-    // 🟩 Tri global + tri dynamique (LE SEUL TRI)
-    prods = triPipeline(prods, state.etab.id, state);
+    // 1) Tri stable de base
+    prods = triStableAccordion(prods, state.etab.id, state);
+
+    // 2) Ordre affiché mémorisé pour ce fournisseur
+    prods = getSupplierDisplayProducts(sup, prods);
 
     const isOpen = state.openSupplier === sup;
 
-    const ordered = prods.filter(p => (state.quantities[productKey(p)] || 0) > 0);
-    const supTotal = ordered.reduce(
-      (s, p) => s + (state.quantities[productKey(p)] || 0) * getPrixColis(p),
-      0
-    );
-
-    const appel = getJourAppel(sup);
-    const appelHtml = appel
-      ? `<span class="acc-appel${appel.today ? ' acc-appel--today' : ''}">
-           ${appel.today ? '📞 Auj.' : escHtml(appel.label)}
-         </span>`
-      : '';
-
-  html += renderFournisseurBlock(sup, prods, isOpen, state);
-
+    html += renderFournisseurBlock(sup, prods, isOpen, state);
   });
 
   productList.innerHTML = html;
@@ -63,7 +51,24 @@ function renderAccordion() {
   productList.querySelectorAll('.accordion-header').forEach(btn => {
     btn.addEventListener('click', () => {
       const sup = btn.dataset.sup;
-      state.openSupplier = state.openSupplier === sup ? null : sup;
+      const wasOpen = state.openSupplier === sup;
+
+      // Fermeture
+      if (wasOpen) {
+        state.openSupplier = null;
+        renderAccordion();
+        return;
+      }
+
+      // Ouverture d'un fournisseur :
+      // on mémorise d'abord ce fournisseur comme ouvert
+      state.openSupplier = sup;
+
+      // Puis on recalcule son ordre affiché uniquement maintenant
+      const supplierProds = getProduitsForEtab().filter(p => p.fournisseur === sup);
+      const stableProds = triStableAccordion(supplierProds, state.etab.id, state);
+      refreshSupplierDisplayOrder(sup, stableProds);
+
       renderAccordion();
 
       setTimeout(() => {
@@ -76,14 +81,14 @@ function renderAccordion() {
   bindSteppers();
 }
 
-
 // ---- Corps du fournisseur ----------------------------------
 function renderSupplierBody(prods) {
-  if (!prods.length)
+  if (!prods.length) {
     return '<div class="acc-body"><div class="empty-state"><p>Aucun produit</p></div></div>';
+  }
 
   const scores = getScores();
-  const sorted = prods; // 🟩 NE PAS RE-TRIER ICI
+  const sorted = prods;
 
   const sup = prods[0].fournisseur;
   const fInfo = state.fournisseurs[sup] || {};
@@ -95,18 +100,20 @@ function renderSupplierBody(prods) {
   if (fInfo.telephone) infos.push('📱 ' + escHtml(fInfo.telephone));
   if (fInfo.notes) infos.push('⚠️ ' + escHtml(fInfo.notes));
 
-  if (infos.length)
+  if (infos.length) {
     html += `<div class="acc-info-bar">${infos.join(' · ')}</div>`;
+  }
 
   const habituels = sorted.filter(p => scores[productKey(p)] > 0);
-  const autres    = sorted.filter(p => !scores[productKey(p)]);
+  const autres = sorted.filter(p => !scores[productKey(p)]);
 
   if (habituels.length) {
     html += '<div class="section-label">⭐ Habituels</div>' + renderGrouped(habituels);
 
-    if (autres.length)
+    if (autres.length) {
       html += '<div class="section-label section-label--secondary">Catalogue complet</div>' +
               renderGrouped(autres);
+    }
   } else {
     html += renderGrouped(sorted);
   }
@@ -115,13 +122,11 @@ function renderSupplierBody(prods) {
   return html;
 }
 
-
 // ---- Groupement par nom court ------------------------------
 function getNomCourtsMultiples(fournisseur) {
   const prods = state.produits.filter(p => p.fournisseur === fournisseur);
   return nomsCourtsMultiples(prods);
 }
-
 
 function renderGrouped(prods) {
   if (!prods.length) return '';
@@ -136,7 +141,7 @@ function renderGrouped(prods) {
       const isMulti = multiNoms.has(nc);
 
       if (items.length === 1 && !isMulti) return renderRow(items[0], false);
-      if (items.length === 1 && isMulti)  return renderRow(items[0], true);
+      if (items.length === 1 && isMulti) return renderRow(items[0], true);
 
       return `
         <div class="nc-group">
