@@ -19,6 +19,10 @@
 
 function renderAccordionGerant() {
   const allProds = state.produits;
+  console.log('[accordion-gerant] render', {
+  openSupplier: state.openSupplier,
+  displayOrder: state.accordionDisplayOrder
+});
 
   const suppliers = [...new Set(allProds.map(p => p.fournisseur))].sort((a, b) => {
     const fa = allProds.find(p => p.fournisseur === a)?.ordre_fournisseur || 999;
