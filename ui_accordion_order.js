@@ -8,6 +8,7 @@
 // state.accordionDisplayOrder = {
 //   "Metro": ["key1", "key2", "key3"]
 // }
+
 function ensureAccordionDisplayOrderState() {
   console.log('[accordion-order] ensure state', {
     exists: !!state.accordionDisplayOrder,
@@ -17,45 +18,6 @@ function ensureAccordionDisplayOrderState() {
   if (!state.accordionDisplayOrder) {
     state.accordionDisplayOrder = {};
   }
-}
-
-function getSupplierDisplayProducts(supplier, prods) {
-  console.log('[accordion-order] get display products', {
-    supplier,
-    keysBefore: prods.map(p => productKey(p)),
-    stored: state.accordionDisplayOrder?.[supplier]
-  });
-
-  const result = ensureSupplierDisplayOrder(supplier, prods);
-
-  console.log('[accordion-order] result', {
-    supplier,
-    keysAfter: result.map(p => productKey(p))
-  });
-
-  return result;
-}
-
-function refreshSupplierDisplayOrder(supplier, prods) {
-  console.log('[accordion-order] REFRESH', {
-    supplier,
-    keysBefore: prods.map(p => productKey(p)),
-    quantitiesA: state.quantities_a,
-    quantitiesB: state.quantities_b,
-    quantities: state.quantities
-  });
-
-  ensureAccordionDisplayOrderState();
-
-  const refreshed = sortForDisplay([...prods], state);
-  state.accordionDisplayOrder[supplier] = getProductKeysInOrder(refreshed);
-
-  console.log('[accordion-order] refreshed result', {
-    supplier,
-    keysAfter: state.accordionDisplayOrder[supplier]
-  });
-
-  return refreshed;
 }
 
 // Retourne les clés produit dans l'ordre actuel d'un tableau.
@@ -108,22 +70,48 @@ function ensureSupplierDisplayOrder(supplier, prods) {
   );
 }
 
+// Retourne les produits dans l'ordre affiché courant.
+// Si aucun ordre n'existe encore, on l'initialise à partir du tri reçu.
+function getSupplierDisplayProducts(supplier, prods) {
+  console.log('[accordion-order] get display products', {
+    supplier,
+    keysBefore: prods.map(p => productKey(p)),
+    stored: state.accordionDisplayOrder?.[supplier]
+  });
+
+  const result = ensureSupplierDisplayOrder(supplier, prods);
+
+  console.log('[accordion-order] result', {
+    supplier,
+    keysAfter: result.map(p => productKey(p))
+  });
+
+  return result;
+}
+
 // Recalcule l'ordre affiché d'un fournisseur à partir du tri dynamique.
 // À appeler uniquement quand on veut "rafraîchir" l'ordre visuel,
 // par exemple à la réouverture de l'accordéon.
 function refreshSupplierDisplayOrder(supplier, prods) {
+  console.log('[accordion-order] REFRESH', {
+    supplier,
+    keysBefore: prods.map(p => productKey(p)),
+    quantitiesA: state.quantities_a,
+    quantitiesB: state.quantities_b,
+    quantities: state.quantities
+  });
+
   ensureAccordionDisplayOrderState();
 
   const refreshed = sortForDisplay([...prods], state);
   state.accordionDisplayOrder[supplier] = getProductKeysInOrder(refreshed);
 
-  return refreshed;
-}
+  console.log('[accordion-order] refreshed result', {
+    supplier,
+    keysAfter: state.accordionDisplayOrder[supplier]
+  });
 
-// Retourne les produits dans l'ordre affiché courant.
-// Si aucun ordre n'existe encore, on l'initialise à partir du tri reçu.
-function getSupplierDisplayProducts(supplier, prods) {
-  return ensureSupplierDisplayOrder(supplier, prods);
+  return refreshed;
 }
 
 // Permet de supprimer un ordre mémorisé si besoin futur
