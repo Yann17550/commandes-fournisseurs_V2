@@ -4,11 +4,18 @@
 
 // ---- Écran de sélection d'établissement --------------------
 function renderEtabScreen() {
-  etabCards.innerHTML = CONFIG.ETABS.map(e => `
-    <button class="etab-card" data-etab="${e.id}">
-      <img src="${e.icon}" alt="${escHtml(e.label)}" class="etab-logo">
-      <span class="etab-card-label">${escHtml(e.label)}</span>
-    </button>`).join('');
+  etabCards.innerHTML = `
+    ${CONFIG.ETABS.map(e => `
+      <button class="etab-card" data-etab="${e.id}">
+        <img src="${e.icon}" alt="${escHtml(e.label)}" class="etab-logo">
+        <span class="etab-card-label">${escHtml(e.label)}</span>
+      </button>
+    `).join('')}
+
+    <button class="etab-switch-link etab-switch-link--suppliers" id="openSuppliersOrdersBtn" type="button">
+      Commandes fournisseurs
+    </button>
+  `;
 
   etabCards.querySelectorAll('.etab-card').forEach(btn => {
     btn.addEventListener('click', () => selectEtab(btn.dataset.etab));
