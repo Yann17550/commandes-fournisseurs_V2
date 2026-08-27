@@ -30,6 +30,11 @@ function renderEtabScreen() {
     });
   }
 
+  screenEtab.style.display = 'flex';
+  screenSupplierOrders.style.display = 'none';
+  screenApp.style.display  = 'none';
+}
+
 
 // ---- Sélection d'un établissement --------------------------
 async function selectEtab(id) {
