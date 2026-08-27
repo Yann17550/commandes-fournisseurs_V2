@@ -1,13 +1,11 @@
 /* ============================================================
    ÉCRAN D’ACCUEIL — CHOIX DE L’ÉTABLISSEMENT
    ------------------------------------------------------------
-   Ce fichier contient uniquement les styles liés à la première
-   page que l’utilisateur voit :
-   - Logo de l’établissement
-   - Cartes de sélection
-   - Sous‑titre
-   - Bouton pour changer d’établissement
-   - Statut de sauvegarde
+   Styles dédiés à la page d’accueil :
+   - titre
+   - sous-titre
+   - cartes de sélection
+   - bouton spécial "Commandes fournisseurs"
    ============================================================ */
 
 /* Conteneur général de l’écran d’accueil */
@@ -25,24 +23,19 @@
   margin: 0 auto;
 }
 
-/* Gros logo affiché au-dessus du nom de l’établissement */
-.etab-logo {
-  font-size: 48px;
-  margin-bottom: 0.5rem;
-}
-
-/* Nom de l’établissement */
+/* Nom de l’écran */
 .etab-title {
   font-size: 24px;
   font-weight: 600;
   color: var(--text);
+  margin: 0;
 }
 
-/* Sous‑titre (ex : “Sélectionnez votre établissement”) */
+/* Sous-titre */
 .etab-sub {
   font-size: 15px;
   color: var(--text-muted);
-  margin-bottom: 0.5rem;
+  margin: 0 0 0.5rem 0;
 }
 
 /* Conteneur des cartes d’établissement */
@@ -77,13 +70,37 @@
   border-color: var(--accent);
 }
 
-/* Petite icône à gauche de la carte */
-.etab-card-icon {
-  font-size: 35px;
-}
-
 /* Texte de la carte */
 .etab-card-label {
   flex: 1;
   text-align: left;
+}
+
+/* Bouton spécial sous les cartes */
+.etab-switch-link {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  margin-top: 8px;
+  padding: 14px 18px;
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  cursor: pointer;
+  font-size: 16px;
+  font-weight: 500;
+  color: var(--text-muted);
+  transition: border-color 0.15s, background 0.15s, color 0.15s;
+}
+
+.etab-switch-link:active {
+  background: var(--surface);
+  border-color: var(--accent);
+  color: var(--text);
+}
+
+/* Variante dédiée au bouton "Commandes fournisseurs" */
+.etab-switch-link--suppliers {
+  margin-top: 20px;
 }
