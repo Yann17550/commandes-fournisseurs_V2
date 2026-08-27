@@ -21,8 +21,18 @@ function renderEtabScreen() {
     btn.addEventListener('click', () => selectEtab(btn.dataset.etab));
   });
 
+  const openSuppliersOrdersBtn = $('openSuppliersOrdersBtn');
+  if (openSuppliersOrdersBtn) {
+    openSuppliersOrdersBtn.addEventListener('click', () => {
+      screenEtab.style.display = 'none';
+      screenSupplierOrders.style.display = 'flex';
+      screenApp.style.display = 'none';
+    });
+  }
+
   screenEtab.style.display = 'flex';
   screenApp.style.display  = 'none';
+  screenSupplierOrders.style.display = 'none';
 }
 
 
@@ -46,6 +56,7 @@ async function selectEtab(id) {
 
   screenEtab.style.display = 'none';
   screenApp.style.display  = 'flex';
+  screenSupplierOrders.style.display = 'none';
   switchEtabBtn.style.display = 'block';
 
   // Premier chargement
@@ -87,10 +98,17 @@ async function selectEtab(id) {
 // ---- Boutons pour revenir à l'écran de choix ---------------
 switchEtabBtn.addEventListener('click', () => {
   screenApp.style.display = 'none';
+  screenSupplierOrders.style.display = 'none';
   renderEtabScreen();
 });
 
 etabPill.addEventListener('click', () => {
   screenApp.style.display = 'none';
+  screenSupplierOrders.style.display = 'none';
+  renderEtabScreen();
+});
+
+$('backToHomeFromSuppliersBtn').addEventListener('click', () => {
+  screenSupplierOrders.style.display = 'none';
   renderEtabScreen();
 });
