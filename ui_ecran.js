@@ -23,24 +23,12 @@ function renderEtabScreen() {
 
   const openSuppliersOrdersBtn = $('openSuppliersOrdersBtn');
   if (openSuppliersOrdersBtn) {
-    openSuppliersOrdersBtn.addEventListener('click', async () => {
+    openSuppliersOrdersBtn.addEventListener('click', () => {
       screenEtab.style.display = 'none';
       screenApp.style.display = 'none';
       screenSupplierOrders.style.display = 'flex';
-
-      const list = $('supplierOrdersList');
-      if (list) {
-        list.innerHTML = '<p class="etab-sub">Chargement...</p>';
-      }
-
-      await loadSupplierOrdersScreen();
     });
   }
-
-  screenEtab.style.display = 'flex';
-  screenSupplierOrders.style.display = 'none';
-  screenApp.style.display  = 'none';
-}
 
 
 // ---- Sélection d'un établissement --------------------------
