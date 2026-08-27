@@ -2,6 +2,7 @@
    ÉCRAN D’ACCUEIL — CHOIX DE L’ÉTABLISSEMENT
    ------------------------------------------------------------
    Styles dédiés à la page d’accueil :
+   - logos des établissements
    - titre
    - sous-titre
    - cartes de sélection
@@ -21,6 +22,14 @@
   width: 100%;
   max-width: 480px;
   margin: 0 auto;
+}
+
+/* Logo dans les cartes établissements */
+.etab-logo {
+  width: 28px;
+  height: 28px;
+  object-fit: contain;
+  flex: 0 0 28px;
 }
 
 /* Nom de l’écran */
