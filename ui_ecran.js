@@ -24,11 +24,14 @@ function renderEtabScreen() {
   const openSuppliersOrdersBtn = $('openSuppliersOrdersBtn');
   if (openSuppliersOrdersBtn) {
     openSuppliersOrdersBtn.addEventListener('click', () => {
-      alert('Écran "Commandes fournisseurs" à brancher ensuite.');
+      screenEtab.style.display = 'none';
+      screenApp.style.display = 'none';
+      screenSupplierOrders.style.display = 'flex';
     });
   }
 
   screenEtab.style.display = 'flex';
+  screenSupplierOrders.style.display = 'none';
   screenApp.style.display  = 'none';
 }
 
@@ -52,6 +55,7 @@ async function selectEtab(id) {
   $('summaryTitle').textContent = 'Commande — ' + etab.label;
 
   screenEtab.style.display = 'none';
+  screenSupplierOrders.style.display = 'none';
   screenApp.style.display  = 'flex';
 
   // Premier chargement
@@ -94,5 +98,11 @@ async function selectEtab(id) {
 // ---- Retour à l'écran de choix ------------------------------
 etabPill.addEventListener('click', () => {
   screenApp.style.display = 'none';
+  screenSupplierOrders.style.display = 'none';
+  renderEtabScreen();
+});
+
+$('backToHomeFromSuppliersBtn').addEventListener('click', () => {
+  screenSupplierOrders.style.display = 'none';
   renderEtabScreen();
 });
