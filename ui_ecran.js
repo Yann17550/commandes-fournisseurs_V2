@@ -23,10 +23,17 @@ function renderEtabScreen() {
 
   const openSuppliersOrdersBtn = $('openSuppliersOrdersBtn');
   if (openSuppliersOrdersBtn) {
-    openSuppliersOrdersBtn.addEventListener('click', () => {
+    openSuppliersOrdersBtn.addEventListener('click', async () => {
       screenEtab.style.display = 'none';
       screenApp.style.display = 'none';
       screenSupplierOrders.style.display = 'flex';
+
+      const list = $('supplierOrdersList');
+      if (list) {
+        list.innerHTML = '<p class="etab-sub">Chargement...</p>';
+      }
+
+      await loadSupplierOrdersScreen();
     });
   }
 
