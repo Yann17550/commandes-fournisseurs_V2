@@ -5,20 +5,16 @@
 // ---- Écran de sélection d'établissement --------------------
 function renderEtabScreen() {
   etabCards.innerHTML = `
-    <div class="etab-cards-main">
-      ${CONFIG.ETABS.map(e => `
-        <button class="etab-card" data-etab="${e.id}">
-          <img src="${e.icon}" alt="${escHtml(e.label)}" class="etab-logo">
-          <span class="etab-card-label">${escHtml(e.label)}</span>
-        </button>
-      `).join('')}
-    </div>
-
-    <div class="etab-cards-secondary">
-      <button class="etab-switch-link etab-switch-link--suppliers" id="openSuppliersOrdersBtn" type="button">
-        Commandes fournisseurs
+    ${CONFIG.ETABS.map(e => `
+      <button class="etab-card" data-etab="${e.id}">
+        <img src="${e.icon}" alt="${escHtml(e.label)}" class="etab-logo">
+        <span class="etab-card-label">${escHtml(e.label)}</span>
       </button>
-    </div>
+    `).join('')}
+
+    <button class="etab-switch-link etab-switch-link--suppliers" id="openSuppliersOrdersBtn" type="button">
+      Commandes fournisseurs
+    </button>
   `;
 
   etabCards.querySelectorAll('.etab-card').forEach(btn => {
@@ -29,16 +25,15 @@ function renderEtabScreen() {
   if (openSuppliersOrdersBtn) {
     openSuppliersOrdersBtn.addEventListener('click', () => {
       renderSupplierOrdersHome();
-
       screenEtab.style.display = 'none';
-      screenSupplierOrders.style.display = 'flex';
       screenApp.style.display = 'none';
+      screenSupplierOrders.style.display = 'flex';
     });
   }
 
   screenEtab.style.display = 'flex';
-  screenApp.style.display  = 'none';
   screenSupplierOrders.style.display = 'none';
+  screenApp.style.display  = 'none';
 }
 
 
@@ -61,14 +56,16 @@ async function selectEtab(id) {
   $('summaryTitle').textContent = 'Commande — ' + etab.label;
 
   screenEtab.style.display = 'none';
-  screenApp.style.display  = 'flex';
   screenSupplierOrders.style.display = 'none';
+  screenApp.style.display  = 'flex';
 
+  // Premier chargement
   if (!state.loaded) {
     await loadData();
     return;
   }
 
+  // Changement d'établissement
   if (prevId !== id) {
     loadingState.style.display = 'flex';
     productList.style.display  = 'none';
@@ -94,10 +91,12 @@ async function selectEtab(id) {
     return;
   }
 
+  // Même établissement → juste re-render
   render();
 }
 
-// ---- Boutons pour revenir à l'écran de choix ---------------
+
+// ---- Retour à l'écran de choix ------------------------------
 etabPill.addEventListener('click', () => {
   screenApp.style.display = 'none';
   screenSupplierOrders.style.display = 'none';
