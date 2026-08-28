@@ -24,10 +24,7 @@ function renderEtabScreen() {
   const openSuppliersOrdersBtn = $('openSuppliersOrdersBtn');
   if (openSuppliersOrdersBtn) {
     openSuppliersOrdersBtn.addEventListener('click', () => {
-      const supplierOrdersList = $('supplierOrdersList');
-      if (supplierOrdersList) {
-        supplierOrdersList.innerHTML = `<p class="etab-sub">Contenu temporaire OK.</p>`;
-      }
+      renderSupplierOrdersHome();
 
       screenEtab.style.display = 'none';
       screenSupplierOrders.style.display = 'flex';
