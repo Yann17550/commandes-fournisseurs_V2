@@ -24,13 +24,24 @@ async function renderSupplierOrdersHome() {
     supplierOrdersList.innerHTML = `
       <div class="supplier-orders-list">
         ${rows.map(row => `
-          <button type="button" class="supplier-order-row">
+          <button
+            type="button"
+            class="supplier-order-row"
+            data-supplier="${escHtml(row.nom)}"
+          >
             <span class="supplier-order-name">${escHtml(row.nom)}</span>
             <span class="supplier-order-amount">${fmtPrice(row.montant)}</span>
           </button>
         `).join('')}
       </div>
     `;
+
+    supplierOrdersList.querySelectorAll('.supplier-order-row').forEach(btn => {
+      btn.addEventListener('click', () => {
+        renderSupplierOrderDetail(btn.dataset.supplier);
+      });
+    });
+
   } catch (err) {
     supplierOrdersList.innerHTML = `
       <p class="etab-sub">Erreur de chargement.</p>
@@ -74,5 +85,22 @@ function getSupplierRows(savedA, savedB) {
   return Array.from(map.values()).sort((a, b) => {
     if (a.ordre !== b.ordre) return a.ordre - b.ordre;
     return a.nom.localeCompare(b.nom, 'fr', { sensitivity: 'base' });
+  });
+}
+
+function renderSupplierOrderDetail(supplierName) {
+  const supplierOrdersList = $('supplierOrdersList');
+  if (!supplierOrdersList) return;
+
+  supplierOrdersList.innerHTML = `
+    <div class="supplier-order-detail">
+      <button type="button" class="etab-back-btn" id="backToSupplierOrdersListBtn">← Retour à la liste</button>
+      <h2 class="etab-title">${escHtml(supplierName)}</h2>
+      <p class="etab-sub">Détail temporaire fournisseur.</p>
+    </div>
+  `;
+
+  $('backToSupplierOrdersListBtn').addEventListener('click', () => {
+    renderSupplierOrdersHome();
   });
 }
