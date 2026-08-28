@@ -38,7 +38,7 @@ async function renderSupplierOrdersHome() {
 
     supplierOrdersList.querySelectorAll('.supplier-order-row').forEach(btn => {
       btn.addEventListener('click', () => {
-        renderSupplierOrderDetail(btn.dataset.supplier);
+        renderSupplierSmsView(btn.dataset.supplier, savedA || {}, savedB || {});
       });
     });
 
@@ -88,19 +88,98 @@ function getSupplierRows(savedA, savedB) {
   });
 }
 
-function renderSupplierOrderDetail(supplierName) {
+function renderSupplierSmsView(supplierName, savedA, savedB) {
   const supplierOrdersList = $('supplierOrdersList');
   if (!supplierOrdersList) return;
+
+  const sms = buildSupplierSmsText(supplierName, savedA, savedB);
+  const tel = getSupplierPhone(supplierName);
 
   supplierOrdersList.innerHTML = `
     <div class="supplier-order-detail">
       <button type="button" class="etab-back-btn" id="backToSupplierOrdersListBtn">← Retour à la liste</button>
       <h2 class="etab-title">${escHtml(supplierName)}</h2>
-      <p class="etab-sub">Détail temporaire fournisseur.</p>
+
+      <div class="supplier-sms-actions">
+        <button type="button" class="copy-btn" id="copySupplierSmsBtn">Copier</button>
+        <button type="button" class="copy-btn" id="sendSupplierSmsBtn">SMS</button>
+      </div>
+
+      <pre class="supplier-sms-preview">${escHtml(sms)}</pre>
     </div>
   `;
 
   $('backToSupplierOrdersListBtn').addEventListener('click', () => {
     renderSupplierOrdersHome();
   });
+
+  $('copySupplierSmsBtn').addEventListener('click', async () => {
+    await navigator.clipboard.writeText(sms);
+    showToast('📋 Copié');
+  });
+
+  $('sendSupplierSmsBtn').addEventListener('click', () => {
+    const url = tel
+      ? `sms:${encodeURIComponent(tel)}?body=${encodeURIComponent(sms)}`
+      : `sms:?body=${encodeURIComponent(sms)}`;
+
+    window.location.href = url;
+  });
+}
+
+function buildSupplierSmsText(supplierName, savedA, savedB) {
+  const contact = getSupplierContactName(supplierName);
+  const linesA = getSupplierSmsLinesForEtab(supplierName, savedA);
+  const linesB = getSupplierSmsLinesForEtab(supplierName, savedB);
+
+  let out = `Bonjour ${contact},\nVoici ma commande :\n`;
+
+  if (linesA.length) {
+    out += `\nPizza d'Oléron\n`;
+    out += linesA.join('\n') + '\n';
+  }
+
+  if (linesB.length) {
+    out += `\nLe Vesuvio\n`;
+    out += linesB.join('\n') + '\n';
+  }
+
+  out += `\nMerci et bonne journée.`;
+
+  return out.trim();
+}
+
+function getSupplierSmsLinesForEtab(supplierName, quantities) {
+  const rows = [];
+
+  state.produits.forEach(p => {
+    if (String(p.fournisseur || '').trim() !== supplierName) return;
+
+    const key = productKey(p);
+    const qty = Number((quantities || {})[key] || 0);
+    if (qty <= 0) return;
+
+    const typeUnite = String(p.type_unite || '').trim();
+    const typePart = typeUnite ? ` ${typeUnite}` : '';
+
+    rows.push(
+      `${qty}${typePart} ${p.nom_court} - Réf : ${p.reference}`
+    );
+  });
+
+  return rows;
+}
+
+function getSupplierContactName(supplierName) {
+  const f = (state.fournisseurs || {})[supplierName];
+  const contact = f && f.contact ? String(f.contact).trim() : '';
+
+  if (!contact) return '';
+
+  return contact.split(/\s+/)[0];
+}
+
+function getSupplierPhone(supplierName) {
+  const f = (state.fournisseurs || {})[supplierName];
+  return f && f.telephone ? String(f.telephone).trim() : '';
 }
