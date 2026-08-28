@@ -21,15 +21,19 @@ function renderEtabScreen() {
     btn.addEventListener('click', () => selectEtab(btn.dataset.etab));
   });
 
-  const openSuppliersOrdersBtn = $('openSuppliersOrdersBtn');
-  if (openSuppliersOrdersBtn) {
-    openSuppliersOrdersBtn.addEventListener('click', () => {
-      renderSupplierOrdersHome();
-      screenEtab.style.display = 'none';
-      screenApp.style.display = 'none';
-      screenSupplierOrders.style.display = 'flex';
-    });
-  }
+const openSuppliersOrdersBtn = $('openSuppliersOrdersBtn');
+if (openSuppliersOrdersBtn) {
+  openSuppliersOrdersBtn.addEventListener('click', async () => {
+    if (!state.loaded) {
+      await loadData();
+    }
+
+    renderSupplierOrdersHome();
+    screenEtab.style.display = 'none';
+    screenApp.style.display = 'none';
+    screenSupplierOrders.style.display = 'flex';
+  });
+}
 
   screenEtab.style.display = 'flex';
   screenSupplierOrders.style.display = 'none';
