@@ -53,7 +53,9 @@ function getSupplierRows(savedA, savedB) {
     const nom = String(p.fournisseur || '').trim();
     if (!nom) return;
 
-    const montantLigne = totalQty * getPrixColisTTC(p);
+    const prixColis = Number(p.prix_colis || 0);
+    const montantLigne = totalQty * prixColis;
+
     if (montantLigne <= 0) return;
 
     if (!map.has(nom)) {
@@ -73,18 +75,4 @@ function getSupplierRows(savedA, savedB) {
     if (a.ordre !== b.ordre) return a.ordre - b.ordre;
     return a.nom.localeCompare(b.nom, 'fr', { sensitivity: 'base' });
   });
-}
-
-function getPrixColisTTC(p) {
-  const prixColisHt = Number(p.prix_colis || 0);
-  const prixHt = Number(p.prix_ht || 0);
-  const colisage = Number(p.colissage || 1);
-  const tva = Number(p.tva || 0);
-  const droitAlcool = Number(p.droit_alcool || 0);
-  const taxeSecu = Number(p.taxe_secu || 0);
-
-  const baseHt = prixColisHt > 0 ? prixColisHt : (prixHt * colisage);
-  const baseTtc = baseHt * (1 + tva / 100);
-
-  return baseTtc + droitAlcool + taxeSecu;
 }
