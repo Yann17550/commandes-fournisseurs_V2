@@ -64,13 +64,11 @@ async function selectEtab(id) {
   screenApp.style.display  = 'flex';
   screenSupplierOrders.style.display = 'none';
 
-  // Premier chargement
   if (!state.loaded) {
     await loadData();
     return;
   }
 
-  // Changement d'établissement
   if (prevId !== id) {
     loadingState.style.display = 'flex';
     productList.style.display  = 'none';
@@ -96,7 +94,6 @@ async function selectEtab(id) {
     return;
   }
 
-  // Même établissement → juste re-render
   render();
 }
 
