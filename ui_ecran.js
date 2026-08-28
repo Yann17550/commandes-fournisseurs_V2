@@ -24,6 +24,7 @@ function renderEtabScreen() {
   const openSuppliersOrdersBtn = $('openSuppliersOrdersBtn');
   if (openSuppliersOrdersBtn) {
     openSuppliersOrdersBtn.addEventListener('click', () => {
+      renderSupplierOrdersHome();
       screenEtab.style.display = 'none';
       screenApp.style.display = 'none';
       screenSupplierOrders.style.display = 'flex';
