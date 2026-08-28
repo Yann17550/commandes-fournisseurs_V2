@@ -1,13 +1,5 @@
 /* ============================================================
    ÉCRAN D’ACCUEIL — CHOIX DE L’ÉTABLISSEMENT
-   ------------------------------------------------------------
-   Ce fichier contient uniquement les styles liés à la première
-   page que l’utilisateur voit :
-   - Logo de l’établissement
-   - Cartes de sélection
-   - Sous‑titre
-   - Bouton pour changer d’établissement
-   - Statut de sauvegarde
    ============================================================ */
 
 /* Conteneur général de l’écran d’accueil */
@@ -17,35 +9,29 @@
   align-items: center;
   justify-content: center;
   min-height: 100vh;
-  padding: 2rem;
-  gap: 1rem;
-  background: var(--bg);
   width: 100%;
   max-width: 480px;
   margin: 0 auto;
+  padding: 2rem;
+  gap: 1rem;
+  background: var(--bg);
 }
 
-/* Gros logo affiché au-dessus du nom de l’établissement */
-.etab-logo {
-  font-size: 48px;
-  margin-bottom: 0.5rem;
-}
-
-/* Nom de l’établissement */
+/* Titre principal */
 .etab-title {
   font-size: 24px;
   font-weight: 600;
   color: var(--text);
 }
 
-/* Sous‑titre (ex : “Sélectionnez votre établissement”) */
+/* Sous-titre */
 .etab-sub {
   font-size: 15px;
   color: var(--text-muted);
   margin-bottom: 0.5rem;
 }
 
-/* Conteneur des cartes d’établissement */
+/* Conteneur global des cartes */
 .etab-cards {
   display: flex;
   flex-direction: column;
@@ -55,7 +41,19 @@
   margin: 0 auto;
 }
 
-/* Carte cliquable représentant un établissement */
+/* Groupe principal : A / B / gérant */
+.etab-cards-main {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* Groupe secondaire : Commandes fournisseurs */
+.etab-cards-secondary {
+  margin-top: 12px;
+}
+
+/* Carte établissement */
 .etab-card {
   display: flex;
   align-items: center;
@@ -71,33 +69,7 @@
   transition: border-color 0.15s, background 0.15s;
 }
 
-/* Effet visuel lors du clic */
-.etab-card:active {
-  background: var(--accent-light);
-  border-color: var(--accent);
-}
-
-/* Petite icône à gauche de la carte */
-.etab-card-icon {
-  font-size: 35px;
-}
-
-/* Texte de la carte */
-.etab-card-label {
-  flex: 1;
-  text-align: left;
-}
-
-.etab-cards-main {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.etab-cards-secondary {
-  margin-top: 12px;
-}
-
+/* Carte Commandes fournisseurs */
 .etab-switch-link.etab-switch-link--suppliers {
   display: flex;
   align-items: center;
@@ -115,7 +87,23 @@
   transition: border-color 0.15s, background 0.15s;
 }
 
+/* États actifs */
+.etab-card:active,
 .etab-switch-link.etab-switch-link--suppliers:active {
   background: var(--accent-light);
   border-color: var(--accent);
+}
+
+/* Logo image dans les cartes établissement */
+.etab-logo {
+  width: 48px;
+  height: 48px;
+  object-fit: contain;
+  flex: 0 0 48px;
+}
+
+/* Texte dans les cartes */
+.etab-card-label {
+  flex: 1;
+  text-align: left;
 }
