@@ -26,6 +26,7 @@ async function renderSupplierOrdersHome() {
         ${rows.map(row => `
           <button type="button" class="supplier-order-row">
             <span class="supplier-order-name">${escHtml(row.nom)}</span>
+            <span class="supplier-order-amount">${fmtPrice(row.montant)}</span>
           </button>
         `).join('')}
       </div>
@@ -45,26 +46,45 @@ function getSupplierRows(savedA, savedB) {
     const key = productKey(p);
     const qa = Number(savedA[key] || 0);
     const qb = Number(savedB[key] || 0);
-    const total = qa + qb;
+    const totalQty = qa + qb;
 
-    if (total <= 0) return;
+    if (totalQty <= 0) return;
 
     const nom = String(p.fournisseur || '').trim();
     if (!nom) return;
 
+    const montantLigne = totalQty * getPrixColisTTC(p);
+    if (montantLigne <= 0) return;
+
     if (!map.has(nom)) {
       map.set(nom, {
         nom,
-        ordre: Number(p.ordre_fournisseur || 999)
+        ordre: Number(p.ordre_fournisseur || 999),
+        montant: 0
       });
-    } else {
-      const row = map.get(nom);
-      row.ordre = Math.min(row.ordre, Number(p.ordre_fournisseur || 999));
     }
+
+    const row = map.get(nom);
+    row.ordre = Math.min(row.ordre, Number(p.ordre_fournisseur || 999));
+    row.montant += montantLigne;
   });
 
   return Array.from(map.values()).sort((a, b) => {
     if (a.ordre !== b.ordre) return a.ordre - b.ordre;
     return a.nom.localeCompare(b.nom, 'fr', { sensitivity: 'base' });
   });
+}
+
+function getPrixColisTTC(p) {
+  const prixColisHt = Number(p.prix_colis || 0);
+  const prixHt = Number(p.prix_ht || 0);
+  const colisage = Number(p.colissage || 1);
+  const tva = Number(p.tva || 0);
+  const droitAlcool = Number(p.droit_alcool || 0);
+  const taxeSecu = Number(p.taxe_secu || 0);
+
+  const baseHt = prixColisHt > 0 ? prixColisHt : (prixHt * colisage);
+  const baseTtc = baseHt * (1 + tva / 100);
+
+  return baseTtc + droitAlcool + taxeSecu;
 }
