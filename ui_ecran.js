@@ -5,16 +5,20 @@
 // ---- Écran de sélection d'établissement --------------------
 function renderEtabScreen() {
   etabCards.innerHTML = `
-    ${CONFIG.ETABS.map(e => `
-      <button class="etab-card" data-etab="${e.id}">
-        <img src="${e.icon}" alt="${escHtml(e.label)}" class="etab-logo">
-        <span class="etab-card-label">${escHtml(e.label)}</span>
-      </button>
-    `).join('')}
+    <div class="etab-cards-main">
+      ${CONFIG.ETABS.map(e => `
+        <button class="etab-card" data-etab="${e.id}">
+          <img src="${e.icon}" alt="${escHtml(e.label)}" class="etab-logo">
+          <span class="etab-card-label">${escHtml(e.label)}</span>
+        </button>
+      `).join('')}
+    </div>
 
-    <button class="etab-switch-link etab-switch-link--suppliers" id="openSuppliersOrdersBtn" type="button">
-      Commandes fournisseurs
-    </button>
+    <div class="etab-cards-secondary">
+      <button class="etab-switch-link etab-switch-link--suppliers" id="openSuppliersOrdersBtn" type="button">
+        Commandes fournisseurs
+      </button>
+    </div>
   `;
 
   etabCards.querySelectorAll('.etab-card').forEach(btn => {
@@ -59,7 +63,6 @@ async function selectEtab(id) {
   screenEtab.style.display = 'none';
   screenApp.style.display  = 'flex';
   screenSupplierOrders.style.display = 'none';
-  switchEtabBtn.style.display = 'block';
 
   // Premier chargement
   if (!state.loaded) {
@@ -98,12 +101,6 @@ async function selectEtab(id) {
 }
 
 // ---- Boutons pour revenir à l'écran de choix ---------------
-switchEtabBtn.addEventListener('click', () => {
-  screenApp.style.display = 'none';
-  screenSupplierOrders.style.display = 'none';
-  renderEtabScreen();
-});
-
 etabPill.addEventListener('click', () => {
   screenApp.style.display = 'none';
   screenSupplierOrders.style.display = 'none';
