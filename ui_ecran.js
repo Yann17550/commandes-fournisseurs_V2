@@ -21,25 +21,21 @@ function renderEtabScreen() {
     btn.addEventListener('click', () => selectEtab(btn.dataset.etab));
   });
 
-const openSuppliersOrdersBtn = $('openSuppliersOrdersBtn');
-if (openSuppliersOrdersBtn) {
-  openSuppliersOrdersBtn.addEventListener('click', async () => {
-    if (!state.loaded) {
-      await loadData();
-    }
+  const openSuppliersOrdersBtn = $('openSuppliersOrdersBtn');
+  if (openSuppliersOrdersBtn) {
+    openSuppliersOrdersBtn.addEventListener('click', async () => {
+      screenEtab.style.display = 'none';
+      screenApp.style.display = 'none';
+      screenSupplierOrders.style.display = 'flex';
 
-    renderSupplierOrdersHome();
-    screenEtab.style.display = 'none';
-    screenApp.style.display = 'none';
-    screenSupplierOrders.style.display = 'flex';
-  });
-}
+      await renderSupplierOrdersHome();
+    });
+  }
 
   screenEtab.style.display = 'flex';
   screenSupplierOrders.style.display = 'none';
-  screenApp.style.display  = 'none';
+  screenApp.style.display = 'none';
 }
-
 
 // ---- Sélection d'un établissement --------------------------
 async function selectEtab(id) {
@@ -61,7 +57,7 @@ async function selectEtab(id) {
 
   screenEtab.style.display = 'none';
   screenSupplierOrders.style.display = 'none';
-  screenApp.style.display  = 'flex';
+  screenApp.style.display = 'flex';
 
   // Premier chargement
   if (!state.loaded) {
@@ -72,7 +68,7 @@ async function selectEtab(id) {
   // Changement d'établissement
   if (prevId !== id) {
     loadingState.style.display = 'flex';
-    productList.style.display  = 'none';
+    productList.style.display = 'none';
 
     if (id === 'gerant') {
       const savedA = await loadCommandeRemoteById('a');
@@ -85,7 +81,7 @@ async function selectEtab(id) {
       state.quantities = saved || {};
 
       if (histo && histo.quantities) {
-        state.lastOrder   = histo.quantities;
+        state.lastOrder = histo.quantities;
         state.lastSemaine = histo.semaine || '';
       }
     }
@@ -98,7 +94,6 @@ async function selectEtab(id) {
   // Même établissement → juste re-render
   render();
 }
-
 
 // ---- Retour à l'écran de choix ------------------------------
 etabPill.addEventListener('click', () => {
