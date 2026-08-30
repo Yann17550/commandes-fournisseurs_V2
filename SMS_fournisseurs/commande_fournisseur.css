@@ -118,12 +118,31 @@
   display: flex;
   flex-direction: column;
   gap: 14px;
+  flex: 1;
+  min-height: 0;
+}
+
+.supplier-sms-preview {
+  margin: 0;
+  padding: 16px;
+  border-radius: 18px;
+  background: #ffffff;
+  color: #0f172a;
+  box-shadow: 0 6px 24px rgba(15, 23, 42, 0.08);
+  white-space: pre-wrap;
+  word-break: break-word;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.98rem;
+  line-height: 1.55;
+  flex: 1;
 }
 
 .supplier-sms-actions {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 10px;
+  margin-top: auto;
+  padding-top: 14px;
 }
 
 .supplier-sms-actions .copy-btn {
@@ -140,20 +159,6 @@
 .supplier-sms-actions .copy-btn:active {
   transform: scale(0.98);
   background: #1e293b;
-}
-
-.supplier-sms-preview {
-  margin: 0;
-  padding: 16px;
-  border-radius: 18px;
-  background: #ffffff;
-  color: #0f172a;
-  box-shadow: 0 6px 24px rgba(15, 23, 42, 0.08);
-  white-space: pre-wrap;
-  word-break: break-word;
-  font-family: 'DM Sans', sans-serif;
-  font-size: 0.98rem;
-  line-height: 1.55;
 }
 
 @media (min-width: 640px) {
