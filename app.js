@@ -48,6 +48,7 @@ function saveEtabLocal(id) {
 // ============================================================
 const screenEtab = $('screenEtab');
 const screenApp = $('screenApp');
+const screenSupplierOrders = $('screenSupplierOrders');
 
 const etabCards = $('etabCards');
 const etabPill = $('etabPill');
@@ -108,7 +109,124 @@ function getNbUnites(p, qtyColis) {
 }
 
 // ============================================================
-//  CHARGEMENT
+//  CHARGEMENT CATALOGUE
+// ============================================================
+
+/**
+ * Charge le catalogue produits + fournisseurs depuis Supabase.
+ * Cette fonction est volontairement indépendante du rendu principal :
+ * elle ne touche ni à state.etab, ni aux commandes, ni à render().
+ *
+ * Elle sert :
+ * - au flux principal de l'application ;
+ * - à l'écran "Commandes fournisseurs", qui doit pouvoir vivre seul.
+ */
+async function loadCatalogueRemote() {
+  const [
+    { data: produitsData, error: produitsError },
+    { data: fournisseursData, error: fournisseursError }
+  ] = await Promise.all([
+    supabaseClient
+      .from('produits')
+      .select(`
+        id,
+        reference,
+        designation_produit,
+        designation_fournisseur,
+        nom_court,
+        categorie,
+        ordre_cat,
+        tva,
+        prix_unitaire_ht,
+        colisage,
+        prix_colis,
+        droit_alcool,
+        taxe_securite_sociale,
+        actif,
+        fournisseurs (
+          id,
+          nom,
+          ordre,
+          actif
+        )
+      `)
+      .eq('actif', true),
+
+    supabaseClient
+      .from('fournisseurs')
+      .select(`
+        id,
+        nom,
+        telephone,
+        contact,
+        jour_appel_saison,
+        jour_appel_hors_saison,
+        notes,
+        ordre,
+        actif
+      `)
+      .eq('actif', true)
+      .order('ordre', { ascending: true })
+      .order('nom', { ascending: true })
+  ]);
+
+  if (produitsError) throw produitsError;
+  if (fournisseursError) throw fournisseursError;
+
+  state.produits = (produitsData || [])
+    .map(r => {
+      const fournisseurNom = (r.fournisseurs?.nom || '').trim();
+      const designation = (r.designation_produit || '').trim();
+      const nomCourt =
+        (r.nom_court || '').trim() ||
+        designation ||
+        ('REF ' + ((r.reference || '').trim() || r.id));
+
+      return {
+        id: r.id,
+        fournisseur: fournisseurNom,
+        fournisseur_id: r.fournisseurs?.id || null,
+        reference: (r.reference || '').trim(),
+        designation: (r.designation_fournisseur || r.designation_produit || '').trim(),
+        designation_produit: (r.designation_produit || '').trim(),
+        designation_fournisseur: (r.designation_fournisseur || '').trim(),
+        label: cleanDesignation(designation || nomCourt),
+        tva: parseNum(r.tva),
+        prix_ht: parseNum(r.prix_unitaire_ht),
+        droit_alcool: parseNum(r.droit_alcool),
+        taxe_secu: parseNum(r.taxe_securite_sociale),
+        nom_court: nomCourt,
+        categorie: (r.categorie || 'Divers').trim(),
+        colissage: parseNum(r.colisage) || 1,
+        prix_colis: parseNum(r.prix_colis),
+        etablissement: 'AB',
+        actif: true,
+        isTemp: false,
+        ordre_fournisseur: parseNum(r.fournisseurs?.ordre) || 999,
+        ordre_categorie: parseNum(r.ordre_cat) || 999,
+      };
+    })
+    .filter(p => p.fournisseur);
+
+  state.fournisseurs = {};
+  (fournisseursData || []).forEach(r => {
+    const nom = (r.nom || '').trim();
+    if (!nom) return;
+
+    state.fournisseurs[nom] = {
+      telephone: (r.telephone || '').trim(),
+      contact: (r.contact || '').trim(),
+      jour_saison: (r.jour_appel_saison || '').trim(),
+      jour_hors_saison: (r.jour_appel_hors_saison || '').trim(),
+      notes: (r.notes || '').trim(),
+    };
+  });
+
+  state.loaded = true;
+}
+
+// ============================================================
+//  CHARGEMENT PRINCIPAL
 // ============================================================
 async function loadDataCore() {
   loadingState.style.display = 'flex';
@@ -116,108 +234,10 @@ async function loadDataCore() {
   state.error = null;
 
   try {
-    const [
-      { data: produitsData, error: produitsError },
-      { data: fournisseursData, error: fournisseursError }
-    ] = await Promise.all([
-      supabaseClient
-        .from('produits')
-        .select(`
-          id,
-          reference,
-          designation_produit,
-          designation_fournisseur,
-          nom_court,
-          categorie,
-          ordre_cat,
-          tva,
-          prix_unitaire_ht,
-          colisage,
-          prix_colis,
-          droit_alcool,
-          taxe_securite_sociale,
-          actif,
-          fournisseurs (
-            id,
-            nom,
-            ordre,
-            actif
-          )
-        `)
-        .eq('actif', true),
+    // 1) Catalogue commun
+    await loadCatalogueRemote();
 
-      supabaseClient
-        .from('fournisseurs')
-        .select(`
-          id,
-          nom,
-          telephone,
-          contact,
-          jour_appel_saison,
-          jour_appel_hors_saison,
-          notes,
-          ordre,
-          actif
-        `)
-        .eq('actif', true)
-        .order('ordre', { ascending: true })
-        .order('nom', { ascending: true })
-    ]);
-
-    if (produitsError) throw produitsError;
-    if (fournisseursError) throw fournisseursError;
-
-    state.produits = (produitsData || [])
-      .map(r => {
-        const fournisseurNom = (r.fournisseurs?.nom || '').trim();
-        const designation = (r.designation_produit || '').trim();
-        const nomCourt =
-          (r.nom_court || '').trim() ||
-          designation ||
-          ('REF ' + ((r.reference || '').trim() || r.id));
-
-        return {
-          id: r.id,
-          fournisseur: fournisseurNom,
-          fournisseur_id: r.fournisseurs?.id || null,
-          reference: (r.reference || '').trim(),
-          designation: (r.designation_fournisseur || r.designation_produit || '').trim(),
-          designation_produit: (r.designation_produit || '').trim(),
-          designation_fournisseur: (r.designation_fournisseur || '').trim(),
-          label: cleanDesignation(designation || nomCourt),
-          tva: parseNum(r.tva),
-          prix_ht: parseNum(r.prix_unitaire_ht),
-          droit_alcool: parseNum(r.droit_alcool),
-          taxe_secu: parseNum(r.taxe_securite_sociale),
-          nom_court: nomCourt,
-          categorie: (r.categorie || 'Divers').trim(),
-          colissage: parseNum(r.colisage) || 1,
-          prix_colis: parseNum(r.prix_colis),
-          etablissement: 'AB',
-          actif: true,
-          isTemp: false,
-          ordre_fournisseur: parseNum(r.fournisseurs?.ordre) || 999,
-          ordre_categorie: parseNum(r.ordre_cat) || 999,
-        };
-      })
-      .filter(p => p.fournisseur);
-
-    state.fournisseurs = {};
-    (fournisseursData || []).forEach(r => {
-      const nom = (r.nom || '').trim();
-      if (!nom) return;
-
-      state.fournisseurs[nom] = {
-        telephone: (r.telephone || '').trim(),
-        contact: (r.contact || '').trim(),
-        jour_saison: (r.jour_appel_saison || '').trim(),
-        jour_hors_saison: (r.jour_appel_hors_saison || '').trim(),
-        notes: (r.notes || '').trim(),
-      };
-    });
-
-    state.loaded = true;
-
+    // 2) Données dépendantes de l'établissement courant
     if (state.etab && state.etab.id === 'gerant') {
       const [savedA, savedB] = await Promise.all([
         loadCommandeRemoteById('A'),
