@@ -28,7 +28,7 @@ function renderEtabScreen() {
       screenApp.style.display = 'none';
       screenSupplierOrders.style.display = 'flex';
 
-      await renderSupplierOrdersHome();
+      await cfRenderSupplierOrdersHome();
     });
   }
 
