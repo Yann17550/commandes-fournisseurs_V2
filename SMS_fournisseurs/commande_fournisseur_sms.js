@@ -19,32 +19,26 @@
 (function attachCommandeFournisseurSmsModule(global) {
   'use strict';
 
-  /**
-   * Accès DOM aligné sur le fonctionnement actuel du projet.
-   */
+  // ----------------------------------------------------------
+  //  Helpers DOM alignés sur le projet existant
+  // ----------------------------------------------------------
+
   function cfSmsGetEl(id) {
     if (typeof $ === 'function') return $(id);
     return document.getElementById(id);
   }
 
-  /**
-   * Racine de rendu de l'écran fournisseur.
-   */
   function cfSmsGetListRoot() {
     return cfSmsGetEl('supplierOrdersList');
   }
 
-  /**
-   * Dépendances minimales.
-   * Ici, pas besoin de window.$ obligatoire.
-   */
   function cfSmsMustHaveDependencies() {
-    // Pas de dépendance bloquante supplémentaire ici.
   }
 
-  /**
-   * Echappement HTML.
-   */
+  // ----------------------------------------------------------
+  //  Helpers utilitaires
+  // ----------------------------------------------------------
+
   function cfSmsEsc(value) {
     if (typeof escHtml === 'function') {
       return escHtml(value);
@@ -58,61 +52,27 @@
       .replace(/'/g, '&#39;');
   }
 
-  /**
-   * Affichage toast si disponible.
-   */
   function cfSmsShowToast(message) {
     if (typeof showToast === 'function') {
       showToast(message);
     }
   }
 
-  /**
-   * Nettoyage chaîne.
-   */
   function cfSmsStr(value) {
     return String(value || '').trim();
   }
 
-  /**
-   * Extrait le prénom du contact fournisseur.
-   * Exemple :
-   *   "Jean Dupont" -> "Jean"
-   */
   function cfSmsGetContactFirstName(contactRaw) {
     const contact = cfSmsStr(contactRaw);
     if (!contact) return '';
-
     const parts = contact.split(/\s+/);
     return parts[0] || '';
   }
 
-  /**
-   * Construit une date de livraison lisible en français.
-   *
-   * IMPORTANT :
-   * Ici, on reste volontairement simple tant qu'aucune règle métier
-   * plus précise n'a été fixée pour la livraison.
-   */
-  function cfSmsGetExpectedDeliveryDate() {
-    const now = new Date();
+  // ----------------------------------------------------------
+  //  Construction des lignes SMS
+  // ----------------------------------------------------------
 
-    return now.toLocaleDateString('fr-FR', {
-      weekday: 'long',
-      day: 'numeric',
-      month: 'long'
-    });
-  }
-
-  /**
-   * Construit les lignes SMS d'un établissement à partir :
-   * - du fournisseur ciblé ;
-   * - d'une map quantités ;
-   * - de l'index produits.
-   *
-   * Format ligne :
-   *   quantité + type_unite + nom_court + " - Ref: " + reference
-   */
   function cfSmsBuildLinesForEtab(supplierName, quantitiesMap, produitsIndex) {
     const rows = [];
 
@@ -142,9 +102,10 @@
     return rows;
   }
 
-  /**
-   * Construit le texte complet du SMS pour le fournisseur demandé.
-   */
+  // ----------------------------------------------------------
+  //  Construction du texte complet du SMS
+  // ----------------------------------------------------------
+
   function cfSmsBuildSmsText(supplierName, model) {
     const produitsIndex = model?.produits_index || new Map();
     const quantitiesA = model?.quantities_a || new Map();
@@ -154,17 +115,11 @@
 
     const contact = supplierRow?.contacts?.[0] || '';
     const firstName = cfSmsGetContactFirstName(contact);
-    const deliveryDate = cfSmsGetExpectedDeliveryDate();
 
     const linesA = cfSmsBuildLinesForEtab(supplierName, quantitiesA, produitsIndex);
     const linesB = cfSmsBuildLinesForEtab(supplierName, quantitiesB, produitsIndex);
 
     let out = `Bonjour ${firstName},\n`;
-
-    if (deliveryDate) {
-      out += `Livraison prévue le ${deliveryDate}.\n`;
-    }
-
     out += `Voici ma commande :\n`;
 
     if (linesA.length) {
@@ -182,25 +137,19 @@
     return out.trim();
   }
 
-  /**
-   * Renvoie le premier téléphone connu du fournisseur.
-   */
+  // ----------------------------------------------------------
+  //  Téléphone du fournisseur
+  // ----------------------------------------------------------
+
   function cfSmsGetSupplierPhone(supplierName, model) {
     const supplierRow = (model?.suppliers || []).find(s => s.nom === supplierName);
     return cfSmsStr(supplierRow?.telephones?.[0] || '');
   }
 
-  /**
-   * Rend la vue SMS du fournisseur sélectionné.
-   *
-   * Payload attendu :
-   * {
-   *   supplierName,
-   *   snapshot,
-   *   model,
-   *   onBack
-   * }
-   */
+  // ----------------------------------------------------------
+  //  Rendu de la vue SMS
+  // ----------------------------------------------------------
+
   function cfRenderSupplierSmsView(payload) {
     cfSmsMustHaveDependencies();
 
@@ -223,29 +172,19 @@
 
     root.innerHTML = `
       <div class="supplier-order-detail">
-        <button type="button" class="etab-back-btn" id="backToSupplierOrdersListBtn">← Retour à la liste</button>
         <h2 class="etab-title">${cfSmsEsc(supplierName)}</h2>
+
+        <pre class="supplier-sms-preview">${cfSmsEsc(smsText)}</pre>
 
         <div class="supplier-sms-actions">
           <button type="button" class="copy-btn" id="copySupplierSmsBtn">Copier</button>
           <button type="button" class="copy-btn" id="sendSupplierSmsBtn">SMS</button>
         </div>
-
-        <pre class="supplier-sms-preview">${cfSmsEsc(smsText)}</pre>
       </div>
     `;
 
-    const backBtn = cfSmsGetEl('backToSupplierOrdersListBtn');
     const copyBtn = cfSmsGetEl('copySupplierSmsBtn');
     const sendBtn = cfSmsGetEl('sendSupplierSmsBtn');
-
-    if (backBtn) {
-      backBtn.addEventListener('click', () => {
-        if (typeof onBack === 'function') {
-          onBack();
-        }
-      });
-    }
 
     if (copyBtn) {
       copyBtn.addEventListener('click', async () => {
