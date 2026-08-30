@@ -1,310 +1,195 @@
 // ============================================================
 //  SMS_FOURNISSEURS / COMMANDE_FOURNISSEUR_DATA
 //  ------------------------------------------------------------
-//  Rôle de ce fichier :
-//  - consommer un snapshot Supabase brut ;
-//  - reconstruire des index de travail minimaux ;
-//  - trouver les fournisseurs ayant des commandes non nulles ;
-//  - calculer leur montant global à l'instant T.
+//  Ce fichier construit le modèle métier à partir du snapshot
+//  brut Supabase.
 //
-//  IMPORTANT
-//  - Ce fichier ne lit pas Supabase directement.
-//  - Ce fichier ne gère pas le rendu HTML.
-//  - Ce fichier ne construit pas le SMS.
-//  - Ce fichier ne déclenche pas l'envoi.
-//
-//  Entrée attendue : snapshot brut renvoyé par sbSnapshotLoadNow()
+//  Responsabilités :
+//  - indexer les produits ;
+//  - indexer les fournisseurs ;
+//  - construire les maps de quantités par établissement ;
+//  - calculer les montants par fournisseur ;
+//  - ne jamais interroger Supabase directement.
 // ============================================================
 
 (function attachCommandeFournisseurDataModule(global) {
   'use strict';
 
-  /**
-   * Vérifie la structure minimale du snapshot brut.
-   */
-  function cfDataAssertSnapshot(snapshot) {
-    if (!snapshot || typeof snapshot !== 'object') {
-      throw new Error('Snapshot invalide : objet attendu');
-    }
-
-    if (!snapshot.tables || typeof snapshot.tables !== 'object') {
-      throw new Error('Snapshot invalide : tables absentes');
-    }
+  function cfDataStr(value) {
+    return String(value || '').trim();
   }
 
-  /**
-   * Sécurise un tableau issu du snapshot.
-   */
-  function cfDataArray(value) {
-    return Array.isArray(value) ? value : [];
-  }
-
-  /**
-   * Convertit une valeur en nombre.
-   */
   function cfDataNum(value) {
     const n = Number(value);
     return Number.isFinite(n) ? n : 0;
   }
 
-  /**
-   * Nettoie une chaîne.
-   */
-  function cfDataStr(value) {
-    return String(value || '').trim();
-  }
+  function cfDataBuildProduitsIndex(produitsRows) {
+    const index = new Map();
 
-  /**
-   * Construit la clé fonctionnelle utilisée pour rapprocher
-   * commandes et produits : "Nom fournisseur|Reference"
-   *
-   * Cette clé est calculée ici parce qu'on est maintenant
-   * dans le fichier de traitement métier, pas dans le snapshot.
-   */
-  function cfBuildCommandeKeyFromProduitRow(produitRow) {
-    const fournisseurNom = cfDataStr(
-      produitRow?.fournisseurs?.nom ||
-      produitRow?.fournisseur_nom ||
-      produitRow?.fournisseur
-    );
+    if (!Array.isArray(produitsRows)) {
+      return index;
+    }
 
-    const reference = cfDataStr(produitRow?.reference);
+    produitsRows.forEach(row => {
+      const ref = cfDataStr(row.reference);
+      if (!ref) return;
 
-    if (!fournisseurNom || !reference) return null;
-    return fournisseurNom + '|' + reference;
-  }
+      const nomCourt = cfDataStr(row.nom_court || '');
+      const designation = cfDataStr(row.designation_produit || '');
+      const categorie = cfDataStr(row.categorie || '');
+      const typeUnite = cfDataStr(row.type_unite || '');
+      const colisage = cfDataNum(row.colisage);
+      const prixUnitaire = cfDataNum(row.prix_unitaire_ht);
+      const prixColis = cfDataNum(row.prix_colis);
+      const actif = !!row.actif;
 
-  /**
-   * Construit la clé fonctionnelle à partir d'une ligne commande brute.
-   */
-  function cfBuildCommandeKeyFromCommandeRow(commandeRow) {
-    const fournisseurNom = cfDataStr(commandeRow?.fournisseur_nom);
-    const reference = cfDataStr(commandeRow?.reference);
-
-    if (!fournisseurNom || !reference) return null;
-    return fournisseurNom + '|' + reference;
-  }
-
-  /**
-   * Indexe les produits par clé fournisseur|référence.
-   *
-   * On garde ici la ligne produit brute complète pour permettre
-   * d'autres traitements ultérieurs dans les autres modules.
-   */
-  function cfBuildProduitsIndex(snapshot) {
-    cfDataAssertSnapshot(snapshot);
-
-    const produits = cfDataArray(snapshot.tables.produits);
-    const map = new Map();
-
-    produits.forEach(row => {
-      const key = cfBuildCommandeKeyFromProduitRow(row);
-      if (!key) return;
-      map.set(key, row);
-    });
-
-    return map;
-  }
-
-  /**
-   * Retourne uniquement les lignes de commandes ayant une quantité non nulle.
-   *
-   * Règle métier ici :
-   * - quantité > 0 retenue ;
-   * - quantité <= 0 ignorée.
-   *
-   * Le snapshot, lui, n'applique aucun filtre.
-   */
-  function cfGetActiveCommandeRows(snapshot) {
-    cfDataAssertSnapshot(snapshot);
-
-    const commandes = cfDataArray(snapshot.tables.commandes);
-
-    return commandes.filter(row => cfDataNum(row?.quantite) > 0);
-  }
-
-  /**
-   * Retourne les commandes actives d'un établissement donné.
-   *
-   * etablissement attendu : "A", "B", etc.
-   */
-  function cfGetActiveCommandeRowsByEtab(snapshot, etablissement) {
-    const wanted = cfDataStr(etablissement).toUpperCase();
-
-    return cfGetActiveCommandeRows(snapshot).filter(row => {
-      return cfDataStr(row?.etablissement).toUpperCase() === wanted;
-    });
-  }
-
-  /**
-   * Construit une map clé -> quantité pour un établissement donné.
-   *
-   * Si plusieurs lignes existent pour la même clé, on additionne.
-   */
-  function cfBuildQuantitiesMapForEtab(snapshot, etablissement) {
-    const rows = cfGetActiveCommandeRowsByEtab(snapshot, etablissement);
-    const map = new Map();
-
-    rows.forEach(row => {
-      const key = cfBuildCommandeKeyFromCommandeRow(row);
-      if (!key) return;
-
-      const qty = cfDataNum(row?.quantite);
-      const prev = map.get(key) || 0;
-
-      map.set(key, prev + qty);
-    });
-
-    return map;
-  }
-
-  /**
-   * Détermine le prix colis à utiliser pour un produit brut.
-   *
-   * Priorité métier actuelle :
-   * - prix_colis si renseigné et > 0
-   * - sinon prix_unitaire_ht * colisage
-   */
-  function cfGetPrixColisFromProduitRow(produitRow) {
-    const prixColis = cfDataNum(produitRow?.prix_colis);
-    if (prixColis > 0) return prixColis;
-
-    const prixUnitaire = cfDataNum(produitRow?.prix_unitaire_ht);
-    const colisage = cfDataNum(produitRow?.colisage) || 1;
-
-    return prixUnitaire * colisage;
-  }
-
-  /**
-   * Calcule la liste des fournisseurs ayant un total non nul.
-   *
-   * Sortie :
-   * [
-   *   {
-   *     nom,
-   *     fournisseur_id,
-   *     ordre,
-   *     montant,
-   *     total_quantite,
-   *     nb_lignes,
-   *     telephones,
-   *     contacts
-   *   }
-   * ]
-   */
-  function cfBuildSupplierRows(snapshot) {
-    cfDataAssertSnapshot(snapshot);
-
-    const produitsIndex = cfBuildProduitsIndex(snapshot);
-    const quantitiesA = cfBuildQuantitiesMapForEtab(snapshot, 'A');
-    const quantitiesB = cfBuildQuantitiesMapForEtab(snapshot, 'B');
-
-    const supplierMap = new Map();
-
-    const allKeys = new Set([
-      ...quantitiesA.keys(),
-      ...quantitiesB.keys()
-    ]);
-
-    allKeys.forEach(key => {
-      const produitRow = produitsIndex.get(key);
-      if (!produitRow) return;
-
-      const qa = quantitiesA.get(key) || 0;
-      const qb = quantitiesB.get(key) || 0;
-      const totalQty = qa + qb;
-
-      if (totalQty <= 0) return;
-
+      const fournisseurRow = row.fournisseurs;
       const fournisseurNom = cfDataStr(
-        produitRow?.fournisseurs?.nom ||
-        produitRow?.fournisseur_nom ||
-        produitRow?.fournisseur
+        fournisseurRow?.nom || row.fournisseur_nom || ''
       );
 
-      if (!fournisseurNom) return;
-
-      const fournisseurId = produitRow?.fournisseurs?.id ?? null;
-      const ordre = cfDataNum(produitRow?.fournisseurs?.ordre) || 999;
-      const prixColis = cfGetPrixColisFromProduitRow(produitRow);
-      const montantLigne = totalQty * prixColis;
-
-      if (montantLigne <= 0) return;
-
-      if (!supplierMap.has(fournisseurNom)) {
-        supplierMap.set(fournisseurNom, {
-          nom: fournisseurNom,
-          fournisseur_id: fournisseurId,
-          ordre,
-          montant: 0,
-          total_quantite: 0,
-          nb_lignes: 0,
-          telephones: new Set(),
-          contacts: new Set()
-        });
-      }
-
-      const supplier = supplierMap.get(fournisseurNom);
-
-      supplier.ordre = Math.min(supplier.ordre, ordre);
-      supplier.montant += montantLigne;
-      supplier.total_quantite += totalQty;
-      supplier.nb_lignes += 1;
-
-      const tel = cfDataStr(produitRow?.fournisseurs?.telephone);
-      const contact = cfDataStr(produitRow?.fournisseurs?.contact);
-
-      if (tel) supplier.telephones.add(tel);
-      if (contact) supplier.contacts.add(contact);
+      index.set(ref, {
+        reference: ref,
+        nom_court: nomCourt,
+        designation_produit: designation,
+        categorie: categorie,
+        type_unite: typeUnite,
+        colisage: colisage,
+        prix_unitaire_ht: prixUnitaire,
+        prix_colis: prixColis,
+        actif: actif,
+        fournisseur_nom: fournisseurNom,
+        fournisseurs: fournisseurRow || null
+      });
     });
 
-    return Array.from(supplierMap.values())
-      .map(row => ({
-        nom: row.nom,
-        fournisseur_id: row.fournisseur_id,
-        ordre: row.ordre,
-        montant: row.montant,
-        total_quantite: row.total_quantite,
-        nb_lignes: row.nb_lignes,
-        telephones: Array.from(row.telephones),
-        contacts: Array.from(row.contacts)
+    return index;
+  }
+
+  function cfDataBuildFournisseursIndex(fournisseursRows) {
+    const index = new Map();
+
+    if (!Array.isArray(fournisseursRows)) {
+      return index;
+    }
+
+    fournisseursRows.forEach(row => {
+      const nom = cfDataStr(row.nom);
+      if (!nom) return;
+
+      const telephone = cfDataStr(row.telephone || '');
+      const contact = cfDataStr(row.contact || '');
+      const jourSaison = cfDataStr(row.jour_appel_saison || '');
+      const jourHorsSaison = cfDataStr(row.jour_appel_hors_saison || '');
+      const notes = cfDataStr(row.notes || '');
+      const ordre = cfDataNum(row.ordre);
+      const actif = !!row.actif;
+
+      index.set(nom, {
+        nom: nom,
+        telephone: telephone,
+        contact: contact,
+        jour_appel_saison: jourSaison,
+        jour_appel_hors_saison: jourHorsSaison,
+        notes: notes,
+        ordre: ordre,
+        actif: actif
+      });
+    });
+
+    return index;
+  }
+
+  function cfDataBuildQuantitiesMap(commandesRows, etab, produitsIndex) {
+    const map = new Map();
+
+    if (!Array.isArray(commandesRows)) {
+      return map;
+    }
+
+    commandesRows.forEach(row => {
+      const etabRow = cfDataStr(row.etablissement);
+      const ref = cfDataStr(row.reference);
+      const qty = cfDataNum(row.quantite);
+
+      if (etabRow !== etab) return;
+      if (!ref) return;
+
+      const produit = produitsIndex.get(ref);
+      if (!produit) return;
+
+      map.set(ref, (map.get(ref) || 0) + qty);
+    });
+
+    return map;
+  }
+
+  function cfDataBuildSupplierDataModel(snapshot) {
+    const produitsRows = snapshot?.tables?.produits || [];
+    const fournisseursRows = snapshot?.tables?.fournisseurs || [];
+    const commandesRows = snapshot?.tables?.commandes || [];
+
+    const produitsIndex = cfDataBuildProduitsIndex(produitsRows);
+    const fournisseursIndex = cfDataBuildFournisseursIndex(fournisseursRows);
+
+    const quantitiesA = cfDataBuildQuantitiesMap(commandesRows, 'A', produitsIndex);
+    const quantitiesB = cfDataBuildQuantitiesMap(commandesRows, 'B', produitsIndex);
+
+    const supplierAmounts = new Map();
+
+    quantitiesA.forEach((qty, ref) => {
+      const produit = produitsIndex.get(ref);
+      if (!produit) return;
+
+      const supplierName = produit.fournisseur_nom;
+      if (!supplierName) return;
+
+      const prixColis = produit.prix_colis || 0;
+      const amount = prixColis * qty;
+
+      supplierAmounts.set(
+        supplierName,
+        (supplierAmounts.get(supplierName) || 0) + amount
+      );
+    });
+
+    quantitiesB.forEach((qty, ref) => {
+      const produit = produitsIndex.get(ref);
+      if (!produit) return;
+
+      const supplierName = produit.fournisseur_nom;
+      if (!supplierName) return;
+
+      const prixColis = produit.prix_colis || 0;
+      const amount = prixColis * qty;
+
+      supplierAmounts.set(
+        supplierName,
+        (supplierAmounts.get(supplierName) || 0) + amount
+      );
+    });
+
+    const suppliers = Array.from(fournisseursIndex.values())
+      .filter(s => supplierAmounts.has(s.nom))
+      .map(s => ({
+        ...s,
+        montant: supplierAmounts.get(s.nom)
       }))
       .sort((a, b) => {
         if (a.ordre !== b.ordre) return a.ordre - b.ordre;
-        return a.nom.localeCompare(b.nom, 'fr', { sensitivity: 'base' });
+        return a.nom.localeCompare(b.nom);
       });
-  }
-
-  /**
-   * Retourne une structure complète de travail pour l'écran
-   * "Commandes fournisseurs".
-   *
-   * Cette fonction prépare :
-   * - les index produits ;
-   * - les quantités A/B ;
-   * - la liste fournisseurs.
-   *
-   * Elle ne fait toujours ni HTML, ni SMS, ni navigation.
-   */
-  function cfBuildSupplierDataModel(snapshot) {
-    cfDataAssertSnapshot(snapshot);
 
     return {
-      fetched_at: snapshot.fetched_at || null,
-      produits_index: cfBuildProduitsIndex(snapshot),
-      quantities_a: cfBuildQuantitiesMapForEtab(snapshot, 'A'),
-      quantities_b: cfBuildQuantitiesMapForEtab(snapshot, 'B'),
-      suppliers: cfBuildSupplierRows(snapshot)
+      produits_index: produitsIndex,
+      fournisseurs_index: fournisseursIndex,
+      quantities_a: quantitiesA,
+      quantities_b: quantitiesB,
+      suppliers: suppliers
     };
   }
 
-  // ------------------------------------------------------------
-  // Exposition globale
-  // ------------------------------------------------------------
-  global.cfGetActiveCommandeRows = cfGetActiveCommandeRows;
-  global.cfGetActiveCommandeRowsByEtab = cfGetActiveCommandeRowsByEtab;
-  global.cfBuildQuantitiesMapForEtab = cfBuildQuantitiesMapForEtab;
-  global.cfBuildSupplierRows = cfBuildSupplierRows;
-  global.cfBuildSupplierDataModel = cfBuildSupplierDataModel;
+  global.cfBuildSupplierDataModel = cfDataBuildSupplierDataModel;
 
 })(window);
