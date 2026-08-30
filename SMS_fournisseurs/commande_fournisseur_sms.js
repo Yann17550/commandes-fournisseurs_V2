@@ -75,30 +75,30 @@
 
   function cfSmsBuildLinesForEtab(supplierName, quantitiesMap, produitsIndex) {
     const rows = [];
-
+  
     quantitiesMap.forEach((qty, key) => {
       if (Number(qty) <= 0) return;
-
+  
       const produitRow = produitsIndex.get(key);
       if (!produitRow) return;
-
+  
       const fournisseurNom = cfSmsStr(
         produitRow?.fournisseurs?.nom ||
         produitRow?.fournisseur_nom ||
         produitRow?.fournisseur
       );
-
+  
       if (fournisseurNom !== supplierName) return;
-
+  
       const typeUnite = cfSmsStr(produitRow?.type_unite || '');
       const nomCourt = cfSmsStr(produitRow?.nom_court || '');
       const reference = cfSmsStr(produitRow?.reference || '');
-
-      const typePart = typeUnite ? ` ${typeUnite}` : '';
-
-      rows.push(`${qty}${typePart} ${nomCourt} - Ref: ${reference}`);
+  
+      const typePart = typeUnite ? `${typeUnite} ` : '';
+  
+      rows.push(`${qty} ${typePart}${nomCourt} - Ref: ${reference}`);
     });
-
+  
     return rows;
   }
 
