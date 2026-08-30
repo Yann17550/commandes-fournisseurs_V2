@@ -1,51 +1,53 @@
 // ============================================================
 //  SMS_FOURNISSEURS / COMMANDE_FOURNISSEUR_SMS
 //  ------------------------------------------------------------
-//  Rôle de ce fichier :
-//  - construire le texte SMS pour un fournisseur donné ;
-//  - afficher l'écran de détail SMS (boutons Copier / SMS) ;
-//  - transmettre les données au module d'envoi.
+//  Ce fichier gère la construction et l'affichage du SMS
+//  pour le fournisseur sélectionné.
 //
-//  IMPORTANT
-//  - Aucun accès direct à Supabase ici.
-//  - Aucun envoi SMS ici.
-//  - Aucun couplage avec loadData() / loadDataCore() ici.
+//  Responsabilités :
+//  - construire le texte du SMS ;
+//  - afficher la vue détail du fournisseur ;
+//  - proposer les actions Copier / SMS ;
+//  - déléguer l'ouverture de l'application SMS au module send.
 //
-//  Format SMS attendu (métier) :
-//  - destinataire : prénom du contact (fournisseur.contact) ;
-//  - date de livraison prévue ;
-//  - lignes par établissement :
-//      quantité + type_unite + nom_court + " - Ref: " + reference
-//  - fin : remerciement et salutation.
-//
-//  Entrée attendue :
-//  {
-//    supplierName,
-//    snapshot,
-//    model,
-//    onBack
-//  }
+//  Ce fichier ne doit jamais :
+//  - interroger Supabase directement ;
+//  - recalculer toute la liste fournisseur ;
+//  - envoyer automatiquement le SMS.
 // ============================================================
 
 (function attachCommandeFournisseurSmsModule(global) {
   'use strict';
 
-  // ------------------------------------------------------------
-  //  Helpers internes
-  // ------------------------------------------------------------
+  /**
+   * Accès DOM aligné sur le fonctionnement actuel du projet.
+   */
+  function cfSmsGetEl(id) {
+    if (typeof $ === 'function') return $(id);
+    return document.getElementById(id);
+  }
+
+  /**
+   * Racine de rendu de l'écran fournisseur.
+   */
   function cfSmsGetListRoot() {
-    return global.$ ? global.$('supplierOrdersList') : null;
+    return cfSmsGetEl('supplierOrdersList');
   }
 
+  /**
+   * Dépendances minimales.
+   * Ici, pas besoin de window.$ obligatoire.
+   */
   function cfSmsMustHaveDependencies() {
-    if (typeof global.$ !== 'function') {
-      throw new Error('Helper DOM $ introuvable');
-    }
+    // Pas de dépendance bloquante supplémentaire ici.
   }
 
+  /**
+   * Echappement HTML.
+   */
   function cfSmsEsc(value) {
-    if (typeof global.escHtml === 'function') {
-      return global.escHtml(value);
+    if (typeof escHtml === 'function') {
+      return escHtml(value);
     }
 
     return String(value || '')
@@ -56,24 +58,27 @@
       .replace(/'/g, '&#39;');
   }
 
+  /**
+   * Affichage toast si disponible.
+   */
   function cfSmsShowToast(message) {
-    if (typeof global.showToast === 'function') {
-      global.showToast(message);
+    if (typeof showToast === 'function') {
+      showToast(message);
     }
   }
 
+  /**
+   * Nettoyage chaîne.
+   */
   function cfSmsStr(value) {
     return String(value || '').trim();
   }
 
-  function cfSmsNum(value) {
-    const n = Number(value);
-    return Number.isFinite(n) ? n : 0;
-  }
-
-  // ------------------------------------------------------------
-  //  Construction du message SMS
-  // ------------------------------------------------------------
+  /**
+   * Extrait le prénom du contact fournisseur.
+   * Exemple :
+   *   "Jean Dupont" -> "Jean"
+   */
   function cfSmsGetContactFirstName(contactRaw) {
     const contact = cfSmsStr(contactRaw);
     if (!contact) return '';
@@ -82,23 +87,37 @@
     return parts[0] || '';
   }
 
+  /**
+   * Construit une date de livraison lisible en français.
+   *
+   * IMPORTANT :
+   * Ici, on reste volontairement simple tant qu'aucune règle métier
+   * plus précise n'a été fixée pour la livraison.
+   */
   function cfSmsGetExpectedDeliveryDate() {
     const now = new Date();
 
-    const options = {
+    return now.toLocaleDateString('fr-FR', {
       weekday: 'long',
       day: 'numeric',
       month: 'long'
-    };
-
-    return now.toLocaleDateString('fr-FR', options);
+    });
   }
 
-  function cfSmsBuildLinesForEtab(supplierName, quantitiesMap, produitsIndex, etabLabel) {
-    const lines = [];
+  /**
+   * Construit les lignes SMS d'un établissement à partir :
+   * - du fournisseur ciblé ;
+   * - d'une map quantités ;
+   * - de l'index produits.
+   *
+   * Format ligne :
+   *   quantité + type_unite + nom_court + " - Ref: " + reference
+   */
+  function cfSmsBuildLinesForEtab(supplierName, quantitiesMap, produitsIndex) {
+    const rows = [];
 
     quantitiesMap.forEach((qty, key) => {
-      if (qty <= 0) return;
+      if (Number(qty) <= 0) return;
 
       const produitRow = produitsIndex.get(key);
       if (!produitRow) return;
@@ -117,29 +136,28 @@
 
       const typePart = typeUnite ? ` ${typeUnite}` : '';
 
-      lines.push(
-        `${qty}${typePart} ${nomCourt} - Ref: ${reference}`
-      );
+      rows.push(`${qty}${typePart} ${nomCourt} - Ref: ${reference}`);
     });
 
-    return lines;
+    return rows;
   }
 
+  /**
+   * Construit le texte complet du SMS pour le fournisseur demandé.
+   */
   function cfSmsBuildSmsText(supplierName, model) {
     const produitsIndex = model?.produits_index || new Map();
     const quantitiesA = model?.quantities_a || new Map();
     const quantitiesB = model?.quantities_b || new Map();
 
-    const supplierRow = (model?.suppliers || []).find(
-      s => s.nom === supplierName
-    );
+    const supplierRow = (model?.suppliers || []).find(s => s.nom === supplierName);
 
     const contact = supplierRow?.contacts?.[0] || '';
     const firstName = cfSmsGetContactFirstName(contact);
     const deliveryDate = cfSmsGetExpectedDeliveryDate();
 
-    const linesA = cfSmsBuildLinesForEtab(supplierName, quantitiesA, produitsIndex, 'A');
-    const linesB = cfSmsBuildLinesForEtab(supplierName, quantitiesB, produitsIndex, 'B');
+    const linesA = cfSmsBuildLinesForEtab(supplierName, quantitiesA, produitsIndex);
+    const linesB = cfSmsBuildLinesForEtab(supplierName, quantitiesB, produitsIndex);
 
     let out = `Bonjour ${firstName},\n`;
 
@@ -164,18 +182,25 @@
     return out.trim();
   }
 
+  /**
+   * Renvoie le premier téléphone connu du fournisseur.
+   */
   function cfSmsGetSupplierPhone(supplierName, model) {
-    const supplierRow = (model?.suppliers || []).find(
-      s => s.nom === supplierName
-    );
-
-    const tel = supplierRow?.telephones?.[0] || '';
-    return cfSmsStr(tel);
+    const supplierRow = (model?.suppliers || []).find(s => s.nom === supplierName);
+    return cfSmsStr(supplierRow?.telephones?.[0] || '');
   }
 
-  // ------------------------------------------------------------
-  //  Rendu écran SMS
-  // ------------------------------------------------------------
+  /**
+   * Rend la vue SMS du fournisseur sélectionné.
+   *
+   * Payload attendu :
+   * {
+   *   supplierName,
+   *   snapshot,
+   *   model,
+   *   onBack
+   * }
+   */
   function cfRenderSupplierSmsView(payload) {
     cfSmsMustHaveDependencies();
 
@@ -210,9 +235,9 @@
       </div>
     `;
 
-    const backBtn = global.$('backToSupplierOrdersListBtn');
-    const copyBtn = global.$('copySupplierSmsBtn');
-    const sendBtn = global.$('sendSupplierSmsBtn');
+    const backBtn = cfSmsGetEl('backToSupplierOrdersListBtn');
+    const copyBtn = cfSmsGetEl('copySupplierSmsBtn');
+    const sendBtn = cfSmsGetEl('sendSupplierSmsBtn');
 
     if (backBtn) {
       backBtn.addEventListener('click', () => {
@@ -253,9 +278,9 @@
     }
   }
 
-  // ------------------------------------------------------------
-  //  Exposition globale
-  // ------------------------------------------------------------
+  // ----------------------------------------------------------
+  //  API globale du module
+  // ----------------------------------------------------------
   global.cfRenderSupplierSmsView = cfRenderSupplierSmsView;
 
 })(window);
