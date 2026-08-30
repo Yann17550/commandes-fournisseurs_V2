@@ -95,12 +95,6 @@
       const reference = cfSmsStr(produitRow?.reference || '');
   
       const typePart = typeUnite ? `${typeUnite} ` : '';
-
-      
-      console.log('produitRow', produitRow);
-      console.log('type_unite', produitRow?.type_unite);
-
-
       
       rows.push(`${qty} ${typePart}${nomCourt} - Ref: ${reference}`);
     });
