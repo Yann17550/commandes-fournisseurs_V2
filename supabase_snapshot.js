@@ -1,54 +1,64 @@
 // ============================================================
 //  SUPABASE SNAPSHOT
-//  Lecture brute de l'état Supabase à l'instant T
 //  ------------------------------------------------------------
-//  Rôle de ce fichier :
-//  - interroger directement Supabase ;
-//  - lire les tables nécessaires à l'application ;
-//  - retourner un objet snapshot brut, sans traitement métier ;
-//  - ne pas dépendre de state, de render, ni d'autres modules UI.
+//  Ce fichier a une seule responsabilité :
+//  récupérer l'état brut de Supabase à l'instant T.
 //
-//  IMPORTANT
-//  - Aucun calcul métier ici.
-//  - Aucun regroupement fournisseur ici.
-//  - Aucun filtrage de type "quantite > 0" ici.
-//  - Aucune normalisation "front" ici.
-//  - Aucune mise à jour de state ici.
+//  Il ne doit jamais :
+//  - filtrer les commandes ;
+//  - calculer des montants ;
+//  - regrouper par fournisseur ;
+//  - transformer les lignes pour le front ;
+//  - écrire dans state ;
+//  - appeler render().
 //
-//  Dépendance attendue : window.supabaseClient
+//  Il est volontairement réutilisable par d'autres fonctionnalités
+//  de l'application, au-delà de "Commandes fournisseurs".
 // ============================================================
 
 (function attachSupabaseSnapshotModule(global) {
   'use strict';
 
   /**
-   * Vérifie la disponibilité du client Supabase global.
+   * Retourne le client Supabase déjà déclaré dans config.js.
+   *
+   * IMPORTANT :
+   * Dans ce projet, le client est défini ainsi :
+   *   const supabaseClient = window.supabase.createClient(...)
+   *
+   * On utilise donc directement l'identifiant global "supabaseClient",
+   * sans supposer qu'il existe sous "window.supabaseClient".
    */
   function sbSnapshotGetClient() {
-    const client = global.supabaseClient;
-
-    if (!client) {
-      throw new Error('window.supabaseClient est introuvable');
+    if (typeof supabaseClient === 'undefined' || !supabaseClient) {
+      throw new Error('supabaseClient est introuvable');
     }
 
-    return client;
+    return supabaseClient;
   }
 
   /**
-   * Horodatage ISO du snapshot.
+   * Renvoie l'horodatage ISO du snapshot.
+   * Cet horodatage représente le moment exact de la lecture.
    */
   function sbSnapshotNowIso() {
     return new Date().toISOString();
   }
 
   /**
-   * Exécute une lecture brute de table Supabase.
+   * Exécute une requête Supabase et retourne un objet normalisé
+   * minimal contenant seulement :
+   * - data
+   * - error
    *
-   * @param {object} query - Requête Supabase déjà construite.
-   * @returns {Promise<{ data: any[]|null, error: object|null }>}
+   * IMPORTANT :
+   * Ce n'est pas un traitement métier.
+   * C'est seulement un emballage technique minimal pour homogénéiser
+   * les retours de lecture.
    */
   async function sbSnapshotRun(query) {
     const { data, error } = await query;
+
     return {
       data: data || null,
       error: error || null
@@ -56,12 +66,10 @@
   }
 
   /**
-   * Lit la table produits avec la relation fournisseurs.
+   * Lit la table "produits" avec sa relation "fournisseurs".
    *
-   * IMPORTANT :
-   * - aucune transformation ;
-   * - on récupère brut ce que Supabase renvoie ;
-   * - pas de mapping vers la structure front.
+   * Aucune transformation n'est faite ici :
+   * on récupère seulement les colonnes brutes nécessaires à l'application.
    */
   async function sbSnapshotFetchProduits() {
     const client = sbSnapshotGetClient();
@@ -100,10 +108,11 @@
   }
 
   /**
-   * Lit la table fournisseurs.
+   * Lit la table "fournisseurs".
    *
-   * On récupère toutes les colonnes actuellement utiles au périmètre connu.
-   * Aucun tri métier n'est appliqué ici.
+   * Même si certaines colonnes existent déjà via la relation imbriquée
+   * de "produits", on garde cette lecture brute séparée pour avoir
+   * une image complète et indépendante de la table.
    */
   async function sbSnapshotFetchFournisseurs() {
     const client = sbSnapshotGetClient();
@@ -126,12 +135,14 @@
   }
 
   /**
-   * Lit la table commandes sans filtrage métier.
+   * Lit la table "commandes" telle qu'elle existe au moment de la lecture.
    *
-   * On remonte l'état brut des commandes à l'instant T :
-   * - y compris les quantités nulles si elles existent en base ;
-   * - tous les établissements présents ;
-   * - sans réduction, sans agrégation.
+   * IMPORTANT :
+   * - aucune exclusion des quantités nulles ;
+   * - aucun filtrage par établissement ;
+   * - aucun filtrage fonctionnel.
+   *
+   * On retourne la photographie brute de l'état courant.
    */
   async function sbSnapshotFetchCommandes() {
     const client = sbSnapshotGetClient();
@@ -153,10 +164,11 @@
   }
 
   /**
-   * Lit la table commandes_historique sans filtrage métier.
+   * Lit la table "commandes_historique" sans filtre.
    *
-   * Cette lecture brute permet une réutilisation future pour
-   * d'autres écrans ou traitements sans devoir refaire le backend.
+   * Cette table n'est peut-être pas utilisée immédiatement par le module
+   * SMS fournisseurs, mais elle fait partie du snapshot global voulu,
+   * justement pour une réutilisation future.
    */
   async function sbSnapshotFetchCommandesHistorique() {
     const client = sbSnapshotGetClient();
@@ -180,15 +192,30 @@
   }
 
   /**
-   * Construit le snapshot brut global.
+   * Exécute toutes les lectures Supabase en parallèle et retourne
+   * un snapshot global brut.
    *
-   * Structure :
-   * - fetched_at : date/heure de la capture ;
-   * - ok : booléen global ;
-   * - tables : résultats bruts par table ;
-   * - errors : erreurs brutes par table ;
+   * Structure retournée :
+   * {
+   *   fetched_at,
+   *   ok,
+   *   tables: {
+   *     produits,
+   *     fournisseurs,
+   *     commandes,
+   *     commandes_historique
+   *   },
+   *   errors: {
+   *     produits,
+   *     fournisseurs,
+   *     commandes,
+   *     commandes_historique
+   *   }
+   * }
    *
-   * Aucun traitement métier n'est appliqué.
+   * IMPORTANT :
+   * "ok" indique seulement si toutes les lectures se sont bien passées.
+   * Ce n'est pas une validation métier.
    */
   async function sbSnapshotLoadNow() {
     const fetched_at = sbSnapshotNowIso();
@@ -205,7 +232,7 @@
       sbSnapshotFetchCommandesHistorique()
     ]);
 
-    const snapshot = {
+    return {
       fetched_at,
       ok: !(
         produitsResult.error ||
@@ -226,15 +253,14 @@
         commandes_historique: commandesHistoriqueResult.error
       }
     };
-
-    return snapshot;
   }
 
   /**
-   * Version stricte :
-   * lève une erreur si au moins une lecture Supabase échoue.
+   * Variante stricte du snapshot.
    *
-   * Utile si l'écran appelant veut stopper immédiatement le flux.
+   * Si au moins une lecture échoue, on lève une erreur explicite.
+   * C'est utile pour les écrans qui doivent s'arrêter immédiatement
+   * en cas de lecture incomplète.
    */
   async function sbSnapshotLoadNowStrict() {
     const snapshot = await sbSnapshotLoadNow();
@@ -267,12 +293,9 @@
     return snapshot;
   }
 
-  /**
-   * Exposition globale volontairement simple.
-   *
-   * Exemple d'usage futur :
-   *   const snapshot = await window.sbSnapshotLoadNowStrict();
-   */
+  // ----------------------------------------------------------
+  //  API globale exposée au reste de l'application
+  // ----------------------------------------------------------
   global.sbSnapshotLoadNow = sbSnapshotLoadNow;
   global.sbSnapshotLoadNowStrict = sbSnapshotLoadNowStrict;
 
