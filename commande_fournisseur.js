@@ -2,6 +2,32 @@
 //  COMMANDE FOURNISSEUR
 // ============================================================
 
+/**
+ * Garantit que le catalogue produits + fournisseurs est disponible.
+ * Cette vue peut être ouverte depuis l'écran d'accueil sans passer
+ * par le chargement principal de l'application.
+ */
+async function ensureSupplierOrdersCatalogLoaded() {
+  const hasProduits = Array.isArray(state.produits) && state.produits.length > 0;
+  const hasFournisseurs =
+    state.fournisseurs &&
+    typeof state.fournisseurs === 'object' &&
+    Object.keys(state.fournisseurs).length > 0;
+
+  if (hasProduits && hasFournisseurs) return;
+
+  if (typeof loadCatalogueRemote !== 'function') {
+    throw new Error('loadCatalogueRemote est introuvable');
+  }
+
+  await loadCatalogueRemote();
+}
+
+/**
+ * Écran d'accueil des commandes fournisseurs.
+ * Charge le catalogue si nécessaire, puis lit les commandes A et B
+ * directement depuis Supabase afin de construire la vue autonome.
+ */
 async function renderSupplierOrdersHome() {
   const supplierOrdersList = $('supplierOrdersList');
   if (!supplierOrdersList) return;
@@ -9,6 +35,8 @@ async function renderSupplierOrdersHome() {
   supplierOrdersList.innerHTML = `<p class="etab-sub">Chargement...</p>`;
 
   try {
+    await ensureSupplierOrdersCatalogLoaded();
+
     const savedA = await loadCommandeRemoteById('a');
     const savedB = await loadCommandeRemoteById('b');
 
@@ -41,7 +69,6 @@ async function renderSupplierOrdersHome() {
         renderSupplierSmsView(btn.dataset.supplier, savedA || {}, savedB || {});
       });
     });
-
   } catch (err) {
     supplierOrdersList.innerHTML = `
       <p class="etab-sub">Erreur de chargement.</p>
@@ -50,6 +77,10 @@ async function renderSupplierOrdersHome() {
   }
 }
 
+/**
+ * Agrège les montants par fournisseur à partir des commandes
+ * des établissements A et B.
+ */
 function getSupplierRows(savedA, savedB) {
   const map = new Map();
 
@@ -88,6 +119,9 @@ function getSupplierRows(savedA, savedB) {
   });
 }
 
+/**
+ * Affiche le détail SMS pour un fournisseur donné.
+ */
 function renderSupplierSmsView(supplierName, savedA, savedB) {
   const supplierOrdersList = $('supplierOrdersList');
   if (!supplierOrdersList) return;
@@ -127,6 +161,9 @@ function renderSupplierSmsView(supplierName, savedA, savedB) {
   });
 }
 
+/**
+ * Construit le texte SMS complet pour un fournisseur.
+ */
 function buildSupplierSmsText(supplierName, savedA, savedB) {
   const contact = getSupplierContactName(supplierName);
   const linesA = getSupplierSmsLinesForEtab(supplierName, savedA);
@@ -149,6 +186,9 @@ function buildSupplierSmsText(supplierName, savedA, savedB) {
   return out.trim();
 }
 
+/**
+ * Construit les lignes SMS pour un établissement donné.
+ */
 function getSupplierSmsLinesForEtab(supplierName, quantities) {
   const rows = [];
 
@@ -170,6 +210,9 @@ function getSupplierSmsLinesForEtab(supplierName, quantities) {
   return rows;
 }
 
+/**
+ * Renvoie le prénom du contact fournisseur si disponible.
+ */
 function getSupplierContactName(supplierName) {
   const f = (state.fournisseurs || {})[supplierName];
   const contact = f && f.contact ? String(f.contact).trim() : '';
@@ -179,6 +222,9 @@ function getSupplierContactName(supplierName) {
   return contact.split(/\s+/)[0];
 }
 
+/**
+ * Renvoie le téléphone du fournisseur si disponible.
+ */
 function getSupplierPhone(supplierName) {
   const f = (state.fournisseurs || {})[supplierName];
   return f && f.telephone ? String(f.telephone).trim() : '';
